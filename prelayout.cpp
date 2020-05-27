@@ -47,8 +47,15 @@ struct polygon {
             cout << "   ";p.print();
         }
     }
+
+    polygon rotate(D degree) {
+        polygon poly;
+        poly.n = n;
+        for(auto p : vertex)
+            poly.vertex.push_back(p.rotate(degree));
+        return poly;
+    }
 };
- 
 vector<polygon> read() {
     int n; cin >> n;
     vector<polygon> polygons(n);
@@ -61,11 +68,26 @@ vector<polygon> read() {
 
     return polygons;
 }
-//====================================================
-
-
-
 int main() {
     vector<polygon> p = read();
+    polygon x = p[ 1 ].rotate(270);
+    x.print();
     return 0;
 }
+
+/*
+5
+2
+1 1
+1 2
+3
+1 2 
+2 4
+5 3
+1
+1 5
+1 
+4 5
+1
+4 8
+*/
