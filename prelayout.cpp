@@ -55,7 +55,34 @@ struct polygon {
             poly.vertex.push_back(p.rotate(degree));
         return poly;
     }
+    D areaPolygon() {
+        
+    }
 };
+
+D enclosingRectangleArea(polygon poly) {
+    D x1 = 4e18, x2 = -4e18, y1 = 4e18, y2 = -4e18;
+    for(auto &p : poly.vertex) {
+        x1 = min(x1, p.x); x2 = max(x2, p.x);
+            y1 = min(y1, p.y); y2 = max(y2, p.y);
+    }
+    return abs(x2 - x1) * abs(y2 - y1);
+}
+
+vector<polygon> orient(vector<polygon> polygons) {
+    for(auto &p : polygons) {
+
+        vector<pair<D,D>> vec;
+        vec.push_back({enclosingRectangleArea(p), 0});
+        vec.push_back({enclosingRectangleArea(p.rotate(90)), 90});
+        vec.push_back({enclosingRectangleArea(p.rotate(180)), 180});
+        vec.push_back({enclosingRectangleArea(p.rotate(270)), 270});
+        
+        sort(vec.begin(), vec.end());
+        p = p.rotate(vec[ 0 ].second);
+    }
+    return polygons;
+}
 vector<polygon> read() {
     int n; cin >> n;
     vector<polygon> polygons(n);
@@ -70,8 +97,12 @@ vector<polygon> read() {
 }
 int main() {
     vector<polygon> p = read();
-    polygon x = p[ 1 ].rotate(270);
-    x.print();
+    p = orient(p);
+    cout << "after orientation: " << endl;
+    for(int i = 0; i < p.size(); i += 1) {
+        cout << "Polygon[" << i << "]\n";
+        p[ i ].print(); cout << endl;
+    }
     return 0;
 }
 
