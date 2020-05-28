@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "io.hpp"
+#include "geometry.hpp"
 
 void io::testFunction()
 {
