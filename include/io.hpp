@@ -1,0 +1,5 @@
+
+namespace io
+{
+void testFunction();
+};
