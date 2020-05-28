@@ -1,15 +1,36 @@
+#include <bits/stdc++.h>
 
+using namespace std;
 
-namespace geo
-{
-struct point
-{
-    /* data */
+vector<double> rotations({0, 90, 180, 270});
+
+struct point {
+    double x, y;
+
+    point();
+    point(double, double);
+    void read();
+    void print();
+    double det(point);
+    point operator + (point);
+    point operator - (point);
+    point operator * (double);
+    point operator / (double);
+    point rotate(double degree);
 };
 
-struct polygon
-{
-    /* data */
+
+struct polygon {
+    int n;
+    vector<point> v;
+
+    void read();
+    void print();
+    double area();
+    polygon rotate(double);
 };
 
-}; // namespace geo
+
+tuple<int, int> minRectangleEnclosure(polygon);
+tuple<int, int> orient(polygon&);
+vector<polygon> sort(vector<polygon>&); 
