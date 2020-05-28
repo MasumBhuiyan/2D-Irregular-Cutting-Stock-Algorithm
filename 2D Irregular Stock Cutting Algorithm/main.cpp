@@ -6,11 +6,12 @@
 
 using namespace std;
 
-int main() {
+int main()
+{
     vector<polygon> v = read();
     sort(v);
 
-    for(auto x : v)
+    for (auto x : v)
         x.print();
     return 0;
 }
