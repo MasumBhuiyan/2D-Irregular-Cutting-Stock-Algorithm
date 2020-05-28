@@ -3,7 +3,7 @@
 * Install ![cmake](https://img.shields.io/badge/CMake-V%203.10%2B-blue) if not installed.
 * Open terminal and go to the target folder.
 * Run the following commands <br>
-	`mkdir build` <br>
+  > `mkdir build` <br>
     `cd build` <br>
     `cmake ..`<br>
     `make`<br>
