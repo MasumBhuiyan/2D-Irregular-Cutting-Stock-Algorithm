@@ -5,7 +5,7 @@
 
 void read_input_file_test()
 {
-    string filename = "io.txt";
+    string filename = "../tests/io.txt";
     double width = 0;
     vector<polygon> polygons = io::readInputFile(filename, width);
     ASSERT_EQUAL(width, 60.0);
