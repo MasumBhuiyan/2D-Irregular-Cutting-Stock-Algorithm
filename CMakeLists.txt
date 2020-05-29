@@ -27,3 +27,8 @@ target_include_directories(
     PUBLIC
     "${PROJECT_SOURCE_DIR}/include"
 )
+
+# Enable testing globally. Individual tests may be found in the `tests`
+# subdirectory of the repository.
+enable_testing()
+add_subdirectory(tests)
