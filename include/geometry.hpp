@@ -1,34 +1,20 @@
-#include <bits/stdc++.h>
+#ifndef GEOMETRY_HPP
+#define GEOMETRY_HPP
+
+#include <tuple>
+#include <vector>
+#include <cassert>
+#include <algorithm>
+
+#include "polygon.hpp"
 
 using namespace std;
 
-struct point {
-    double x, y;
-
-    point();
-    point(double, double);
-    void read();
-    void print();
-    double det(point);
-    point operator + (point);
-    point operator - (point);
-    point operator * (double);
-    point operator / (double);
-    point rotate(double degree);
-};
-
-
-struct polygon {
-    int n;
-    vector<point> v;
-
-    void read();
-    void print();
-    double area();
-    polygon rotate(double);
-};
-
-
+namespace geo
+{
 tuple<int, int> minRectangleEnclosure(polygon);
-tuple<int, int> orient(polygon&);
-vector<polygon> sort(vector<polygon>&); 
+tuple<int, int> orient(polygon &);
+vector<polygon> sort(vector<polygon> &);
+}; // namespace geo
+
+#endif // GEOMETRY_HPP

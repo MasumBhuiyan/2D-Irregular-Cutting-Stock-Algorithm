@@ -17,6 +17,8 @@ target_link_libraries(
     run
     PRIVATE
     io 
+    point 
+    polygon
     geometry 
     heuristics
     evaluation 
