@@ -2,8 +2,6 @@
 
 using namespace std;
 
-vector<double> rotations({0, 90, 180, 270});
-
 struct point {
     double x, y;
 

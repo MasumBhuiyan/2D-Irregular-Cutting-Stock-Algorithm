@@ -8,7 +8,7 @@ point::point(double _x, double _y) : x(_x), y(_y) {}
 
 
 void point::read() { cin >> x >> y; }
-void point::print() { cout << "(" << x << ", " << y << ")" << '\n'; }
+void point::print() { cout << setprecision(2) << fixed << "(" << x << ", " << y << ")" << '\n'; }
 
 
 
@@ -93,6 +93,7 @@ tuple<int, int> orient(polygon &a) {
 	assert(a.n > 0);
 	assert(a.n == a.v.size());
 
+	vector<double> rotations({0, 90, 180, 270});
 	vector<tuple<int, int, int, double>> vec;
 	for(auto deg : rotations) {
 		int x, y; tie(x, y) = minRectangleEnclosure(a.rotate(deg));
