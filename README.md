@@ -7,5 +7,5 @@
     `cd build` <br>
     `cmake ..`<br>
     `make`<br>
-* An executable file **(2D_Irregular_Cutting_Stock_Problem)** will be created.
-* Run command `./2D_Irregular_Cutting_Stock_Problem` to execute the program.
+* An executable file **(run)** will be created.
+* Run command `./run` to execute the program.
