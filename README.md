@@ -8,4 +8,4 @@
     `cmake ..`<br>
     `make`<br>
 * An executable file **(run)** will be created.
-* Run command `./2D_Irregular_Cutting_Stock_Problem` to execute the program.
+* Run command `./run` to execute the program.
