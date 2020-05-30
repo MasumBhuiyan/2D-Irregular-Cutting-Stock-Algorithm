@@ -40,7 +40,7 @@ function: FFD(vector &PIECES): returns initial cutting pattern
     - end
     - return CUTTING_PATTERN, WASTE
     
-function: PVC(vector CoveredArea, vector &PIECES)
+function: PCA(vector CoveredArea, vector &PIECES)
   
     - calculate material consumption rates, R = CoveredAreas / Areas
     - sort PIECES by value of R
@@ -56,7 +56,7 @@ function: PVC(vector CoveredArea, vector &PIECES)
     -             if V < V': V = V', X = x, Y = y, ID = ITEM.ID, A = r
     -         end for
     -     end for
-    -     add ITEM no ID in BINARY_STOCK at A rotation into piont (X, Y)
+    -     add ITEM no ID in BINARY_STOCK at A rotation into point (X, Y)
     -     PLACED.add(ID), NON_PLACED_ITEMS.erase(ID)
     - end while
 ```
