@@ -16,7 +16,7 @@ add_subdirectory(src)
 target_link_libraries(
     run
     PRIVATE
-    io Point Matrix Item 
+    io Point Matrix Item geometry
 )
 
 target_include_directories(
