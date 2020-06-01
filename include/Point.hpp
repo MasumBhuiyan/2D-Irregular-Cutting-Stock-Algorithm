@@ -8,19 +8,11 @@
 class Point
 {
 private:
-    /* data */
+public:
     double x, y;
 
-public:
     Point();
     Point(double, double);
-
-    // getter & setter
-    double getX();
-    void setX(double);
-
-    double getY();
-    void setY(double);
 
     // methods
     void read();

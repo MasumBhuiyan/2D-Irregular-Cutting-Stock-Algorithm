@@ -9,21 +9,14 @@ using namespace std;
 class Matrix
 {
 private:
-    /* data */
+public:
     int row, col;
     vector<vector<bool>> mat;
 
-public:
     Matrix(/* args */);
     ~Matrix();
 
-    // getter & setter
-    int getRow();
-    void setRow(int);
-
-    int getCol();
-    void setCol(int);
-
+    // methods
     vector<vector<bool>> getMat();
     void setMat(vector<vector<bool>>);
 };

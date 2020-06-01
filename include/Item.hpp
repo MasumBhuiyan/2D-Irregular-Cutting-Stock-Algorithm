@@ -12,24 +12,13 @@ using namespace std;
 class Item
 {
 private:
-    /* data */
+public:
     int numberOfVertices;
     vector<Point> vertices;
     Point pivotPoint;
 
-public:
     Item(/* args */);
     ~Item();
-
-    // getter & setters
-    int getNumberOfVertices();
-    void setNumberOfVertices(int);
-
-    vector<Point> getVertices();
-    void setVertices(vector<Point>);
-
-    Point getPivotPoint();
-    void setPivotPoint(Point);
 
     // methods
     void read();
