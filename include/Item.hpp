@@ -2,7 +2,9 @@
 #define ITEM_HPP
 
 #include <iostream>
+#include <fstream>
 #include <vector>
+#include <cassert>
 
 #include "Point.hpp"
 #include "Matrix.hpp"
@@ -17,15 +19,16 @@ public:
     vector<Point> vertices;
     Point pivotPoint;
 
-    Item(/* args */);
-    ~Item();
+    Item();
+    Item(int, vector<Point>);
 
     // methods
     void read();
+    void read(ifstream &);      // read from file pointer
     void print();               // prints the object in the console
     void visualize();           // show the polygon with graphics
     Item rotate(double, Point); // retruns the rotated polygon(Item) with respect to the Point
-    Point calculateCentroid();  // finds the centroid of the polygon(Item)
+    Point findCentroid();       // finds the centroid of the polygon(Item)
     Matrix rasterize();         // returns a binary matrix of the polygon(Item)
 };
 

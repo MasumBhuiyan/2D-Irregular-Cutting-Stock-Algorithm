@@ -13,12 +13,12 @@ public:
     int row, col;
     vector<vector<bool>> mat;
 
-    Matrix(/* args */);
+    Matrix();
+    Matrix(int, int);
     ~Matrix();
 
     // methods
-    vector<vector<bool>> getMat();
-    void setMat(vector<vector<bool>>);
+    pair<int, int> getDimention();
 };
 
 #endif // MATRIX_HPP

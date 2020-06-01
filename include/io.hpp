@@ -12,7 +12,7 @@ using namespace std;
 
 namespace io
 {
-vector<Item> readItemsFromInputFile(string, double &);
+vector<Item> readItemsFromInputFile(string, double &); // reads items from file
 };
 
 #endif // IO_HPP
