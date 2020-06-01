@@ -57,8 +57,20 @@ void Item::print()
 /** show the polygon with graphics */
 void Item::visualize() {}
 
-/** retruns the rotated polygon(Item) with respect to the Point p */
-Item Item::rotate(double angle, Point p) { return Item(); }
+/** 
+ * retruns the rotated polygon(Item) 
+ * by angle radian with respect to the Point p 
+*/
+Item Item::rotate(double angle, Point p)
+{
+    Item rotatedItem(numberOfVertices, vertices);
+    for (auto &vi : rotatedItem.vertices)
+    {
+        vi = vi.rotate(p, angle);
+    }
+    rotatedItem.findCentroid();
+    return rotatedItem;
+}
 
 /** finds the centroid of the polygon(Item) */
 Point Item::findCentroid() { return Point(0, 0); }
