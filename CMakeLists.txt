@@ -16,12 +16,7 @@ add_subdirectory(src)
 target_link_libraries(
     run
     PRIVATE
-    io 
-    point 
-    polygon
-    geometry 
-    heuristics
-    evaluation 
+    io Point Matrix Item 
 )
 
 target_include_directories(
