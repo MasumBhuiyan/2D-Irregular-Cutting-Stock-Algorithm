@@ -8,6 +8,7 @@
 
 #include "Point.hpp"
 #include "Matrix.hpp"
+#include "geometry.hpp"
 
 using namespace std;
 

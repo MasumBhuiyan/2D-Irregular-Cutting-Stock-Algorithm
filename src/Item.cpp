@@ -72,8 +72,32 @@ Item Item::rotate(double angle, Point p)
     return rotatedItem;
 }
 
-/** finds the centroid of the polygon(Item) */
-Point Item::findCentroid() { return Point(0, 0); }
+/** 
+ * finds the centroid/bary center of the polygon(Item) 
+ * returns Point
+*/
+Point Item::findCentroid()
+{
+    assert(numberOfVertices == vertices.size());
+    Point ret(0, 0);
+    double area = 0;
+    for (int i = 1; i < numberOfVertices - 1; i++)
+    {
+        double tmp = vec::cross(vertices[i] - vertices[0], vertices[i + 1] - vertices[0]);
+        if (geo::dcmp(tmp) == 0)
+        {
+            continue;
+        }
+        area += tmp;
+        ret.x += (vertices[0].x + vertices[i].x + vertices[i + 1].x) / 3.0 * tmp;
+        ret.y += (vertices[0].y + vertices[i].y + vertices[i + 1].y) / 3.0 * tmp;
+    }
+    if (geo::dcmp(area))
+    {
+        ret = ret / area;
+    }
+    return ret;
+}
 
 /** returns a binary matrix of the polygon(Item) */
 Matrix Item::rasterize() { return Matrix(2, 2); }

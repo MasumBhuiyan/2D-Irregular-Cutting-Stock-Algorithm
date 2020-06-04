@@ -6,8 +6,7 @@ add_library(Item ../include/Item.hpp Item.cpp)
 add_library(geometry ../include/geometry.hpp geometry.cpp)
 
 
-target_link_libraries(Item PRIVATE Point)
-target_link_libraries(Item PRIVATE Matrix)
+target_link_libraries(Item PRIVATE Point Matrix geometry)
 target_link_libraries(io PRIVATE Item)
 
 target_include_directories(io PUBLIC "${PROJECT_SOURCE_DIR}/include")
