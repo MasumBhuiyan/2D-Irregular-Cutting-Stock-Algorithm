@@ -1,8 +1,11 @@
+include_directories("${PROJECT_SOURCE_DIR}/tests/include")
+
+# test executables
 add_executable(demo_test demo_test.cpp)
-add_executable(read_items_from_input_file_test read_items_from_input_file_test.cpp)
-add_executable(rotate_item_test rotate_item_test.cpp)
-add_executable(find_centroid_of_item_test find_centroid_of_item_test.cpp)
-add_executable(calculate_item_area_test calculate_item_area_test.cpp)
+add_executable(read_items_from_input_file_test src/io/read_items_from_input_file_test.cpp)
+add_executable(rotate_item_test src/Item/rotate_item_test.cpp)
+add_executable(find_centroid_of_item_test src/Item/find_centroid_of_item_test.cpp)
+add_executable(calculate_item_area_test src/Item/calculate_item_area_test.cpp)
 
 # link libraries
 target_link_libraries(read_items_from_input_file_test PRIVATE io)

@@ -5,7 +5,7 @@
 
 void read_items_from_input_file_test()
 {
-    string filename = "../../tests/read_items_from_input_file_test_input.txt";
+    string filename = "../../tests/src/io/read_items_from_input_file_test_input.txt";
     double width = 0;
     vector<Item> items = io::readItemsFromInputFile(filename, width);
     ASSERT_EQUAL(width, 60.0);
