@@ -12,7 +12,11 @@ Item::Item(int n, vector<Point> v) : numberOfVertices(n)
     assert(v.size() == n);
     vertices = v;
     pivotPoint = findCentroid();
+    area = calculateArea();
 }
+
+/** operator overload */
+bool Item::operator<(Item i) const { return true; }
 
 /** methods */
 /** read from console */
@@ -70,6 +74,19 @@ Item Item::rotate(double angle, Point p)
     }
     rotatedItem.findCentroid();
     return rotatedItem;
+}
+
+/** 
+ * returns the area of the polygon 
+*/
+double Item::calculateArea()
+{
+    double area = 0;
+    for (int i = 0; i < numberOfVertices; i++)
+    {
+        area += vec::cross(vertices[i], vertices[(i + 1) % numberOfVertices]);
+    }
+    return fabs(area) / 2.0;
 }
 
 /** 
