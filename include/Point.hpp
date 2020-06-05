@@ -6,8 +6,6 @@
 #include <cmath>
 #include <fstream>
 
-using namespace std;
-
 class Point
 {
 private:
@@ -19,7 +17,7 @@ public:
 
     // methods
     void read();
-    void read(ifstream &);
+    void read(std::ifstream &);
     void print();
     double determinant(Point);
     Point operator+(Point);

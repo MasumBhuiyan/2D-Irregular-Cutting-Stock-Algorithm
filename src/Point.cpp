@@ -5,9 +5,9 @@ Point::Point() {}
 Point::Point(double _x, double _y) : x(_x), y(_y) {}
 
 /** methods */
-void Point::read() { cin >> x >> y; }
-void Point::read(ifstream &file) { file >> x >> y; }
-void Point::print() { cout << setprecision(2) << fixed << "(" << x << ", " << y << ")" << endl; }
+void Point::read() { std::cin >> x >> y; }
+void Point::read(std::ifstream &file) { file >> x >> y; }
+void Point::print() { std::cout << std::setprecision(2) << std::fixed << "(" << x << ", " << y << ")" << std::endl; }
 
 double Point::determinant(Point q) { return x * q.y - y * q.x; }
 Point Point::operator+(Point p) { return Point(p.x + x, p.y + y); }

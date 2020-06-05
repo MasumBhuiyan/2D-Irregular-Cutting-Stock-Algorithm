@@ -1,7 +1,7 @@
 #include "geometry.hpp"
 
 /** namespace geo */
-int geo ::dcmp(double x, double eps) // double compare
+int geo::dcmp(double x, double eps) // double compare
 {
     if (fabs(x) < eps)
         return 0; // for double
