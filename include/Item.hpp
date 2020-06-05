@@ -19,6 +19,7 @@ public:
     int numberOfVertices;
     vector<Point> vertices;
     Point pivotPoint;
+    double area;
 
     Item();
     Item(int, vector<Point>);
@@ -33,7 +34,7 @@ public:
     void visualize();           // show the polygon with graphics
     Item rotate(double, Point); // retruns the rotated polygon(Item) with respect to the Point
     Point findCentroid();       // finds the centroid of the polygon(Item)
-    double getArea();           // returns the area of the polygon
+    double calculateArea();     // returns the area of the polygon
     Matrix rasterize();         // returns a binary matrix of the polygon(Item)
 };
 
