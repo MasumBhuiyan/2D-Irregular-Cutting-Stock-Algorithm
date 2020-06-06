@@ -15,8 +15,14 @@ Item::Item(int n, vector<Point> v) : numberOfVertices(n)
     area = calculateArea();
 }
 
-/** operator overload */
-bool Item::operator<(Item i) const { return true; }
+/** 
+ * operator overload 
+ * sorts according to non-increasing order of area
+*/
+bool Item::operator<(Item i) const
+{
+    return (area >= i.area);
+}
 
 /** methods */
 /** read from console */
