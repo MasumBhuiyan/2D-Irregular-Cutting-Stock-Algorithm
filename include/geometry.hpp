@@ -37,7 +37,7 @@ namespace linear
 typedef std::vector<Point> Polygon;
 namespace polygonal
 {
-    bool isPointInsidePolygon(Point, Polygon &); // returns true if the Point is inside the Polygon
+    int isPointInsidePolygon(Point, Polygon &); // checks if the Point is inside the Polygon
 
 }; // namespace polygonal
 

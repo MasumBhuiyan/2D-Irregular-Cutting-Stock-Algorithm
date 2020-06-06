@@ -48,8 +48,11 @@ bool linear::isOnSegment(Point p, Point a, Point b)
 /**  namespace polygonal */
 /**
  * checks point is inside the polygon or not 
+ *  0  : if the point is on the borber
+ *  1  : strictly inside the polygon
+ * -1  : outside of the the polygon
 */
-bool polygonal::isPointInsidePolygon(Point point, Polygon &polygon)
+int polygonal::isPointInsidePolygon(Point point, Polygon &polygon)
 {
     int n = polygon.size();
     int windingNumber = 0;
@@ -72,5 +75,5 @@ bool polygonal::isPointInsidePolygon(Point point, Polygon &polygon)
             windingNumber--;
         }
     }
-    return windingNumber ? -1 : 1;
+    return windingNumber ? 1 : -1;
 }
