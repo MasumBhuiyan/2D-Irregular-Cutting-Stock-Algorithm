@@ -30,6 +30,7 @@ void Item::read()
         vi.read();
     }
     pivotPoint = findCentroid();
+    area = calculateArea();
 }
 
 /** read from file pointer */
@@ -43,6 +44,7 @@ void Item::read(ifstream &file)
         vi.read(file);
     }
     pivotPoint = findCentroid();
+    area = calculateArea();
 }
 
 /** prints the object in the console */
@@ -56,6 +58,7 @@ void Item::print()
     }
     cout << "pivot point: ";
     pivotPoint.print();
+    cout << "area " << fixed << setprecision(5) << area << endl;
 }
 
 /** show the polygon with graphics */
