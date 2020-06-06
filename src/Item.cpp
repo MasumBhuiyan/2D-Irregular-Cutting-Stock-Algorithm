@@ -1,5 +1,8 @@
 #include "Item.hpp"
 
+#define MAX_X 1e9
+#define MAX_Y 1e9
+
 /** auxiliary functions */
 /** number of vertices should be between 3 and 1000000 */
 void checkPolygonValidity(int numberOfVertices) { assert(numberOfVertices >= 3 and numberOfVertices <= 1e6); }
@@ -125,5 +128,50 @@ Point Item::findCentroid()
     return ret;
 }
 
+/**
+ * finds the minimum x and y among the points
+ * set new origin to (x, y)
+ * translate all the points to (x, y)
+*/
+void translateToNewOrigin(Polygon &points, double &max_x, double &max_y)
+{
+    double x = MAX_X;
+    double y = MAX_Y;
+    for (auto &point : points)
+    {
+        x = min(x, point.x);
+        y = min(y, point.y);
+    }
+    for (auto &point : points)
+    {
+        point.x -= x;
+        point.y -= y;
+        max_x = max(max_x, point.x);
+        max_y = max(max_y, point.y);
+    }
+}
+
+/**
+ * finds the [row, col] for the raster
+*/
+pair<int, int> getRasterMatrixDimension(Polygon &polygon)
+{
+    double max_x = -MAX_X;
+    double max_y = -MAX_Y;
+    translateToNewOrigin(polygon, max_x, max_y);
+    int row = ceil(max_x) + 2;
+    int col = ceil(max_y) + 2;
+    return {row, col};
+}
+
+void scanConvertLine(Matrix &matrix, Point a, Point b) {}
+
 /** returns a binary matrix of the polygon(Item) */
-Matrix Item::rasterize() { return Matrix(2, 2); }
+Matrix Item::rasterize()
+{
+    Polygon polygon = vertices;
+    pair<int, int> dimension = getRasterMatrixDimension(polygon);
+
+    Matrix matrix(dimension.first, dimension.second);
+    return matrix;
+}
