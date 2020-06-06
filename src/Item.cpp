@@ -167,64 +167,64 @@ pair<int, int> getRasterMatrixDimension(Polygon &polygon)
 /**
  * scan converts the line connecting point a, b
 */
-void scanConvertLine(Matrix &matrix, Point a, Point b) 
+void scanConvertLine(Matrix &matrix, Point a, Point b)
 {
-    // swap a, b if a.x > b.x so that always a.x <= b.x 
-    if( a.x > b.x )
+    // swap a, b if a.x > b.x so that always a.x <= b.x
+    if (a.x > b.x)
     {
         swap(a, b);
     }
 
-    //always x1 <= x2 
-    int x1 = (int)(a.x + 0.5),;
+    //always x1 <= x2
+    int x1 = (int)(a.x + 0.5), ;
     int x2 = (int)(b.x + 0.5);
     int y1 = (int)(a.y + 0.5);
-    int y2 =(int)(b.y + 0.5);
+    int y2 = (int)(b.y + 0.5);
     int dx = x2 - x1;
     int dy = y2 - y1;
 
     // m = 0 i.e. horizontal line
-    if( dy == 0 ) 
+    if (dy == 0)
     {
-        for(int x = x1, y = y1; x <= x2; x += 1) 
+        for (int x = x1, y = y1; x <= x2; x += 1)
         {
-            matrix[ x ][ y ] = 1;
+            matrix[x][y] = 1;
         }
     }
     // m = infinity i.e. vertical line
-    else if( dx == 0 ) 
+    else if (dx == 0)
     {
-        for(int y = y1, x = x1; y <= y2; y += 1)
+        for (int y = y1, x = x1; y <= y2; y += 1)
         {
-            matrix[ x ][ y ] = 1;
+            matrix[x][y] = 1;
         }
     }
     // 0 < m < 1 i.e. positive slope
-    else if( dy > 0 ) 
+    else if (dy > 0)
     {
         int eps = 0;
-        for(int x = x1, y = y1; x <= x2; x += 1) 
+        for (int x = x1, y = y1; x <= x2; x += 1)
         {
-            matrix[ x ][ y ] = 1;
+            matrix[x][y] = 1;
             eps += dy;
-            if( (eps << 1) >= dx ) 
+            if ((eps << 1) >= dx)
             {
-                y += 1; 
+                y += 1;
                 eps -= dx;
             }
         }
     }
     // m < 0 i.e. negative slope
-    else 
+    else
     {
         int eps = 0;
-        for(int x = x1, y = y1; x <= x2; x += 1) 
+        for (int x = x1, y = y1; x <= x2; x += 1)
         {
-            matrix[ x ][ y ] = 1;
+            matrix[x][y] = 1;
             eps += dy;
-            if( (eps << 1) <= -dx ) 
+            if ((eps << 1) <= -dx)
             {
-                y -= 1; 
+                y -= 1;
                 eps += dx;
             }
         }
@@ -238,9 +238,9 @@ Matrix Item::rasterize()
     pair<int, int> dimension = getRasterMatrixDimension(polygon);
 
     Matrix matrix(dimension.first, dimension.second);
-    for(int i = 0; i < numberOfVertices; i += 1)
+    for (int i = 0; i < numberOfVertices; i += 1)
     {
-        scanConvertLine(matrix, polygon[ i ], polygon[ (i + 1) % numberOfVertices ]);
+        scanConvertLine(matrix, polygon[i], polygon[(i + 1) % numberOfVertices]);
     }
 
     return matrix;
