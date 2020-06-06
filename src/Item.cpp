@@ -176,7 +176,7 @@ void scanConvertLine(Matrix &matrix, Point a, Point b)
     }
 
     //always x1 <= x2 
-    int x1 = (int)(a.x + 0.5),;
+    int x1 = (int)(a.x + 0.5);
     int x2 = (int)(b.x + 0.5);
     int y1 = (int)(a.y + 0.5);
     int y2 =(int)(b.y + 0.5);
@@ -188,7 +188,7 @@ void scanConvertLine(Matrix &matrix, Point a, Point b)
     {
         for(int x = x1, y = y1; x <= x2; x += 1) 
         {
-            matrix[ x ][ y ] = 1;
+            matrix.mat[ x ][ y ] = 1;
         }
     }
     // m = infinity i.e. vertical line
@@ -196,7 +196,7 @@ void scanConvertLine(Matrix &matrix, Point a, Point b)
     {
         for(int y = y1, x = x1; y <= y2; y += 1)
         {
-            matrix[ x ][ y ] = 1;
+            matrix.mat[ x ][ y ] = 1;
         }
     }
     // 0 < m < 1 i.e. positive slope
@@ -205,7 +205,7 @@ void scanConvertLine(Matrix &matrix, Point a, Point b)
         int eps = 0;
         for(int x = x1, y = y1; x <= x2; x += 1) 
         {
-            matrix[ x ][ y ] = 1;
+            matrix.mat[ x ][ y ] = 1;
             eps += dy;
             if( (eps << 1) >= dx ) 
             {
@@ -220,7 +220,7 @@ void scanConvertLine(Matrix &matrix, Point a, Point b)
         int eps = 0;
         for(int x = x1, y = y1; x <= x2; x += 1) 
         {
-            matrix[ x ][ y ] = 1;
+            matrix.mat[ x ][ y ] = 1;
             eps += dy;
             if( (eps << 1) <= -dx ) 
             {
@@ -243,5 +243,6 @@ Matrix Item::rasterize()
         scanConvertLine(matrix, polygon[ i ], polygon[ (i + 1) % numberOfVertices ]);
     }
 
+    
     return matrix;
 }
