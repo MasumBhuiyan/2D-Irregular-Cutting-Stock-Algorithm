@@ -2,7 +2,19 @@
 
 /** constructors */
 Matrix::Matrix() {}
-Matrix::Matrix(int r, int c) : row(r), col(c) { mat.resize(row, vector<bool>(col, false)); }
+Matrix::Matrix(int r, int c) : row(r), col(c)
+{
+    mat.resize(row, std::vector<bool>(col, false));
+}
 
 /** methods */
-pair<int, int> Matrix::getDimention() { return {row, col}; }
+/**
+ * returns {row, col}
+*/
+std::pair<int, int> Matrix::getDimention() { return {row, col}; }
+
+/**
+ * checks the provided matrix is intersecting or not 
+ * if it is placed in Point
+*/
+bool Matrix::isIntersecting(Point point, Matrix &matrix) { return false; }
