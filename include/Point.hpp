@@ -15,15 +15,24 @@ public:
     Point();
     Point(double, double);
 
+    // operator overloading
+    bool operator==(const Point &u) const;
+    bool operator!=(const Point &u) const;
+    bool operator<(const Point &u) const;
+    bool operator>(const Point &u) const;
+    bool operator<=(const Point &u) const;
+    bool operator>=(const Point &u) const;
+    Point operator+(const Point &u);
+    Point operator-(const Point &u);
+    Point operator*(const double u);
+    Point operator/(const double u);
+    double operator*(const Point &u);
+
     // methods
     void read();
     void read(std::ifstream &);
     void print();
     double determinant(Point);
-    Point operator+(Point);
-    Point operator-(Point);
-    Point operator*(double);
-    Point operator/(double);
     Point rotate(Point, double);
 };
 
