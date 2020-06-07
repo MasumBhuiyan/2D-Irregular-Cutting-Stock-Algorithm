@@ -1,11 +1,17 @@
 #include "rasterization.hpp"
 
 /**
+ * 4 connected directions
+*/
+int x_dir[] = {0, 0, 1, -1};
+int y_dir[] = {1, -1, 0, 0};
+
+/**
  * finds the minimum x and y among the points
  * set new origin to (x, y)
  * translate all the points to (x, y)
 */
-void raster::translateToNewOrigin(Polygon &points, double &max_x, double &max_y)
+void raster::translateToNewOrigin(Polygon &points, double &max_x, double &max_y, Point &seed)
 {
     double x = MAX_X;
     double y = MAX_Y;
@@ -21,16 +27,18 @@ void raster::translateToNewOrigin(Polygon &points, double &max_x, double &max_y)
         max_x = std::max(max_x, point.x);
         max_y = std::max(max_y, point.y);
     }
+    seed.x -= x;
+    seed.y -= y;
 }
 
 /**
  * finds the [row, col] for the raster
 */
-std::pair<int, int> raster::getRasterMatrixDimension(Polygon &polygon)
+std::pair<int, int> raster::getRasterMatrixDimension(Polygon &polygon, Point &seed)
 {
     double max_x = -MAX_X;
     double max_y = -MAX_Y;
-    translateToNewOrigin(polygon, max_x, max_y);
+    translateToNewOrigin(polygon, max_x, max_y, seed);
     int row = ceil(max_x) + 2;
     int col = ceil(max_y) + 2;
     return {row, col};
@@ -66,6 +74,10 @@ void raster::scanConvertLine(Matrix &matrix, Point a, Point b)
     // m = infinity i.e. vertical line
     else if (dx == 0)
     {
+        if( y1 > y2 )
+        {
+            std::swap(y1, y2);
+        }
         for (int y = y1, x = x1; y <= y2; y += 1)
         {
             matrix.mat[x][y] = 1;
@@ -101,4 +113,22 @@ void raster::scanConvertLine(Matrix &matrix, Point a, Point b)
             }
         }
     }
+}
+
+/**
+ * fills the inner region of the matrix bounded by the polygon 
+*/
+void raster::regionfill(Matrix &matrix, int x, int y) 
+{
+    matrix.mat[ x ][ y ] = 1;
+    for(int i = 0; i < 4; i += 1)
+    {
+        int _x = x + x_dir[ i ];
+        int _y = y + y_dir[ i ];
+
+        if( matrix.mat[ _x ][ _y ] == 0 )
+        {
+            regionfill(matrix, _x, _y);
+        }
+    }  
 }
