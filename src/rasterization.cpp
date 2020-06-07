@@ -128,7 +128,7 @@ void raster::regionfill(Matrix &matrix, int x, int y)
 
         if( matrix.mat[ _x ][ _y ] == 0 )
         {
-            regionfill(matrix, _x, _y);
+            raster::regionfill(matrix, _x, _y);
         }
     }  
 }
