@@ -11,7 +11,7 @@ Matrix::Matrix(int r, int c) : row(r), col(c)
 /**
  * returns {row, col}
 */
-std::pair<int, int> Matrix::getDimention() { return {row, col}; }
+std::pair<int, int> Matrix::getDimension() { return {row, col}; }
 
 /**
  * checks the provided matrix is intersecting or not 

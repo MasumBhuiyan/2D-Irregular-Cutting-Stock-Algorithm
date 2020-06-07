@@ -11,6 +11,7 @@ add_executable(translate_to_new_origin_test src/rasterization/translate_to_new_o
 add_executable(get_raster_matrix_dimension_test src/rasterization/get_raster_matrix_dimension_test.cpp)
 add_executable(scan_convert_line_test src/rasterization/scan_convert_line_test.cpp)
 add_executable(regionfill_test src/rasterization/regionfill_test.cpp)
+add_executable(rasterize_test src/Item/rasterize_test.cpp)
 
 # link libraries
 target_link_libraries(read_items_from_input_file_test PRIVATE io)
@@ -23,6 +24,7 @@ target_link_libraries(translate_to_new_origin_test PRIVATE Point rasterization)
 target_link_libraries(get_raster_matrix_dimension_test PRIVATE Point rasterization)
 target_link_libraries(scan_convert_line_test PRIVATE Point rasterization)
 target_link_libraries(regionfill_test PRIVATE Point rasterization)
+target_link_libraries(rasterize_test PRIVATE Point rasterization Matrix Item)
 
 add_test(read_items_from_input_file_test read_items_from_input_file_test)
 add_test(rotate_item_test rotate_item_test)
@@ -34,3 +36,4 @@ add_test(translate_to_new_origin_test translate_to_new_origin_test)
 add_test(get_raster_matrix_dimension_test get_raster_matrix_dimension_test)
 add_test(scan_convert_line_test scan_convert_line_test)
 add_test(regionfill_test regionfill_test)
+add_test(rasterize_test rasterize_test)
