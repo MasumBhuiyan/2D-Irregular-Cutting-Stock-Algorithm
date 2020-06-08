@@ -138,6 +138,6 @@ Matrix Item::rasterize()
     {
         raster::scanConvertLine(matrix, polygon[i], polygon[(i + 1) % numberOfVertices]);
     }
-    raster::regionfill(matrix, seed.x, seed.y);
+  //  raster::regionfill(matrix, seed.x, seed.y);
     return matrix;
 }

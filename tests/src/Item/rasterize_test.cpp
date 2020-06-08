@@ -24,17 +24,17 @@ void rasterize_test1()
 	int row = row_col.first;
 	int col = row_col.second;
 
-	for(int j = 0; j < col; j += 1)
+	for(int i = 0; i < row; i += 1)
 	{
-		for(int i = 0; i < row; i += 1)
+		for(int j = 0; j < col; j += 1)
 		{
 			if( matrix.mat[ i ][ j ] ) 
 			{
-					cout << "#  ";
+					cout << "*";
 			}
 			else
 			{
-				cout << "   ";
+				cout << "-";
 			}
 		}
 		cout << endl;
@@ -56,17 +56,17 @@ void rasterize_test2()
 	int row = row_col.first;
 	int col = row_col.second;
 
-	for(int j = 0; j < col; j += 1)
+	for(int i = 0; i < row; i += 1)
 	{
-		for(int i = 0; i < row; i += 1)
+		for(int j = 0; j < col; j += 1)
 		{
 			if( matrix.mat[ i ][ j ] ) 
 			{
-					cout << "#  ";
+					cout << "*";
 			}
 			else
 			{
-				cout << "   ";
+				cout << "-";
 			}
 		}
 		cout << endl;
@@ -93,23 +93,24 @@ void rasterize_test3()
 			    {1,12},
 			    {0,12}
 			});
+	
 	Matrix matrix = item.rasterize();
 
 	pair<int,int> row_col = matrix.getDimension();
 	int row = row_col.first;
 	int col = row_col.second;
 
-	for(int j = 0; j < col; j += 1)
+	for(int i = 0; i < row; i += 1)
 	{
-		for(int i = 0; i < row; i += 1)
+		for(int j = 0; j < col; j += 1)
 		{
 			if( matrix.mat[ i ][ j ] ) 
 			{
-					cout << "#  ";
+					cout << "*";
 			}
 			else
 			{
-				cout << "   ";
+				cout << "-";
 			}
 		}
 		cout << endl;
