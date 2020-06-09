@@ -2,6 +2,7 @@
 #define RASTERIZATION_HPP
 
 #include <algorithm>
+#include <cassert>
 
 #include "geometry.hpp"
 #include "Matrix.hpp"
@@ -11,8 +12,9 @@
 
 namespace raster
 {
-    void translateToNewOrigin(Polygon &, double &, double &, Point &);
-    std::pair<int, int> getRasterMatrixDimension(Polygon &, Point &);
+    void translateToNewOrigin(Polygon &, double &, double &);
+    std::pair<int, int> getRasterMatrixDimension(Polygon &);
+    std::pair<int, int> getSeedPoint(Matrix &, Polygon &);
     void scanConvertLine(Matrix &, Point, Point);
     void regionfill(Matrix &, int, int);
 }; // namespace raster
