@@ -1,5 +1,6 @@
 #include "Item.hpp"
 #include "rasterization.hpp"
+#include "geometry.hpp"
 
 /** auxiliary functions */
 /** number of vertices should be between 3 and 1000000 */
@@ -138,6 +139,16 @@ Matrix Item::rasterize()
     {
         raster::scanConvertLine(matrix, polygon[i], polygon[(i + 1) % numberOfVertices]);
     }
-  //  raster::regionfill(matrix, seed.x, seed.y);
+
+    for(int i = 0; i < dimension.first; i += 1) 
+    {
+        for(int j = 0; j < dimension.second; j += 1) 
+        {
+            if( polygonal::isPointInsidePolygon(Point(i, j), polygon) >= 0 )
+            {
+                matrix.mat[ i ][ j ] = 1;
+            }
+        }
+    }
     return matrix;
 }
