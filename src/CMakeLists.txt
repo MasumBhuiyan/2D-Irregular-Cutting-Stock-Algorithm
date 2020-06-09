@@ -12,7 +12,7 @@ target_link_libraries(Point PRIVATE geometry)
 target_link_libraries(Item PRIVATE Point Matrix rasterization)
 target_link_libraries(io PRIVATE Item)
 target_link_libraries(Stock PRIVATE Matrix)
-target_link_libraries(rasterization PRIVATE Matrix geometry)
+target_link_libraries(rasterization PRIVATE Matrix geometry Point)
 
 target_include_directories(io PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_include_directories(Point PUBLIC "${PROJECT_SOURCE_DIR}/include")
