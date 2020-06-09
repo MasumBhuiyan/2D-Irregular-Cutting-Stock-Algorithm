@@ -130,14 +130,14 @@ Point Item::findCentroid()
 Matrix Item::rasterize()
 {
     Polygon polygon = vertices;
-    Point seed = pivotPoint;
-    pair<int, int> dimension = raster::getRasterMatrixDimension(polygon, seed);
+    pair<int, int> dimension = raster::getRasterMatrixDimension(polygon);
 
     Matrix matrix(dimension.first, dimension.second);
     for (int i = 0; i < numberOfVertices; i += 1)
     {
         raster::scanConvertLine(matrix, polygon[i], polygon[(i + 1) % numberOfVertices]);
     }
-    raster::regionfill(matrix, seed.x, seed.y);
+    std::pair<int, int> seed = raster::getSeedPoint(matrix, polygon);
+    raster::regionfill(matrix, seed.first, seed.second);
     return matrix;
 }
