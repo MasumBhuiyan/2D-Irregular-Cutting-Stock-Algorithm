@@ -17,6 +17,7 @@ public:
     Matrix(int, int);
 
     // methods
+    void print();                         // prints the matrix on console
     std::pair<int, int> getDimension();   // returns {row, col}
     bool isIntersecting(Point, Matrix &); // checks the provided matrix is intersecting or not if it is placed in Point
     void addRow();                        // add a new row

@@ -9,6 +9,29 @@ Matrix::Matrix(int r, int c) : row(r), col(c)
 
 /** methods */
 /**
+ * Prints matrix on console
+*/
+void Matrix::print()
+{
+    std::cout << "dimension: " << row << " x " << col << std::endl;
+    for (int j = 0; j < col; j++)
+    {
+        for (int i = 0; i < row; i++)
+        {
+            if (mat[i][j] == 1)
+            {
+                std::cout << "# ";
+            }
+            else
+            {
+                std::cout << "- ";
+            }
+        }
+        std::cout << std::endl;
+    }
+}
+
+/**
  * returns {row, col}
 */
 std::pair<int, int> Matrix::getDimension() { return {row, col}; }
