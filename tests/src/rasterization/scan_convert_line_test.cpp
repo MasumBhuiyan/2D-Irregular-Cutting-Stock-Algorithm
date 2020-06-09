@@ -4,77 +4,53 @@
 
 void scan_convert_line_test1()
 {
-	Matrix matrix1(11,11), matrix2(11, 11), expected_matrix(11,11);
+	Matrix matrix(101, 101);
 
-	expected_matrix.mat[3][2] = 1;
-	expected_matrix.mat[4][3] = 1;
-	expected_matrix.mat[5][3] = 1;
-	expected_matrix.mat[6][4] = 1;
-	expected_matrix.mat[7][5] = 1;
-	expected_matrix.mat[8][5] = 1;
-	expected_matrix.mat[9][6] = 1;
-	
-	raster::scanConvertLine(matrix1, Point(3,2), Point(9,6));
-	raster::scanConvertLine(matrix2, Point(9,6), Point(3,2));
-	ASSERT_EQUAL(matrix1.mat, expected_matrix.mat);
-	ASSERT_EQUAL(matrix2.mat, expected_matrix.mat);
+	raster::scanConvertLine(matrix, Point(50, 50), Point(100, 100));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(100, 90));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(100, 80));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(100, 70));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(100, 60));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(100, 50));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(100, 40));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(100, 30));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(100, 20));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(100, 10));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(100, 0));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(90, 0));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(80, 0));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(70, 0));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(60, 0));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(50, 0));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(40, 0));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(30, 0));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(20, 0));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(10, 0));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(0, 0));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(0, 10));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(0, 20));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(0, 30));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(0, 40));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(0, 50));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(0, 60));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(0, 70));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(0, 80));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(0, 90));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(0, 100));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(10, 100));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(20, 100));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(30, 100));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(40, 100));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(50, 100));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(60, 100));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(70, 100));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(80, 100));
+	raster::scanConvertLine(matrix, Point(50, 50), Point(90, 100));
+
+	matrix.print();
 }
-void scan_convert_line_test2()
-{
-	Matrix matrix1(11,11), matrix2(11, 11), expected_matrix(11,11);
 
-	expected_matrix.mat[2][9] = 1;
-	expected_matrix.mat[3][8] = 1;
-	expected_matrix.mat[4][7] = 1;
-	expected_matrix.mat[5][6] = 1;
-	expected_matrix.mat[6][5] = 1;
-	
-	raster::scanConvertLine(matrix1, Point(2,9), Point(6,3));
-	raster::scanConvertLine(matrix2, Point(6,3), Point(2,9));
-	ASSERT_EQUAL(matrix1.mat, expected_matrix.mat);
-	ASSERT_EQUAL(matrix2.mat, expected_matrix.mat);
-}
-void scan_convert_line_test3()
-{
-	Matrix matrix1(11,11), matrix2(11, 11), expected_matrix(11,11);
-
-	expected_matrix.mat[2][3] = 1;
-	expected_matrix.mat[3][3] = 1;
-	expected_matrix.mat[4][3] = 1;
-	expected_matrix.mat[5][3] = 1;
-	expected_matrix.mat[6][3] = 1;
-	expected_matrix.mat[7][3] = 1;
-	expected_matrix.mat[8][3] = 1;
-
-	raster::scanConvertLine(matrix1, Point(2,3), Point(8,3));
-	raster::scanConvertLine(matrix2, Point(8,3), Point(2,3));
-
-	ASSERT_EQUAL(matrix1.mat, expected_matrix.mat);
-	ASSERT_EQUAL(matrix2.mat, expected_matrix.mat);
-}
-void scan_convert_line_test4()
-{
-	Matrix matrix1(11,11), matrix2(11, 11), expected_matrix(11,11);
-
-	expected_matrix.mat[1][1] = 1;
-	expected_matrix.mat[1][2] = 1;
-	expected_matrix.mat[1][3] = 1;
-	expected_matrix.mat[1][4] = 1;
-	expected_matrix.mat[1][5] = 1;
-	expected_matrix.mat[1][6] = 1;
-	expected_matrix.mat[1][7] = 1;
-	expected_matrix.mat[1][8] = 1;
-
-	raster::scanConvertLine(matrix1, Point(1,8), Point(1,1));
-	raster::scanConvertLine(matrix2, Point(1,1), Point(1,8));
-
-	ASSERT_EQUAL(matrix1.mat, expected_matrix.mat);
-	ASSERT_EQUAL(matrix2.mat, expected_matrix.mat);
-}
-int main() 
+int main()
 {
 	scan_convert_line_test1();
-	scan_convert_line_test2();
-	scan_convert_line_test3();
-	scan_convert_line_test4();
 }
