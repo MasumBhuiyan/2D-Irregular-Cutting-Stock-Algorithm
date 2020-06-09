@@ -36,16 +36,14 @@ void raster::translateToNewOrigin(Polygon &points, double &max_x, double &max_y,
         int xx = point.x;
         int yy = point.y;
 
-        point.x = max_y - 1 - yy;
+        point.x = max_y - yy;
         point.y = xx;
     }
 
     int xx = seed.x;
     int yy = seed.y;
-    seed.x = max_y - 1 - yy;
+    seed.x = max_y - yy;
     seed.y = xx;
-
-
 }
 
 /**
