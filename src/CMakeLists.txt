@@ -9,7 +9,7 @@ add_library(rasterization ../include/rasterization.hpp rasterization.cpp)
 
 
 target_link_libraries(Point PRIVATE geometry)
-target_link_libraries(Item PRIVATE Point Matrix rasterization)
+target_link_libraries(Item PRIVATE Point Matrix rasterization geometry)
 target_link_libraries(io PRIVATE Item)
 target_link_libraries(Stock PRIVATE Matrix)
 target_link_libraries(rasterization PRIVATE Matrix geometry)
