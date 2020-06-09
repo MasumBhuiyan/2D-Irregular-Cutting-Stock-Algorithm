@@ -42,11 +42,11 @@ void regionfill_test1()
 		{
 			if( matrix.mat[ i ][ j ] ) 
 			{
-				cout << "# ";
+				cout << ". ";
 			}
 			else
 			{
-				cout << ". ";
+				cout << "  ";
 			}
 		}
 		cout << "\n";
