@@ -6,7 +6,7 @@ Stock::Stock(int _row, int _col)
 {	
 	row = _row;
 	col = _col;
-	mat.resize(row, std::vector<bool>(col, false));
+	mat.resize(row, std::vector<int>(col, 0));
 }
 std::pair<int,int> Stock::getDimension() { return {row, col}; }
 
@@ -47,9 +47,9 @@ void Stock::insertItem(Point point, Matrix &matrix)
     {
         for(int j = point.y; j < std::min(col, (int)point.y + _col); j += 1) 
         {
-            if( matrix.mat[ i - point.x ][ j - point.y ] == true )
+            if( matrix.mat[ i - point.x ][ j - point.y ] == 1)
             {
-            	mat[ i ][ j ] = true;
+            	mat[ i ][ j ] = 1;
             }
         }
     }

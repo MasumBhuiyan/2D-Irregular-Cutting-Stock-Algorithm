@@ -4,7 +4,7 @@
 Matrix::Matrix() {}
 Matrix::Matrix(int r, int c) : row(r), col(c)
 {
-    mat.resize(row, std::vector<bool>(col, false));
+    mat.resize(row, std::vector<int>(col, 0));
 }
 
 /** methods */
@@ -14,18 +14,19 @@ Matrix::Matrix(int r, int c) : row(r), col(c)
 void Matrix::print()
 {
     std::cout << "dimension: " << row << " x " << col << std::endl;
-    for (int j = 0; j < col; j++)
+    for (int i = 0; i < row; i += 1)
     {
-        for (int i = 0; i < row; i++)
+        for (int j = 0; j < col; j += 1)
         {
-            if (mat[i][j] == 1)
-            {
-                std::cout << "# ";
+            if( mat[ i ][ j ] == 0) {
+                if( i == 0 || i == mat.size() - 1 ) { 
+                    std::cout << "-";
+                } else if( j == 0 || j == mat[ 0 ].size() - 1 ) {
+                    std::cout << "|";
+                }
+                else std::cout << " ";
             }
-            else
-            {
-                std::cout << "- ";
-            }
+            else std::cout << mat[ i ][ j ];
         }
         std::cout << std::endl;
     }
@@ -50,7 +51,7 @@ bool Matrix::isIntersecting(Point point, Matrix &matrix)
     {
         for(int j = point.y; j < std::min(col, (int)point.y + _col); j += 1) 
         {
-            if( matrix.mat[ i - point.x ][ j - point.y ] == 1 and mat[ i ][ j ] == 1 )
+            if( matrix.mat[ i - point.x ][ j - point.y ] and mat[ i ][ j ] )
             {
                 return  true;
             }

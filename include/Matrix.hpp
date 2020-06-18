@@ -11,7 +11,7 @@ class Matrix
 private:
 public:
     int row, col;
-    std::vector<std::vector<bool>> mat;
+    std::vector<std::vector<int>> mat;
 
     Matrix();
     Matrix(int, int);
