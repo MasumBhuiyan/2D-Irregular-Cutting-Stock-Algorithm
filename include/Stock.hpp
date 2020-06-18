@@ -10,6 +10,7 @@ private:
 public:
     Stock();
     Stock(int, int);
+    std::pair<int,int> getDimension();
 
     // methods
     bool isPlaceable(Point, Matrix &); // is the Item placeable or not in the point

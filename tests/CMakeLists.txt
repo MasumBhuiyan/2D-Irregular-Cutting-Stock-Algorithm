@@ -12,6 +12,9 @@ add_executable(get_raster_matrix_dimension_test src/rasterization/get_raster_mat
 add_executable(scan_convert_line_test src/rasterization/scan_convert_line_test.cpp)
 add_executable(regionfill_test src/rasterization/regionfill_test.cpp)
 add_executable(rasterize_test src/Item/rasterize_test.cpp)
+add_executable(isIntersecting_test src/Matrix/isIntersecting_test.cpp)
+add_executable(isPlaceable_test src/Stock/isPlaceable_test.cpp)
+add_executable(insert_item_test src/Stock/insert_item_test.cpp)
 
 # link libraries
 target_link_libraries(read_items_from_input_file_test PRIVATE io)
@@ -25,6 +28,9 @@ target_link_libraries(get_raster_matrix_dimension_test PRIVATE Point rasterizati
 target_link_libraries(scan_convert_line_test PRIVATE Point rasterization)
 target_link_libraries(regionfill_test PRIVATE Point rasterization)
 target_link_libraries(rasterize_test PRIVATE Point rasterization Matrix Item)
+target_link_libraries(isIntersecting_test PRIVATE Matrix Point)
+target_link_libraries(isPlaceable_test PRIVATE Matrix Stock Point)
+target_link_libraries(insert_item_test PRIVATE Matrix Stock Point)
 
 add_test(read_items_from_input_file_test read_items_from_input_file_test)
 add_test(rotate_item_test rotate_item_test)
@@ -37,3 +43,6 @@ add_test(get_raster_matrix_dimension_test get_raster_matrix_dimension_test)
 add_test(scan_convert_line_test scan_convert_line_test)
 add_test(regionfill_test regionfill_test)
 add_test(rasterize_test rasterize_test)
+add_test(isIntersecting_test isIntersecting_test)
+add_test(isPlaceable_test isPlaceable_test)
+add_test(insert_item_test insert_item_test)
