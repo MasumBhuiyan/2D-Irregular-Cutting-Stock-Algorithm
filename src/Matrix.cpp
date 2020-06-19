@@ -18,15 +18,14 @@ void Matrix::print()
     {
         for (int j = 0; j < col; j += 1)
         {
-            if( mat[ i ][ j ] == 0) {
-                if( i == 0 || i == mat.size() - 1 ) { 
-                    std::cout << "-";
-                } else if( j == 0 || j == mat[ 0 ].size() - 1 ) {
-                    std::cout << "|";
-                }
-                else std::cout << " ";
+            if( mat[ i ][ j ] == 0) 
+            {
+                std::cout << "-";
             }
-            else std::cout << mat[ i ][ j ];
+            else 
+            {
+                std::cout << mat[ i ][ j ];
+            }
         }
         std::cout << std::endl;
     }
@@ -58,4 +57,27 @@ bool Matrix::isIntersecting(Point point, Matrix &matrix)
         }
     }
     return false;
+}
+/**
+ * rotates matrix by 90 degree anti clockwise
+*/
+Matrix Matrix::rotate90()
+{
+    int n = std::max(row, col);
+    Matrix rotated;
+    rotated.row = row;
+    rotated.col = col;
+    rotated.mat = mat;
+    for (int x = 0; x < n / 2; x += 1) 
+    { 
+        for (int y = x; y < n - x - 1; y += 1) 
+        { 
+            int t = rotated.mat[ x ][ y ];  
+            rotated.mat[ x ][ y ] = rotated.mat[ y ][ n - 1 - x ]; 
+            rotated.mat[ y ][ n - 1 - x ] = rotated.mat[ n - 1 - x ][ n - 1 - y ]; 
+            rotated.mat[ n - 1 - x ][ n - 1 - y ] = rotated.mat[ n - 1 - y ][ x ]; 
+            rotated.mat[ n - 1 - y ][ x ] = t; 
+        }
+    } 
+    return rotated;
 }

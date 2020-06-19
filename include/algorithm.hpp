@@ -3,10 +3,13 @@
 
 #include "Matrix.hpp"
 #include "Point.hpp"
+#include <algorithm>
+#include <vector>
 
-bool isBetter(Matrix &, Matrix &);
+bool isBetter(Matrix &, Matrix &);            
 Matrix enclosure(int,int,Matrix &, Matrix &);
 Matrix mergeItems(Matrix &, Matrix &);
 Matrix split(std::vector<Matrix>&,int, int);
-void solution();
+Matrix orientItems(std::vector<Matrix>&);
+double packingDensity(Matrix &);
 #endif // ITEM_HPP
