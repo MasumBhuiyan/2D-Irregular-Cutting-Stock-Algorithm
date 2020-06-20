@@ -69,12 +69,19 @@ In operations research, the cutting-stock problem is the problem of cutting stan
 13.    return C
 ```
 <a name="credits"></a>
-## Credits
-- Masum Bhuiyan
-- B.Sc. in Computer Science (Expected September 2020)
-- Jahangirnagar University, Dhaka, Bangladesh
-- Reach me @[LinkedIn](https://www.linkedin.com/in/masumbhuiyan577/)
-<a name="license"></a>
+## Credits 
+
+<table style="width:100%">
+  <tr>
+    <td> <b>Masum Bhuiyan</b> <br>
+    Jahangirnagar University, Dhaka, Bangladesh</td>
+  </tr>
+  <tr>
+    <td> <b>Kamrul Hasan</b> <br>
+    Jahangirnagar University, Dhaka, Bangladesh</td>
+  </tr>
+</table>
+
 ## Lincense ![license](https://img.shields.io/badge/license-MIT-green) <br>
 MIT License
 
