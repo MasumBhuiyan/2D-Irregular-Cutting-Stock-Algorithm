@@ -28,7 +28,7 @@ In operations research, the cutting-stock problem is the problem of cutting stan
 ## Build ![os](https://img.shields.io/badge/os-linux-orange)
 * Open terminal
 * Clone the repository by the following command <br>
-> `git clone [repository url]` <br>
+  > `git clone [repository url]` <br>
 * Open **sublime text 3** and open project folder **2D-Irregular-Stock-Cutting-Algorithm** <br>
 * To  build run the following commands <br>
   > `$ mkdir build` <br>
