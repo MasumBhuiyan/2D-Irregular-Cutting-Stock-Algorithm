@@ -19,23 +19,18 @@ In operations research, the cutting-stock problem is the problem of cutting stan
 * Paper sheets cutting in paper industry
 ---
 <a name="installation"></a>
-## Installation ![os](https://img.shields.io/badge/os-linux-orange) ![editor](https://img.shields.io/badge/sublime_text-3-blue)
-* Install **python 3** if not installed. <br>
-To install open terminal `Ctrl+Alt+T` and type the following commands<br>
-> `$ sudo apt-get update` <br>
-> `$ sudo apt-get install python3.7` <br>
-> `$ python --version` <br>
-* Clone the repository by the following command <br>
-> `git clone [repository url]` <br>
-* Open the repository with **sublime text 3**
-* Open file **__main__.py** <br> 
-* Run the program by `Cntrl+B` <br>
+## Installation![os](https://img.shields.io/badge/os-linux-orange) ![editor](https://img.shields.io/badge/sublime_text-3-blue)
+* Install C compiler GNU version 7.3.0 <br>
+* Install sublime text 3
+* Install ![cmake](https://img.shields.io/badge/CMake-V%203.10%2B-blue) if not installed.
 ---
 <a name="build"></a>
 ## Build ![os](https://img.shields.io/badge/os-linux-orange)
-* Install ![cmake](https://img.shields.io/badge/CMake-V%203.10%2B-blue) if not installed.
-* Open terminal and go to the target folder.
-* Run the following commands <br>
+* Open terminal
+* Clone the repository by the following command <br>
+> `git clone [repository url]` <br>
+* Open **sublime text 3** and open project folder **2D-Irregular-Stock-Cutting-Algorithm** <br>
+* To  build run the following commands <br>
   > `$ mkdir build` <br>
     `$ cd build` <br>
     `$ cmake ..`<br>
