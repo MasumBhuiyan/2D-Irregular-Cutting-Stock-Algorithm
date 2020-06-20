@@ -75,8 +75,8 @@ In operations research, the cutting-stock problem is the problem of cutting stan
   <tr>
     <td> 
       <b>Fardin Ahmed</b> <br>
-      Super visor <br>
-      Cambridge University <br>
+      Supervisor <br>
+      X University <br>
     </td>
   </tr>
   <tr>
