@@ -74,6 +74,13 @@ In operations research, the cutting-stock problem is the problem of cutting stan
 <table style="width:100%">
   <tr>
     <td> 
+      <b>Fardin Ahmed</b> <br>
+      Super visor <br>
+      Cambridge University <br>
+    </td>
+  </tr>
+  <tr>
+    <td> 
       <b>Masum Bhuiyan</b> <br>
       B. Sc. in Computer Science and Engineering (Expected August 2020) <br>
       Jahangirnagar University <br>
