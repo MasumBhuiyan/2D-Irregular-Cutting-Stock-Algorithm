@@ -32,11 +32,11 @@
 4.     Item A = split(items, l, m)
 5.     Item B = split(items, m + 1, r)
 6      Item C
-6.     for r1 in rotations:
-7.         D = rotate A in r1 degree
-8.         for r2 in rotations:
-9.             E = rotate B in r2 degree
-10.            F = merge(D, E)
+7.     for r1 in rotations:
+8.         D = rotate A in r1 degree
+9.         for r2 in rotations:
+10.            E = rotate B in r2 degree
+11.            F = merge(D, E)
 12.            if area of F < area of C then update C with F
 13.    return C
 ```
