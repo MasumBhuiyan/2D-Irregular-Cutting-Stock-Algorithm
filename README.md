@@ -82,7 +82,6 @@ In operations research, the cutting-stock problem is the problem of cutting stan
   <tr>
     <td> 
       <b>Masum Bhuiyan</b> <br>
-      B. Sc. in Computer Science and Engineering (Expected August 2020) <br>
       Jahangirnagar University <br>
       Dhaka, Bangladesh
     </td>
@@ -90,7 +89,6 @@ In operations research, the cutting-stock problem is the problem of cutting stan
   <tr>
     <td> 
       <b>Kamrul Hasan</b> <br>
-      B. Sc. in Computer Science and Engineering (Expected August 2020) <br>
       Jahangirnagar University <br>
       Dhaka, Bangladesh
     </td>
