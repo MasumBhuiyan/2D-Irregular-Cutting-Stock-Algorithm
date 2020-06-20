@@ -16,13 +16,13 @@
 ## Proposed Algorithm &middot; ![Build Status](https://img.shields.io/travis/npm/npm/latest.svg?style=flat-square) <br>
 ```
 function merge(Item A, Item B):
-  Matrix Best
-  for (x, y) in A:
-    C = translate B to (x, y)
-    if A and C does not intersect:
-      D = insert C into A
-      R = find bounding rectangle with minimum area
-      if area of R < area of Best:
-        update Best with R
-  return Best
+    Item C
+    for (x, y) in A:
+        translate B to (x, y)
+        if A and translated B does not intersect:
+            insert B into A
+            R = find axis parallel rectangle that encloses A using minimum area
+            if area of R < area of C:
+                update C with R
+    return C
 ```
