@@ -12,11 +12,11 @@
 
 <a name="description"></a>
 ## Description
-2D Irregular Cutting Stock Algorithm.<br><br>
+In operations research, the cutting-stock problem is the problem of cutting standard-sized pieces of stock material, such as paper rolls or sheet metal, into pieces of specified sizes while minimizing material wasted. It is an optimization problem in mathematics that arises from applications in industry. In terms of computational complexity, the problem is an NP-hard problem reducible to the knapsack problem. The problem can be formulated as an integer linear programming problem.<br><br>
 **Applications**
-* A
-* B
-* C
+* Stock cutting in textile industry
+* Glass cutting in glass industry
+* Paper sheets cutting in paper industry
 ---
 <a name="installation"></a>
 ## Installation ![os](https://img.shields.io/badge/os-linux-orange) ![editor](https://img.shields.io/badge/sublime_text-3-blue)
