@@ -18,10 +18,10 @@
 function merge(Item A, Item B):
     Item C
     for (x, y) in A:
-        translate B to (x, y)
-        if A and translated B does not intersect:
-            insert B into A
-            R = find axis parallel rectangle that encloses A using minimum area
+        T = translate B to (x, y)
+        if A and T does not intersect:
+            S = insert B into A
+            R = find axis parallel rectangle that encloses S using minimum area
             if area of R < area of C:
                 update C with R
     return C
