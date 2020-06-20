@@ -81,3 +81,37 @@ Matrix Matrix::rotate90()
     } 
     return rotated;
 }
+/**
+ * rotates matrix by angle degree anti clockwise
+*/
+Matrix Matrix::rotate(double angle)
+{
+    Matrix rotated(row, col);
+    std::vector<Point> points, rotatedPoints;
+
+    int minX = 1e9, minY = 1e9;
+    for(int i = 0; i < row; i += 1) 
+    {
+        for(int j = 0; j < col; j += 1)
+        {
+            if( mat[ i ][ j ] )
+            {
+                Point point = Point(i, j).rotate(Point(0,0),angle);
+                int x = ceil(point.x);
+                int y = ceil(point.y);
+                points.push_back(Point(i, j));
+                rotatedPoints.push_back(Point(x, y));
+                minX = std::min(x, minX);
+                minY = std::min(y, minY);
+
+            }
+        }
+    }
+    for(int i = 0; i < points.size(); i += 1)
+    {
+        int x = rotatedPoints[ i ].x;
+        int y = rotatedPoints[ i ].y;
+        rotated.mat[ x - minX ][ y - minY ] = mat[ (int)points[ i ].x ][ (int)points[ i ].y ];
+    }
+    return rotated;
+}

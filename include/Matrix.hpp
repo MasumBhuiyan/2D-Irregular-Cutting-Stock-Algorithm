@@ -22,6 +22,7 @@ public:
     bool isIntersecting(Point, Matrix &); // checks the provided matrix is intersecting or not if it is placed in Point
     void addRow();                        // add a new row
     Matrix rotate90();                    // rotate matrix by 90 degree anti clockwise
+    Matrix rotate(double);
 };
 
 #endif // MATRIX_HPP
