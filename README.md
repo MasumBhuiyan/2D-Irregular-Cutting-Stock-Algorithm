@@ -76,7 +76,8 @@ In operations research, the cutting-stock problem is the problem of cutting stan
     <td> 
       <b>Ahmed Fardin</b> <br>
       Head of Sustainability<br>
-      Decorate Future Industries<br>
+      Decorte Future Industries<br>
+      Cambridge, England 
     </td>
   </tr>
   <tr>
