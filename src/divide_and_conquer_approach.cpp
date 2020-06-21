@@ -18,7 +18,7 @@ Matrix DnCApproach::rasterItems(
 
         Item rotatedItem = items[itemId].rotate(rotationAngle, {0, 0});
         Matrix rasterItem = rotatedItem.rasterize();
-        raster.insertItem(pivot, rasterItem);
+        raster.insertItem(pivot, rasterItem, itemId + 1); // indicator
     }
     return raster;
 }
