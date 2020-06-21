@@ -1,17 +1,13 @@
 #include "divide_and_conquer_approach.hpp"
 
-#define INF 1e18
-#define RASTER_MATRIX_DIMENSION 1000
-
 /**
- * privet method
  * rotates the items according to the item states
  * rasterize the items in a matrix
 */
 Matrix DnCApproach::rasterItems(
     std::vector<Item> &items,
     std::vector<ItemState> &itemStates,
-    int rasterDimension = RASTER_MATRIX_DIMENSION)
+    int rasterDimension)
 {
     Matrix raster = Matrix(rasterDimension, rasterDimension);
     for (ItemState itemState : itemStates)
@@ -28,11 +24,10 @@ Matrix DnCApproach::rasterItems(
 }
 
 /**
- * privet method
  * merge two raster and returns minimum enclosing rectangle area and
  * new pivot of the second raster
 */
-std::pair<double, Point> mergeItemToFindMinEnclosingRectangleArea(
+std::pair<double, Point> DnCApproach::mergeItemToFindMinEnclosingRectangleArea(
     Matrix &rasterA, Matrix &rasterB)
 {
     std::pair<double, Point> result; // incomplete
@@ -80,13 +75,13 @@ std::vector<ItemState> DnCApproach::findBestOrientation(
     std::vector<ItemState> &leftHalf,
     std::vector<ItemState> &rightHalf)
 {
-    double currentBest = INF;
+    double currentBest = DnCApproach::INF;
     std::vector<ItemState> bestOrientation;
 
-    for (double r1 : rotations)
+    for (double r1 : DnCApproach::rotations)
     {
         std::vector<ItemState> rotatedLeft = rotateItemStates(leftHalf, r1);
-        for (double r2 : rotations)
+        for (double r2 : DnCApproach::rotations)
         {
             std::vector<ItemState> rotatedRight = rotateItemStates(rightHalf, r2);
             std::pair<double, Point> mergeResult = mergeItemsSet(items, rotatedLeft, rotatedRight);

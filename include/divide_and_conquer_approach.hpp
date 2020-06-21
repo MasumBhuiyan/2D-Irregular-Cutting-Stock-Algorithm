@@ -10,8 +10,6 @@
 #include "Matrix.hpp"
 #include "geometry.hpp"
 
-static std::vector<double> rotations({45, 90, 135, 180, 225, 270, 315});
-
 struct ItemState
 {
     /* data */
@@ -25,10 +23,15 @@ struct ItemState
 
 namespace DnCApproach
 {
+    const double INF = 1e18;
+    const int RASTER_MATRIX_DIMENSION = 1000;
+    static std::vector<double> rotations({45, 90, 135, 180, 225, 270, 315});
+
     Matrix rasterItems(
-    std::vector<Item> &,
-    std::vector<ItemState> &,
-    int);
+        std::vector<Item> &,
+        std::vector<ItemState> &,
+        int rasterDimension = RASTER_MATRIX_DIMENSION);
+    std::pair<double, Point> mergeItemToFindMinEnclosingRectangleArea(Matrix &, Matrix &);
     std::pair<double, Point> mergeItemsSet(
         std::vector<Item> &,
         std::vector<ItemState> &,

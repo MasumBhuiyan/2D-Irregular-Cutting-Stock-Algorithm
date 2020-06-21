@@ -40,7 +40,7 @@ target_link_libraries(split_test PRIVATE algorithm Matrix Point)
 target_link_libraries(orientItems_test PRIVATE algorithm Matrix Point)
 target_link_libraries(rotate90_test PRIVATE Matrix Point)
 target_link_libraries(rotate_test PRIVATE Matrix Point)
-target_link_libraries(raster_items_test PRIVATE Matrix Point Item geometry)
+target_link_libraries(raster_items_test PRIVATE divide_and_conquer_approach)
 
 add_test(read_items_from_input_file_test read_items_from_input_file_test)
 add_test(rotate_item_test rotate_item_test)
