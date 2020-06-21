@@ -22,6 +22,7 @@ void raster::translateToNewOrigin(Polygon &points, double &max_x, double &max_y)
         x = std::min(x, point.x);
         y = std::min(y, point.y);
     }
+    x -= 2, y -= 2;
     for (auto &point : points)
     {
         point.x -= x;
@@ -41,8 +42,8 @@ std::pair<int, int> raster::getRasterMatrixDimension(Polygon &polygon)
     double max_x = -MAX_X;
     double max_y = -MAX_Y;
     translateToNewOrigin(polygon, max_x, max_y);
-    int row = ceil(max_x) + 2;
-    int col = ceil(max_y) + 2;
+    int row = ceil(max_x) + 5;
+    int col = ceil(max_y) + 5;
     return {std::max(row, col), std::max(row, col)};
 }
 
