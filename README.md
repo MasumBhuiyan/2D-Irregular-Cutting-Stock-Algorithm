@@ -19,7 +19,7 @@ In operations research, the cutting-stock problem is the problem of cutting stan
 * Paper sheets cutting in paper industry
 ---
 <a name="installation"></a>
-## Installation![os](https://img.shields.io/badge/os-linux-orange) ![editor](https://img.shields.io/badge/sublime_text-3-blue)
+## Installation
 * Install C compiler GNU version 7.3.0 <br>
 * Install sublime text 3
 * Install ![cmake](https://img.shields.io/badge/CMake-V%203.10%2B-blue) if not installed.
@@ -79,15 +79,11 @@ In operations research, the cutting-stock problem is the problem of cutting stan
       Decorte Future Industries<br>
       Cambridge, United Kingdom 
     </td>
-  </tr>
-  <tr>
     <td> 
       <b>Masum Bhuiyan</b> <br>
       Jahangirnagar University <br>
       Dhaka, Bangladesh
     </td>
-  </tr>
-  <tr>
     <td> 
       <b>Kamrul Hasan</b> <br>
       Jahangirnagar University <br>
