@@ -4,8 +4,9 @@
 #include <algorithm>
 #include <cassert>
 
-#include "geometry.hpp"
+#include "Point.hpp"
 #include "Matrix.hpp"
+#include "geometry.hpp"
 
 #define MAX_X 1e9
 #define MAX_Y 1e9
@@ -17,6 +18,7 @@ namespace raster
     std::pair<int, int> getSeedPoint(Matrix &, Polygon &);
     void scanConvertLine(Matrix &, Point, Point);
     void regionfill(Matrix &, int, int);
+    Matrix rasterize(std::vector<std::pair<Polygon, Point>> &);
 }; // namespace raster
 
 #endif // RASTERIZATION_HPP

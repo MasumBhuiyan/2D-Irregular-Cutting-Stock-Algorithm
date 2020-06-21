@@ -6,13 +6,15 @@ add_library(Item ../include/Item.hpp Item.cpp)
 add_library(geometry ../include/geometry.hpp geometry.cpp)
 add_library(Stock ../include/Stock.hpp Stock.cpp)
 add_library(rasterization ../include/rasterization.hpp rasterization.cpp)
-
+add_library(divide_and_conquer_approach ../include/divide_and_conquer_approach.hpp divide_and_conquer_approach.cpp)
 
 target_link_libraries(Point PRIVATE geometry)
 target_link_libraries(Item PRIVATE Point Matrix rasterization)
 target_link_libraries(io PRIVATE Item)
 target_link_libraries(Stock PRIVATE Matrix)
 target_link_libraries(rasterization PRIVATE Matrix geometry Point)
+target_link_libraries(divide_and_conquer_approach PRIVATE Point Item Matrix geometry rasterization)
+
 
 target_include_directories(io PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_include_directories(Point PUBLIC "${PROJECT_SOURCE_DIR}/include")
@@ -21,3 +23,4 @@ target_include_directories(Item PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_include_directories(geometry PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_include_directories(Stock PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_include_directories(rasterization PUBLIC "${PROJECT_SOURCE_DIR}/include")
+target_include_directories(divide_and_conquer_approach PUBLIC "${PROJECT_SOURCE_DIR}/include")
