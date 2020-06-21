@@ -29,13 +29,13 @@ public:
 
     // methods
     void read();
-    void read(ifstream &);      // read from file pointer
-    void print();               // prints the object in the console
-    void visualize();           // show the polygon with graphics
-    Item rotate(double, Point); // retruns the rotated polygon(Item) with respect to the Point
-    Point findCentroid();       // finds the centroid of the polygon(Item)
-    double calculateArea();     // returns the area of the polygon
-    Matrix rasterize();         // returns a binary matrix of the polygon(Item)
+    void read(ifstream &);               // read from file pointer
+    void print();                        // prints the object in the console
+    void visualize();                    // show the polygon with graphics
+    Item rotate(double, Point);          // retruns the rotated polygon(Item) with respect to the Point
+    Point findCentroid();                // finds the centroid of the polygon(Item)
+    double calculateArea();              // returns the area of the polygon
+    Matrix rasterize(int indicator = 1); // returns a binary matrix of the polygon(Item)
 };
 
 #endif // ITEM_HPP

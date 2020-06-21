@@ -73,10 +73,11 @@ void Item::visualize() {}
 
 /** 
  * retruns the rotated polygon(Item) 
- * by angle radian with respect to the Point p 
+ * by angle degree with respect to the Point p 
 */
 Item Item::rotate(double angle, Point p)
 {
+    angle = geo::DEG2RAD(angle);
     Item rotatedItem(numberOfVertices, vertices);
     for (auto &vi : rotatedItem.vertices)
     {
@@ -127,7 +128,7 @@ Point Item::findCentroid()
 }
 
 /** returns a binary matrix of the polygon(Item) */
-Matrix Item::rasterize()
+Matrix Item::rasterize(int indicator)
 {
     Polygon polygon = vertices;
     pair<int, int> dimension = raster::getRasterMatrixDimension(polygon);
@@ -139,5 +140,16 @@ Matrix Item::rasterize()
     }
     std::pair<int, int> seed = raster::getSeedPoint(matrix, polygon);
     raster::regionfill(matrix, seed.first, seed.second);
+
+    /** for testing purpose */
+    for (int i = 0; i < matrix.row; i++)
+    {
+        for (int j = 0; j < matrix.col; j++)
+        {
+            if (matrix.mat[i][j] == 1)
+                matrix.mat[i][j] = indicator;
+        }
+    }
+
     return matrix;
 }

@@ -20,11 +20,11 @@ void Matrix::print()
         {
             if (mat[i][j] == 0)
             {
-                std::cout << "-";
+                std::cout << "- ";
             }
             else
             {
-                std::cout << mat[i][j];
+                std::cout << mat[i][j] << " ";
             }
         }
         std::cout << std::endl;
@@ -118,7 +118,7 @@ Matrix Matrix::rotate(double angle)
 /**
  * insert the Item(Matrix) in Point
 */
-void Matrix::insertItem(Point point, Matrix &matrix)
+void Matrix::insertItem(Point point, Matrix &matrix, int indicator)
 {
     std::pair<int, int> row_col = matrix.getDimension();
     int _row = row_col.first;
@@ -128,9 +128,9 @@ void Matrix::insertItem(Point point, Matrix &matrix)
     {
         for (int j = point.y; j < std::min(col, (int)point.y + _col); j += 1)
         {
-            if (matrix.mat[i - point.x][j - point.y] == 1)
+            if (matrix.mat[i - point.x][j - point.y])
             {
-                mat[i][j] = 1;
+                mat[i][j] = indicator;
             }
         }
     }
