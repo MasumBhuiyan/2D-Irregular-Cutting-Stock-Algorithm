@@ -21,6 +21,7 @@ public:
     std::pair<int, int> getDimension();   // returns {row, col}
     bool isIntersecting(Point, Matrix &); // checks the provided matrix is intersecting or not if it is placed in Point
     void addRow();                        // add a new row
+    void insertItem(Point, Matrix &);     // insert the Item in Point
 };
 
 #endif // MATRIX_HPP

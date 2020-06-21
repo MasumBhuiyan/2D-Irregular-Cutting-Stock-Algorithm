@@ -1,25 +1,30 @@
 #include "divide_and_conquer_approach.hpp"
 
 #define INF 1e18
+#define RASTER_MATRIX_DIMENSION 1000
 
 /**
  * privet method
  * rotates the items according to the item states
  * rasterize the items in a matrix
 */
-Matrix rasterItems(std::vector<Item> &items, std::vector<ItemState> &itemStates)
+Matrix rasterItems(
+    std::vector<Item> &items,
+    std::vector<ItemState> &itemStates,
+    int rasterDimension = RASTER_MATRIX_DIMENSION)
 {
-    assert(items.size() == itemStates.size());
-
-    int n = items.size();
-    std::vector<std::pair<Polygon, Point>> polygonsAndPivots(n);
-    for (int i = 0; i < n; i++)
+    Matrix raster = Matrix(rasterDimension, rasterDimension);
+    for (ItemState itemState : itemStates)
     {
-        Item tmpItem = items[i].rotate(itemStates[i].rotatedBy, {0, 0});
-        polygonsAndPivots[i] = {tmpItem.vertices, tmpItem.pivotPoint};
+        int itemId = itemState.itemId;
+        double rotationAngle = itemState.rotatedBy;
+        Point pivot = itemState.pivot;
+
+        Item rotatedItem = items[itemId].rotate(rotationAngle, {0, 0});
+        Matrix rasterItem = rotatedItem.rasterize();
+        raster.insertItem(pivot, rasterItem);
     }
-    Matrix resterMatrix = raster::rasterize(polygonsAndPivots);
-    return resterMatrix;
+    return raster;
 }
 
 /**
@@ -27,7 +32,8 @@ Matrix rasterItems(std::vector<Item> &items, std::vector<ItemState> &itemStates)
  * merge two raster and returns minimum enclosing rectangle area and
  * new pivot of the second raster
 */
-std::pair<double, Point> mergeItemToFindMinEnclosingArea(Matrix &rasterA, Matrix &rasterB)
+std::pair<double, Point> mergeItemToFindMinEnclosingRectangleArea(
+    Matrix &rasterA, Matrix &rasterB)
 {
     std::pair<double, Point> result; // incomplete
     return result;
@@ -43,7 +49,7 @@ std::pair<double, Point> DnCApproach::mergeItemsSet(
 {
     Matrix rasterLeftHalf = rasterItems(items, leftHalf);
     Matrix rasterRightHalf = rasterItems(items, rightHalf);
-    return mergeItemToFindMinEnclosingArea(rasterLeftHalf, rasterLeftHalf);
+    return mergeItemToFindMinEnclosingRectangleArea(rasterLeftHalf, rasterLeftHalf);
 }
 
 /**
@@ -59,6 +65,7 @@ std::vector<ItemState> DnCApproach::rotateItemStates(
     {
         itemState.rotatedBy += rotationAngle;
         itemState.pivot.rotate({0, 0}, geo::DEG2RAD(rotationAngle));
+        itemState.pivot = {std::floor(itemState.pivot.x + 0.5), std::floor(itemState.pivot.y + 0.5)}; // pivot approximation
     }
     return rotateItemStates;
 }

@@ -9,7 +9,6 @@
 #include "Item.hpp"
 #include "Matrix.hpp"
 #include "geometry.hpp"
-#include "rasterization.hpp"
 
 static std::vector<double> rotations({45, 90, 135, 180, 225, 270, 315});
 
