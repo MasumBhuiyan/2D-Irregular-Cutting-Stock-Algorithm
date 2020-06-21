@@ -43,6 +43,7 @@ namespace DnCApproach
         std::vector<ItemState> &);
     std::vector<ItemState> divideAndConquer(std::vector<Item> &, int, int);
     void solution(std::vector<Item> &);
+    double packingDensity(Matrix &);
 }; // namespace DnCApproach
 
 #endif // DIVIDE_AND_CONQUER_APPROACH_HPP

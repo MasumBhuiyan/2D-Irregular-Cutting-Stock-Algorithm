@@ -170,4 +170,97 @@ void DnCApproach::solution(std::vector<Item> &items)
 {
     int numberOfItems = items.size();
     std::vector<ItemState> orientation = divideAndConquer(items, 0, numberOfItems - 1);
+    Matrix stock = rasterItems(items, orientation);
+    stock.print();
+}
+/**
+ * return packing density
+*/
+double DnCApproach::packingDensity(Matrix &matrix)
+{
+    double PD = 0;
+    int r1 = 0;
+    int r2 = matrix.row - 1;
+    int c1 = 0;
+    int c2 = matrix.col - 1;
+
+    int rowFlag = 1;
+    while( r1 < matrix.row && rowFlag ) 
+    {
+        for(int i = 0; i < matrix.col; i += 1)
+        {
+            if( matrix.mat[ r1 ][ i ] )
+            {
+                rowFlag = 0;
+                break;
+            }
+        }
+        if( rowFlag ) 
+        {
+            r1 += 1;
+        }
+    }
+    rowFlag = 1;
+    while( r2 > r1 && rowFlag ) 
+    {
+        for(int i = 0; i < matrix.col; i += 1)
+        {
+            if( matrix.mat[ r2 ][ i ] )
+            {
+                rowFlag = 0;
+                break;
+            }
+        }
+        if( rowFlag ) 
+        {
+            r2 -= 1;
+        }
+    }
+
+    int colFlag = 1;
+    while( c1 < matrix.col && colFlag ) 
+    {
+        for(int i = 0; i < matrix.row; i += 1)
+        {
+            if( matrix.mat[ i ][ c1 ] )
+            {
+                colFlag = 0;
+                break;
+            }
+        }
+        if( colFlag ) 
+        {
+            c1 += 1;
+        }
+    }
+    colFlag = 1;
+    while( c2 > c1 && colFlag ) 
+    {
+        for(int i = 0; i < matrix.row; i += 1)
+        {
+            if( matrix.mat[ i ][ c2 ] )
+            {
+                colFlag = 0;
+                break;
+            }
+        }
+        if( colFlag ) 
+        {
+            c2 -= 1;
+        }
+    }
+
+    for(int i = r1; i <= r2; i += 1)
+    {
+        for(int j = c1; j <= c2; j += 1)
+        {
+            if( matrix.mat[ i ][ j ] )
+            {
+                PD += 1;
+            }
+        }
+    }
+    //std::cout << r1 << " " << r2 << "\n";
+    //std::cout << c1 << " " << c2 << "\n";
+    return (PD / ((r2 - r1+1) * (c2-c1+1))) * 100.0;
 }
