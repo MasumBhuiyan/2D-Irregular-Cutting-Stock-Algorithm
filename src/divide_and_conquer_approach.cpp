@@ -22,16 +22,52 @@ Matrix DnCApproach::rasterItems(
     }
     return raster;
 }
+/**
+ * returns min enclosing rectangle(a Matrix) of the two Matrix a, b
+*/
+double findEnclosingRectangleArea(int x, int y, Matrix &a, Matrix &b) {
+    std::pair<int,int> row_col_a = a.getDimension();
+    std::pair<int,int> row_col_b = b.getDimension();
 
+    int row_a = row_col_a.first;
+    int row_b = row_col_b.first;
+    int col_a = row_col_a.second;
+    int col_b = row_col_b.second;
+
+    int r = std::max(row_a, x + row_b);
+    int c = std::max(col_a, y + col_b);
+
+    return r * c * 1.0;
+}
 /**
  * merge two raster and returns minimum enclosing rectangle area and
  * new pivot of the second raster
 */
 std::pair<double, Point> DnCApproach::mergeItemToFindMinEnclosingRectangleArea(
-    Matrix &rasterA, Matrix &rasterB)
+    Matrix &a, Matrix &b)
 {
-    std::pair<double, Point> result; // incomplete
-    return result;
+    std::pair<int,int> row_col = a.getDimension(); 
+    int row_a = row_col.first;
+    int col_a = row_col.second;
+
+    double minArea = DnCApproach::INF;
+    Point pivot;
+    for(int i = 0; i < row_a; i += 1) 
+    {
+        for(int j = 0; j < col_a; j += 1) 
+        {
+            if(!a.isIntersecting(Point(i, j), b)) 
+            {
+                double enclosingRectangleArea = findEnclosingRectangleArea(i, j, a, b);
+                if( minArea > enclosingRectangleArea ) 
+                {
+                    minArea = enclosingRectangleArea;
+                    pivot = Point(i, j);
+                }
+            } 
+        }
+    }
+    return {minArea, pivot};
 }
 
 /**
