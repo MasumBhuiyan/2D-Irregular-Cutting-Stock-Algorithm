@@ -23,6 +23,7 @@ public:
     void addRow();                        // add a new row
     Matrix rotate90();                    // rotate matrix by 90 degree anti clockwise
     Matrix rotate(double);
+    void insertItem(Point, Matrix &); // insert the Item in Point
 };
 
 #endif // MATRIX_HPP
