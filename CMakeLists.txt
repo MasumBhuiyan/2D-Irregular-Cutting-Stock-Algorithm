@@ -16,7 +16,7 @@ add_subdirectory(src)
 target_link_libraries(
     run
     PRIVATE
-    io Point Matrix Item geometry rasterization Stock algorithm
+    io Point Matrix Item geometry rasterization Stock algorithm divide_and_conquer_approach
 )
 
 target_include_directories(

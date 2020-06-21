@@ -8,7 +8,7 @@
  * rotates the items according to the item states
  * rasterize the items in a matrix
 */
-Matrix rasterItems(
+Matrix DnCApproach::rasterItems(
     std::vector<Item> &items,
     std::vector<ItemState> &itemStates,
     int rasterDimension = RASTER_MATRIX_DIMENSION)

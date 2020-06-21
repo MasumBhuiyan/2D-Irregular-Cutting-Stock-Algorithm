@@ -1,5 +1,5 @@
-#ifndef DIVIVE_N_CONQUER_APPROACH_HPP
-#define DIVIVE_N_CONQUER_APPROACH_HPP
+#ifndef DIVIDE_AND_CONQUER_APPROACH_HPP
+#define DIVIDE_AND_CONQUER_APPROACH_HPP
 
 #include <vector>
 #include <tuple>
@@ -25,6 +25,10 @@ struct ItemState
 
 namespace DnCApproach
 {
+    Matrix rasterItems(
+    std::vector<Item> &,
+    std::vector<ItemState> &,
+    int);
     std::pair<double, Point> mergeItemsSet(
         std::vector<Item> &,
         std::vector<ItemState> &,
@@ -38,4 +42,4 @@ namespace DnCApproach
     void solution(std::vector<Item> &);
 }; // namespace DnCApproach
 
-#endif // DIVIVE_N_CONQUER_APPROACH_HPP
+#endif // DIVIDE_AND_CONQUER_APPROACH_HPP
