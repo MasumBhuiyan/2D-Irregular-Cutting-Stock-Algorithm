@@ -80,10 +80,10 @@ Matrix split(std::vector<Matrix> &items, int l, int r)
 
 	for(int i = 0; i < rot; i += 1)
 	{
-		a = a.rotate90();
+		a = a.rotate(angle);
 		for(int j = 0; j < rot; j += 1) 
 		{
-			b = b.rotate90();
+			b = b.rotate(angle);
 			Matrix c = mergeItems(a, b);
 			if( isBetter(c, best) == true ) 
 			{
@@ -180,8 +180,6 @@ double packingDensity(Matrix &matrix)
 			}
 		}
 	}
-	//std::cout << r1 << " " << r2 << "\n";
-	//std::cout << c1 << " " << c2 << "\n";
 	return (PD / ((r2 - r1+1) * (c2-c1+1))) * 100.0;
 }
 /**
@@ -197,10 +195,7 @@ Matrix orientItems(std::vector<Matrix> &items)
 	}
 
 	Matrix stock = split(items, 0, items.size() - 1);
-	//stock.print();
 	double bestPD = packingDensity(stock);
-	//std::cout << "Packing Density = " << bestPD << "\n";
-
 	while( std::next_permutation(p.begin(), p.end()) ) 
 	{
 		std::vector<Matrix> tempItems;
@@ -210,9 +205,7 @@ Matrix orientItems(std::vector<Matrix> &items)
 		}
 
 		Matrix tempStock = split(tempItems, 0, tempItems.size() - 1);
-		//tempStock.print();
 		double PD = packingDensity(tempStock);
-		//std::cout << "Packing Density = " << PD << "\n";
 		if( bestPD < PD )
 		{
 			stock = tempStock;
