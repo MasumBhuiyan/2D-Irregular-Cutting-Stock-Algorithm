@@ -95,7 +95,11 @@ std::vector<ItemState> DnCApproach::rotateItemStates(
     for (ItemState &itemState : rotateItemStates)
     {
         itemState.rotatedBy += rotationAngle;
-        itemState.pivot.rotate({0, 0}, geo::DEG2RAD(rotationAngle));
+        // std::cout << "Pivot before rotation:\n";
+        itemState.pivot.print();
+        itemState.pivot = itemState.pivot.rotate({0, 0}, geo::DEG2RAD(rotationAngle));
+        // std::cout << "Pivot After rotation:\n";
+        // itemState.pivot.print();
         itemState.pivot = {std::floor(itemState.pivot.x + 0.5), std::floor(itemState.pivot.y + 0.5)}; // pivot approximation
     }
     return rotateItemStates;
