@@ -1,4 +1,9 @@
 #include "Matrix.hpp"
+#include "geometry.hpp"
+#include "Point.hpp"
+
+int dx[] = {0,0,1,1,1,-1,-1,-1};
+int dy[] = {1,-1,0,1,-1,0,1,-1};
 
 /** constructors */
 Matrix::Matrix() {}
@@ -86,10 +91,11 @@ Matrix Matrix::rotate90()
 */
 Matrix Matrix::rotate(double angle)
 {
-    Matrix rotated(row, col);
-    std::vector<Point> points, rotatedPoints;
-
-    int minX = 1e9, minY = 1e9;
+    Matrix rotated(std::max(row, col) + 10, std::max(row,col) + 10);
+    std::vector<Point> rotatedPoints;
+    std::vector<Point> points;
+    double minX = 1e9, minY = 1e9;
+    angle = geo::DEG2RAD(angle);
     for (int i = 0; i < row; i += 1)
     {
         for (int j = 0; j < col; j += 1)
@@ -97,20 +103,49 @@ Matrix Matrix::rotate(double angle)
             if (mat[i][j])
             {
                 Point point = Point(i, j).rotate(Point(0, 0), angle);
-                int x = ceil(point.x);
-                int y = ceil(point.y);
                 points.push_back(Point(i, j));
-                rotatedPoints.push_back(Point(x, y));
-                minX = std::min(x, minX);
-                minY = std::min(y, minY);
+                rotatedPoints.push_back(point);
+
+                minX = std::min(minX, point.x);
+                minY = std::min(minY, point.y);
             }
         }
     }
-    for (int i = 0; i < points.size(); i += 1)
+
+    for(int i = 0; i < rotatedPoints.size(); i += 1)
     {
-        int x = rotatedPoints[i].x;
-        int y = rotatedPoints[i].y;
-        rotated.mat[x - minX][y - minY] = mat[(int)points[i].x][(int)points[i].y];
+        rotatedPoints[ i ].x -= minX - 2;
+        rotatedPoints[ i ].y -= minY - 2;
+    }
+
+
+    for (int i = 0; i < rotatedPoints.size(); i += 1)
+    {
+        int x = (int)(rotatedPoints[i].x + 0.5);
+        int y = (int)(rotatedPoints[i].y + 0.5);
+        if( x < 0 || x >= rotated.row || y < 0 || y >= rotated.col ) continue;
+        rotated.mat[ x ][ y ] = mat[ (int)points[i].x ][ (int)points[i].y ];
+    }
+
+    points.clear();
+    for(int i = 0; i < rotated.row; i += 1)
+    {
+        for(int j = 0; j < rotated.col; j += 1)
+        {
+            int cnt = 0;
+            for(int k = 0; k < 8; k += 1)
+            {
+                int x = i + dx[ k ];
+                int y = j + dy[ k ];
+
+                if( x < 0 || x >= rotated.row || y < 0 || y >= rotated.col || rotated.mat[ x ][ y ] == 0 ) continue;
+                cnt += 1; 
+            }
+            if( cnt >= 4 )
+            {
+                rotated.mat[ i ][ j ] = 1;
+            }
+        }
     }
     return rotated;
 }

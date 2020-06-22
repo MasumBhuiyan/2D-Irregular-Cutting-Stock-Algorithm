@@ -1,33 +1,34 @@
-#include "Matrix.hpp"
+#include "geometry.hpp"
+#include <Item.hpp>
+#include <Matrix.hpp>
+#include <Point.hpp>
 
 void rotate_test1()
 {
-	Matrix matrix(15,15);
-	matrix.mat = { 
-		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,1,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,1,1,1,0,0,0,0,0,0},
-        {0,0,0,0,0,1,1,1,1,1,0,0,0,0,0},
-        {0,0,0,0,1,1,1,1,1,1,1,0,0,0,0},
-        {0,0,0,1,1,1,1,1,1,1,1,1,0,0,0},
-        {0,0,1,1,1,1,1,1,1,1,1,1,1,0,0},
-        {0,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
-	};
-
-	matrix.print();
-	matrix = matrix.rotate(90);
-	matrix.print();
-	matrix = matrix.rotate(90);
-	matrix.print();
-	matrix = matrix.rotate(90);
-	matrix.print();
+	std::vector<Item> items;
+        items.push_back(Item(4, vector<Point>(
+                                    {   Point(0 * 5, 0 * 5),
+                                        Point(5 * 5, 0 * 5),
+                                        Point(5 * 5, 5 * 5),
+                                        Point(0 * 5, 5 * 5)})));
+        items.push_back(Item(3, vector<Point>({ Point(0 * 5, 0 * 5),
+                                                Point(5 * 5, 0 * 5),
+                                                Point(5 * 5, 5 * 5)})));
+        items.push_back(Item(8, vector<Point>({ Point(0 * 5, 1 * 5),
+                                                Point(2 * 5, 0 * 5),
+                                                Point(5 * 5, 0 * 5),
+                                                Point(7 * 5, 1 * 5),
+                                                Point(7 * 5, 4 * 5),
+                                                Point(5 * 5, 5 * 5),
+                                                Point(2 * 5, 5 * 5),
+                                                Point(0 * 5, 4 * 5)})));
+        Matrix matrix = items.back().rasterize(1);
+	int angle = 45;
+        for(int i = 0; i < 360 / angle; i += 1)
+        {
+               std::cout << "Matrix at rotation = " << i * angle << "::\n";
+               matrix.rotate(i * angle * 1.0).print();
+        } 
 }
 
 int main()
