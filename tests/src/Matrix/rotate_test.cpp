@@ -23,7 +23,7 @@ void rotate_test1()
                                                 Point(2 * 5, 5 * 5),
                                                 Point(0 * 5, 4 * 5)})));
         Matrix matrix = items.back().rasterize(1);
-	int angle = 45;
+	int angle = 15;
         for(int i = 0; i < 360 / angle; i += 1)
         {
                std::cout << "Matrix at rotation = " << i * angle << "::\n";

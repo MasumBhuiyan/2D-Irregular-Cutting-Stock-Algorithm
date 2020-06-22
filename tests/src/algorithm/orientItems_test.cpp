@@ -7,21 +7,21 @@
 void orientItems_test1()
 {
 	std::vector<Item> items;
-	items.push_back(Item(4, vector<Point>({Point(0 * 5, 0 * 5),
-										   Point(5 * 5, 0 * 5),
-										   Point(5 * 5, 5 * 5),
-										   Point(0 * 5, 5 * 5)})));
-	items.push_back(Item(3, vector<Point>({Point(0 * 5, 0 * 5),
-										   Point(5 * 5, 0 * 5),
-										   Point(5 * 5, 5 * 5)})));
-	items.push_back(Item(8, vector<Point>({Point(0 * 5, 1 * 5),
-										   Point(2 * 5, 0 * 5),
-										   Point(5 * 5, 0 * 5),
-										   Point(7 * 5, 1 * 5),
-										   Point(7 * 5, 4 * 5),
-										   Point(5 * 5, 5 * 5),
-										   Point(2 * 5, 5 * 5),
-										   Point(0 * 5, 4 * 5)})));
+	items.push_back(Item(4, vector<Point>({Point(0 * 2, 0 * 2),
+										   Point(5 * 2, 0 * 2),
+										   Point(5 * 2, 5 * 2),
+										   Point(0 * 2, 5 * 2)})));
+	items.push_back(Item(3, vector<Point>({Point(0 * 2, 0 * 2),
+										   Point(5 * 2, 0 * 2),
+										   Point(5 * 2, 5 * 2)})));
+	items.push_back(Item(8, vector<Point>({Point(0 * 2, 1 * 2),
+										   Point(2 * 2, 0 * 2),
+										   Point(5 * 2, 0 * 2),
+										   Point(7 * 2, 1 * 2),
+										   Point(7 * 2, 4 * 2),
+										   Point(5 * 2, 5 * 2),
+										   Point(2 * 2, 5 * 2),
+										   Point(0 * 2, 4 * 2)})));
 
 	vector<Matrix> matrices;
 	int idx = 1;

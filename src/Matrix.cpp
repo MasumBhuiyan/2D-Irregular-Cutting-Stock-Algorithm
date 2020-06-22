@@ -91,7 +91,7 @@ Matrix Matrix::rotate90()
 */
 Matrix Matrix::rotate(double angle)
 {
-    Matrix rotated(std::max(row, col) + 10, std::max(row,col) + 10);
+    Matrix rotated(row + 2, col + 2);
     std::vector<Point> rotatedPoints;
     std::vector<Point> points;
     double minX = 1e9, minY = 1e9;

@@ -42,9 +42,9 @@ std::pair<int, int> raster::getRasterMatrixDimension(Polygon &polygon)
     double max_x = -MAX_X;
     double max_y = -MAX_Y;
     translateToNewOrigin(polygon, max_x, max_y);
-    int row = ceil(max_x) + 5;
-    int col = ceil(max_y) + 5;
-    return {std::max(row, col), std::max(row, col)};
+    int row = ceil(max_x) + 2;
+    int col = ceil(max_y) + 2;
+    return {row, col};
 }
 
 /**

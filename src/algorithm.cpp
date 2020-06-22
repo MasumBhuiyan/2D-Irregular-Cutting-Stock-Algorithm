@@ -75,7 +75,7 @@ Matrix split(std::vector<Matrix> &items, int l, int r)
 	Matrix b = split(items, m + 1, r);
 	Matrix best = mergeItems(a, b);
 
-	double angle = 90;
+	double angle = 30;
 	int rot = 360 / angle;
 
 	for(int i = 0; i < rot; i += 1)
