@@ -1,55 +1,38 @@
 #include "algorithm.hpp"
 #include <fstream>
+#include <Item.hpp>
+#include <Matrix.hpp>
+#include <Point.hpp>
 
 void orientItems_test1()
 {
-	std::ifstream file("../../tests/src/algorithm/split_test1_input.txt");
-	if (file.fail())
-    {
-        std::cerr << "File does not exists" << "\n";
-        exit(-1);
-    }
-	int n; file >> n;
-	std::vector<Matrix> Items(n);
- 
+	std::vector<Item> items;
+	items.push_back(Item(4, vector<Point>({Point(0 * 5, 0 * 5),
+										   Point(5 * 5, 0 * 5),
+										   Point(5 * 5, 5 * 5),
+										   Point(0 * 5, 5 * 5)})));
+	items.push_back(Item(3, vector<Point>({Point(0 * 5, 0 * 5),
+										   Point(5 * 5, 0 * 5),
+										   Point(5 * 5, 5 * 5)})));
+	items.push_back(Item(8, vector<Point>({Point(0 * 5, 1 * 5),
+										   Point(2 * 5, 0 * 5),
+										   Point(5 * 5, 0 * 5),
+										   Point(7 * 5, 1 * 5),
+										   Point(7 * 5, 4 * 5),
+										   Point(5 * 5, 5 * 5),
+										   Point(2 * 5, 5 * 5),
+										   Point(0 * 5, 4 * 5)})));
 
-	for(int i = 0; i < n; i += 1) 
+	vector<Matrix> matrices;
+	int idx = 1;
+	for(auto i : items) 
 	{
-		int r, c; file >> r >> c;
-		//std::cout << r << " " << c << "\n";
-		int m; file >> m;
-
-		Items[ i ].row = std::max(r, c);
-		Items[ i ].col = std::max(r, c);
-		Items[ i ].mat.resize(std::max(r, c), std::vector<int>(std::max(r, c), 0));
-
-		//std::cout << (int)Items[ i ].mat.size() << "\n";
-		while( m-- ) {
-			int x, y; file >> x >> y;
-			Items[ i ].mat[ x ][ y ] = i + 1;
-		}
+		matrices.push_back(i.rasterize(idx));
+		idx += 1;
+		matrices.back().print();
 	}
 
-	// print items
-	for(int i = 0; i < n; i += 1) {
-		std::cout << "Item " << i << "::\n";
-		Items[ i ].print();
-	}
-
-	Matrix stock = orientItems(Items);
-	/*//Matrix stock = mergeItems(Items[ 0 ], Items[ 1 ]);
-
-	std::cout << "Stock::\n";
-	stock.print();
-
-	double packingDensity = 0;
-	for(int i = 0; i < stock.row; i += 1) {
-		for(int j = 0; j < stock.col; j += 1) {
-			packingDensity += (stock.mat[ i ][ j ] == 0 ? 0 : 1);
-		}
-	}
-	packingDensity /= ((stock.row - 1) * (stock.col - 1));
-	std::cout << "Packing Density: " << packingDensity * 100 << "%" << "\n";*/
+	Matrix stock = orientItems(matrices);
 }
 int main()
 {
