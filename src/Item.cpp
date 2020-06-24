@@ -22,8 +22,8 @@ Item::Item(int n, vector<Point> v) : numberOfVertices(n)
     rot = 0.0;
     //pivotPoint = findCentroid();
     pivotPoint = {0, 0};
-    area = calculateArea();
-    normalize();
+   // area = calculateArea();
+    //normalize();
 }
 
 /** 
@@ -34,7 +34,14 @@ bool Item::operator<(Item i) const
 {
     return (area >= i.area);
 }
-
+void Item::operator +=(Point p)
+{
+    for(auto& point : vertices)
+    {
+        point.x += p.x;
+        point.y += p.y;
+    }
+}
 /** methods */
 /** read from console */
 void Item::read()
@@ -46,10 +53,10 @@ void Item::read()
     {
         vi.read();
     }
-    normalize();
+   // normalize();
     //pivotPoint = findCentroid();
     pivotPoint = Point(0,0);
-    area = calculateArea();
+    //area = calculateArea();
 }
 
 /** read from file pointer */
@@ -65,7 +72,7 @@ void Item::read(ifstream &file)
     normalize();
     //pivotPoint = findCentroid();
     pivotPoint = Point(0,0);
-    area = calculateArea();
+    //area = calculateArea();
 }
 
 /** prints the object in the console */
@@ -107,7 +114,8 @@ Item Item::rotate(double angle, Point p)
 */
 double Item::calculateArea()
 {
-    double area = 0;
+    //if( area > 0 ) return area; 
+    area = 0;
     for (int i = 0; i < numberOfVertices; i++)
     {
         area += vec::cross(vertices[i], vertices[(i + 1) % numberOfVertices]);
@@ -181,7 +189,7 @@ bool Item::doesOverlap(Item &a)
             Point x1 = vertices[ i ];
             Point x2 = vertices[ (i + 1) % numberOfVertices ];
             Point x3 = a.vertices[ j ];
-            Point x4 = a.vertices[ (j + 1) % numberOfVertices ];
+            Point x4 = a.vertices[ (j + 1) % a.numberOfVertices ];
 
             if( vec::segSegIntersection(x1, x2, x3, x4) == true )
             {
@@ -192,14 +200,14 @@ bool Item::doesOverlap(Item &a)
     // check point inside polygon
     for(auto point : vertices)
     {
-        if( polygonal::isPointInsidePolygon(point, a.vertices) == true )
+        if( polygonal::isPointInsidePolygon(point, a.vertices) == 1 )
         {
             return true;
         }
     }
     for(auto point : a.vertices)
     {
-        if( polygonal::isPointInsidePolygon(point, vertices) == true )
+        if( polygonal::isPointInsidePolygon(point, vertices) == 1 )
         {
             return true;
         }

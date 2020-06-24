@@ -44,8 +44,8 @@ bool vec::pointInRectangle(Vector a, Vector b, Vector c) {//
 
 // orient(point a, point b, point c): 0 if c is on AB, 1 if left, -1 if right
 int vec::orient(Vector a, Vector b, Vector c) {//
-    int p = vec::cross(b - a, c - a);
-    if( p == 0 ) return 0;
+    double p = vec::cross(b - a, c - a);
+    if( fabs(p) < geo::EPS ) return 0;
     return p > 0 ? 1 : -1;
 }
 
@@ -53,9 +53,9 @@ int vec::orient(Vector a, Vector b, Vector c) {//
 bool vec::segSegIntersection(Vector a, Vector b, Vector c, Vector d) { //
     int o1 = vec::orient(a, b, c), o2 = vec::orient(a, b, d);
     int o3 = vec::orient(c, d, a), o4 = vec::orient(c, d, b);
-
+    
     if( o1 * o2 == -1 && o3 * o4 == -1 ) return true;
-    if( (!o1 && vec::pointInRectangle(a, b, c)) || (!o2 && vec::pointInRectangle(a, b, d)) ) return true;
+    if( (!o1 && vec::pointInRectangle(a, b, c)) || (!o2 && vec::pointInRectangle(a, b, d)) ) return true; // touching not allowed
     if( (!o3 && vec::pointInRectangle(c, d, a)) || (!o4 && vec::pointInRectangle(c, d, b)) ) return true;
     return false;
 }
@@ -86,7 +86,7 @@ int polygonal::isPointInsidePolygon(Point point, Polygon &polygon)
         int j = (i + 1) % n;
         if (linear::isOnSegment(point, polygon[i], polygon[j]) or point == polygon[i])
         {
-            return 0;
+            return 1;
         }
         int k = geo::dcmp(vec::cross(polygon[j] - polygon[i], point - polygon[i]));
         int d1 = geo::dcmp(polygon[i].y - point.y);
@@ -100,5 +100,5 @@ int polygonal::isPointInsidePolygon(Point point, Polygon &polygon)
             windingNumber--;
         }
     }
-    return windingNumber ? 1 : -1;
+    return windingNumber ? 1 : 0; // touch not allowed
 }

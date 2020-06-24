@@ -27,6 +27,7 @@ public:
 
     // operator overload
     bool operator<(Item) const;
+    void operator +=(Point);
 
     // methods
     void read();

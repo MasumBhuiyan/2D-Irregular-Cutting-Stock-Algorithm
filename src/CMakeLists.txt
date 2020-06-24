@@ -12,7 +12,7 @@ add_library(approach0 ../include/approach0.hpp approach0.cpp)
 
 target_link_libraries(Point PRIVATE geometry)
 target_link_libraries(Item PRIVATE Point Matrix rasterization)
-target_link_libraries(io PRIVATE Item)
+target_link_libraries(io PRIVATE Item approach0)
 target_link_libraries(Stock PRIVATE Matrix)
 target_link_libraries(rasterization PRIVATE Matrix geometry Point)
 target_link_libraries(algorithm PRIVATE Matrix)
