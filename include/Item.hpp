@@ -19,6 +19,7 @@ public:
     int numberOfVertices;
     vector<Point> vertices;
     Point pivotPoint;
+    double rot;
     double area;
 
     Item();
@@ -36,6 +37,8 @@ public:
     Point findCentroid();       // finds the centroid of the polygon(Item)
     double calculateArea();     // returns the area of the polygon
     Matrix rasterize();         // returns a binary matrix of the polygon(Item)
+    void normalize();           // translates to origin(0,0)
+    bool doesOverlap(Item &); // checks whether two items overlaps or not
 };
 
 #endif // ITEM_HPP

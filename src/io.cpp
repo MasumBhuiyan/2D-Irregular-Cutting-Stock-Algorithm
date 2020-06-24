@@ -16,7 +16,7 @@ vector<Item> io::readItemsFromInputFile(string filename, double &width)
     cout << "Reading file..." << endl;
 
     /* width of the bean */
-    file >> width;
+    file >>  width;
 
     /* number of Items */
     int numberOfItems;

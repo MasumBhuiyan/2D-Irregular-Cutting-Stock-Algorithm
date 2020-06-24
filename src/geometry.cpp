@@ -34,6 +34,31 @@ double vec::getAngleInRad(Vector a, Vector b)
 {
     return acos(dot(a, b) / (len(a) * len(b)));
 }
+// pointInRectangle(point a,point b,point c): true if c is strictly inside or 
+// in the boundary of the rectangle bounded by a and b
+bool vec::pointInRectangle(Vector a, Vector b, Vector c) {//
+    bool p = ( std::min(a.x, b.x) <= c.x && std::max(a.x, b.x) >= c.x );
+    bool q = ( std::min(a.y, b.y) <= c.y && std::max(a.y, b.y) >= c.y );
+    return (p && q);
+}
+
+// orient(point a, point b, point c): 0 if c is on AB, 1 if left, -1 if right
+int vec::orient(Vector a, Vector b, Vector c) {//
+    int p = vec::cross(b - a, c - a);
+    if( p == 0 ) return 0;
+    return p > 0 ? 1 : -1;
+}
+
+// segSegIntersection(point a, point b, point c, point d): true if AB intersects CD
+bool vec::segSegIntersection(Vector a, Vector b, Vector c, Vector d) { //
+    int o1 = vec::orient(a, b, c), o2 = vec::orient(a, b, d);
+    int o3 = vec::orient(c, d, a), o4 = vec::orient(c, d, b);
+
+    if( o1 * o2 == -1 && o3 * o4 == -1 ) return true;
+    if( (!o1 && vec::pointInRectangle(a, b, c)) || (!o2 && vec::pointInRectangle(a, b, d)) ) return true;
+    if( (!o3 && vec::pointInRectangle(c, d, a)) || (!o4 && vec::pointInRectangle(c, d, b)) ) return true;
+    return false;
+}
 
 /** namespace linear */
 /**

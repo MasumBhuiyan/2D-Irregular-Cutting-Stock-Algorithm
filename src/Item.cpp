@@ -6,14 +6,24 @@
 void checkPolygonValidity(int numberOfVertices) { assert(numberOfVertices >= 3 and numberOfVertices <= 1e6); }
 
 /** constructors */
-Item::Item() {}
+Item::Item() 
+{
+    vertices.clear();
+    numberOfVertices = 0;
+    area = 0;
+    rot = 0;
+    pivotPoint = {0, 0};
+}
 Item::Item(int n, vector<Point> v) : numberOfVertices(n)
 {
     checkPolygonValidity(numberOfVertices);
     assert(v.size() == n);
     vertices = v;
-    pivotPoint = findCentroid();
+    rot = 0.0;
+    //pivotPoint = findCentroid();
+    pivotPoint = {0, 0};
     area = calculateArea();
+    normalize();
 }
 
 /** 
@@ -36,7 +46,9 @@ void Item::read()
     {
         vi.read();
     }
-    pivotPoint = findCentroid();
+    normalize();
+    //pivotPoint = findCentroid();
+    pivotPoint = Point(0,0);
     area = calculateArea();
 }
 
@@ -50,7 +62,9 @@ void Item::read(ifstream &file)
     {
         vi.read(file);
     }
-    pivotPoint = findCentroid();
+    normalize();
+    //pivotPoint = findCentroid();
+    pivotPoint = Point(0,0);
     area = calculateArea();
 }
 
@@ -82,7 +96,9 @@ Item Item::rotate(double angle, Point p)
     {
         vi = vi.rotate(p, angle);
     }
-    rotatedItem.findCentroid();
+    rotatedItem.pivotPoint = rotatedItem.pivotPoint.rotate(p, angle);
+    //rotatedItem.normalize();
+    //rotatedItem.findCentroid();
     return rotatedItem;
 }
 
@@ -140,4 +156,53 @@ Matrix Item::rasterize()
     std::pair<int, int> seed = raster::getSeedPoint(matrix, polygon);
     raster::regionfill(matrix, seed.first, seed.second);
     return matrix;
+}
+void Item::normalize()
+{
+    double _x = 4e18, _y = 4e18;
+    for(auto point : vertices)
+    {
+        _x = std::min(_x, point.x);
+        _y = std::min(_y, point.y);
+    }
+    for(auto& point : vertices)
+    {
+        point.x -= _x;
+        point.y -= _y;
+    }
+}
+bool Item::doesOverlap(Item &a)
+{
+    //check seg seg intersection
+    for(int i = 0; i < numberOfVertices; i += 1)
+    {
+        for(int j = 0; j < a.numberOfVertices; j += 1)
+        {
+            Point x1 = vertices[ i ];
+            Point x2 = vertices[ (i + 1) % numberOfVertices ];
+            Point x3 = a.vertices[ j ];
+            Point x4 = a.vertices[ (j + 1) % numberOfVertices ];
+
+            if( vec::segSegIntersection(x1, x2, x3, x4) == true )
+            {
+                return true;
+            }
+        }
+    }
+    // check point inside polygon
+    for(auto point : vertices)
+    {
+        if( polygonal::isPointInsidePolygon(point, a.vertices) == true )
+        {
+            return true;
+        }
+    }
+    for(auto point : a.vertices)
+    {
+        if( polygonal::isPointInsidePolygon(point, vertices) == true )
+        {
+            return true;
+        }
+    }
+    return false;
 }

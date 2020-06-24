@@ -25,6 +25,9 @@ namespace vec
     double lenSq(Vector);                 // lenth square
     double len(Vector);                   // length
     double getAngleInRad(Vector, Vector); // angle inside two vector
+    bool pointInRectangle(Vector, Vector, Vector); 
+    int orient(Vector, Vector, Vector c);
+    bool segSegIntersection(Vector, Vector, Vector, Vector);
 
 }; // namespace vec
 
