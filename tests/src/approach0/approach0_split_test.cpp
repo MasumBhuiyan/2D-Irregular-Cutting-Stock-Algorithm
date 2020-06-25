@@ -67,8 +67,14 @@ void getPos(std::vector<Item> items)
 int main()
 {
 	//readIO("../../tests/dataset/sample.txt");
-	readIO("../../tests/dataset/albano.txt");
+	//readIO("../../tests/dataset/albano.txt");
 	//readIO("../../tests/dataset/blaz.txt");
+	//readIO("../../tests/dataset/shirts.txt");
+	//readIO("../../tests/dataset/trousers.txt");
+	//readIO("../../tests/dataset/marques.txt");
+	//readIO("../../tests/dataset/dagli.txt");
+	//readIO("../../tests/dataset/jakobs1.txt");
+	//readIO("../../tests/dataset/jakobs2.txt");
 	for(auto& item : items)
 	{
 		item.normalize();
@@ -78,6 +84,11 @@ int main()
 	//sort(items.begin(), items.end());
 	//random_shuffle(items.begin(), items.end());
 	vector<Item> stock = approach0::split(items, 0, items.size() - 1);
+	for(int i = 0; i < stock.size(); i += 1) {
+		for(int j = i + 1; j < stock.size(); j += 1) {
+			assert(stock[ i ].doesOverlap(stock[ j ]) == false);
+		}
+	}
 
 	double area1 = 0.0, area2 = approach0::minRecArea(stock);
 	//std::cout << "\n\n\nAfter split::\n";
