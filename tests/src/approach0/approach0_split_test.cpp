@@ -6,9 +6,10 @@
 #include <string>
 #include <approach0.hpp>
 #include <algorithm>
+#include <chrono> 
 #include <assert.h>
 #include<map>
-
+using namespace std::chrono; 
 int n;
 double width;
 std::vector<int> quantity;
@@ -16,21 +17,14 @@ std::vector<Item> items;
 
 void readIO(std::string filename) 
 {
-    std::cout << "Opening file: " << filename << " .....\n";
-   
     std::ifstream file(filename); 
     if (file.fail()) 
     {
         std::cerr << "File does not exists\n";
     } else 
     {
-	    std::cout << "Reading file...\n";
 	    file >>  width;
-	    std::cout << "STOCK WIDTH: " << width << "\n";
-
 	    file >> n;
-	    std::cout << "TOTAL TYPES OF PIECES: " << n << "\n";
-
 	    quantity.resize(n);
 	    for (int i = 0; i < n; i += 1)
 	    {
@@ -39,38 +33,76 @@ void readIO(std::string filename)
 	        item.read(file);
 	        for(int k = 0; k < quantity[ i ]; k += 1)
 	        	items.push_back(item);
-	        std::cout << "PIECE " << i + 1 << "\n";
-	        std::cout << "QUANTITY " << quantity[ i ] << "\n";
-	        items.back().print();
 	    }
-	    std::cout << "Reading complete\n";
 	    file.close();
     }
 }
-void getPos(std::vector<Item> items)
+void processVisualize(std::vector<Item> stock)
 {
-	std::vector<Item> items2 = items;
-	std::map<double,int> pos;
-	int x = 0;
-	sort(items.begin(), items.end());
-	for(auto item : items)
+	double _x = 4e18, _y = 4e18;
+	for(auto &item : stock)
 	{
-		if( pos.find(item.area) == pos.end() ) 
-			pos[ item.area ] = x++;
+		for(auto &point : item.vertices)
+		{
+			_x = std::min(_x, point.x);
+			_y = std::min(_y, point.y);
+		}
 	}
-	for(auto item : items2)
+	for(auto &item : stock)
 	{
-		std::cout << pos[ item.area ] << " ";
+		for(auto &point : item.vertices)
+		{
+			point.x -= _x;
+			point.y -= _y;
+		}
 	}
-	std::cout << '\n';
+	_x = -4e18, _y = -4e18;
+	for(auto &item : stock)
+	{
+		for(auto &point : item.vertices)
+		{
+			_x = std::max(_x, point.x);
+			_y = std::max(_y, point.y);
+		}
+	}
+
+	_x = 800 / _x; 
+	_y = 600 / _y;
+
+
+	for(auto &item : stock)
+	{
+		for(auto &point : item.vertices)
+		{
+			point.x *= _x;
+			point.y *= _y;
+		}
+	}
+
+	std::cout << "[";
+	for(int i = 0; i < stock.size(); i += 1)
+	{
+		Item item = stock[ i ];
+		std::cout <<"[" << item.vertices[0].x << ", " << item.vertices[0].y;
+		for(int j = 1; j < item.vertices.size(); j += 1)
+		{
+			Point point = item.vertices[ j ];
+			std::cout << std::setprecision(2) << std::fixed << ", " << point.x<< ", " << point.y;
+		}
+		std::cout << std::setprecision(2) << std::fixed << ", " << item.vertices[0].x << ", " << item.vertices[0].y << "]\n";
+		if( i < stock.size() - 1 ) std::cout << ",";
+	}
+	std::cout << "]\n";
 }
 int main()
 {
-	//readIO("../../tests/dataset/sample.txt");
+	auto start = high_resolution_clock::now(); 
+
+	readIO("../../tests/dataset/sample.txt");
 	//readIO("../../tests/dataset/albano.txt");
 	//readIO("../../tests/dataset/blaz.txt");
-	//readIO("../../tests/dataset/shirts.txt");
-	//readIO("../../tests/dataset/trousers.txt");
+	//readIO("../../tests/dataset/shirts.txt"); //items size 99
+	//readIO("../../tests/dataset/trousers.txt"); // items size 64
 	//readIO("../../tests/dataset/marques.txt");
 	//readIO("../../tests/dataset/dagli.txt");
 	//readIO("../../tests/dataset/jakobs1.txt");
@@ -79,10 +111,8 @@ int main()
 	{
 		item.normalize();
 		item.area = item.calculateArea();
-		//item.print();
 	}
-	//sort(items.begin(), items.end());
-	//random_shuffle(items.begin(), items.end());
+	
 	vector<Item> stock = approach0::split(items, 0, items.size() - 1);
 	for(int i = 0; i < stock.size(); i += 1) {
 		for(int j = i + 1; j < stock.size(); j += 1) {
@@ -90,14 +120,16 @@ int main()
 		}
 	}
 
+	processVisualize(stock);
+
 	double area1 = 0.0, area2 = approach0::minRecArea(stock);
-	//std::cout << "\n\n\nAfter split::\n";
 	for(auto item : stock) 
 	{
 		area1 += item.calculateArea();
-		//item.print();
 	}
-	std::cout << area1 << " " << area2 << '\n';
 	std::cout << "Packing Density:: " << (area1 / area2) * 100 << " %\n";
+	auto stop = high_resolution_clock::now(); 
+	auto duration = duration_cast<microseconds>(stop - start); 
+    std::cout << "Time taken by function: " << duration.count() / 1000000.0 << " seconds" << std::endl; 
 	return 0;
 }

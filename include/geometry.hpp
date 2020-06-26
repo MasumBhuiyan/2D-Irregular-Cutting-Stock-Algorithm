@@ -44,4 +44,9 @@ namespace polygonal
 
 }; // namespace polygonal
 
+namespace no_fit_polygon
+{
+    Polygon nfpConvex(Polygon &, Polygon &); // no fit polygon of two convex polygons
+    Polygon nfpSimplePolygons(Polygon &, Polygon &); // no fit polygon of two simple polygons polygons
+}; // namespace no_fit_polygon
 #endif // GEOMETRY_HPP

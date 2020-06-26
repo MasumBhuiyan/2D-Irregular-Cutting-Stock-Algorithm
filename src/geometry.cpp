@@ -102,3 +102,11 @@ int polygonal::isPointInsidePolygon(Point point, Polygon &polygon)
     }
     return windingNumber ? 1 : 0; // touch not allowed
 }
+
+/**
+ * returns the no fit polygon of two convex polygons
+*/
+Polygon no_fit_polygon::nfpConvex(Polygon &a, Polygon &b)
+{
+    
+}
