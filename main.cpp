@@ -1,7 +1,5 @@
 #include <iostream>
 
-using namespace std;
-
 int main(int argc, char const *argv[])
 {
     if (argc == 2)
@@ -9,7 +7,7 @@ int main(int argc, char const *argv[])
     }
     else
     {
-        cerr << "Argument error" << endl;
+        std::cerr << "Argument error" << std::endl;
         exit(-1);
     }
 }
