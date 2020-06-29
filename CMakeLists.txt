@@ -8,24 +8,20 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # executable file
-add_executable(run main.cpp)
+add_executable(main main.cpp)
 
 # headers implementations
 add_subdirectory(src)
 
-target_link_libraries(
-    run
-    PRIVATE
-    io Point Matrix Item geometry rasterization Stock algorithm
-)
+
 
 target_include_directories(
-    run
+    main
     PUBLIC
     "${PROJECT_SOURCE_DIR}/include"
 )
 
 # Enable testing globally. Individual tests may be found in the `tests`
 # subdirectory of the repository.
-enable_testing()
-add_subdirectory(tests)
+# enable_testing()
+# add_subdirectory(tests)
