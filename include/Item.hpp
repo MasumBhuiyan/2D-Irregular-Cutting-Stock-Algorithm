@@ -27,7 +27,7 @@ public:
 
     // operator overload
     bool operator<(Item) const;
-    void operator +=(Point);
+    void operator+=(Point);
 
     // methods
     void read();
@@ -39,7 +39,7 @@ public:
     double calculateArea();     // returns the area of the polygon
     Matrix rasterize();         // returns a binary matrix of the polygon(Item)
     void normalize();           // translates to origin(0,0)
-    bool doesOverlap(Item &); // checks whether two items overlaps or not
+    bool doesOverlap(Item &);   // checks whether two items overlaps or not
 };
 
 #endif // ITEM_HPP
