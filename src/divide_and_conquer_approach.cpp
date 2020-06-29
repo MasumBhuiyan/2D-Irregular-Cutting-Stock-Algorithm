@@ -1,142 +1,84 @@
 #include "divide_and_conquer_approach.hpp"
 
-#define INF 1e18
-#define RASTER_MATRIX_DIMENSION 1000
-
-/**
- * privet method
- * rotates the items according to the item states
- * rasterize the items in a matrix
-*/
-Matrix rasterItems(
-    std::vector<Item> &items,
-    std::vector<ItemState> &itemStates,
-    int rasterDimension = RASTER_MATRIX_DIMENSION)
+std::pair<double, double> approach1::minAreaRectangle(Item &item)
 {
-    Matrix raster = Matrix(rasterDimension, rasterDimension);
-    for (ItemState itemState : itemStates)
-    {
-        int itemId = itemState.itemId;
-        double rotationAngle = itemState.rotatedBy;
-        Point pivot = itemState.pivot;
+    double min_x = INF, max_x = -INF;
+    double min_y = INF, max_y = -INF;
 
-        Item rotatedItem = items[itemId].rotate(rotationAngle, {0, 0});
-        Matrix rasterItem = rotatedItem.rasterize();
-        raster.insertItem(pivot, rasterItem);
+    for (Point vertex : item.vertices)
+    {
+        min_x = std::min(min_x, vertex.x);
+        min_y = std::min(min_y, vertex.y);
+        max_x = std::max(max_x, vertex.x);
+        max_y = std::max(max_y, vertex.y);
     }
-    return raster;
+    double l = max_x - min_x;
+    double w = max_y - min_y;
+    return {l, w};
 }
 
-/**
- * privet method
- * merge two raster and returns minimum enclosing rectangle area and
- * new pivot of the second raster
-*/
-std::pair<double, Point> mergeItemToFindMinEnclosingRectangleArea(
-    Matrix &rasterA, Matrix &rasterB)
+Item approach1::mergeHeuristic1(Item &item1, Item &item2)
 {
-    std::pair<double, Point> result; // incomplete
-    return result;
+    Item mergedItem;
+
+    return mergedItem;
 }
 
-/**
- * merge two set of items by rastering them 
-*/
-std::pair<double, Point> DnCApproach::mergeItemsSet(
-    std::vector<Item> &items,
-    std::vector<ItemState> &leftHalf,
-    std::vector<ItemState> &rightHalf)
+ItemState approach1::mergeItem(ItemState &itemState1, ItemState &itemState2)
 {
-    Matrix rasterLeftHalf = rasterItems(items, leftHalf);
-    Matrix rasterRightHalf = rasterItems(items, rightHalf);
-    return mergeItemToFindMinEnclosingRectangleArea(rasterLeftHalf, rasterLeftHalf);
-}
+    double angle = 90;
+    double minArea = INF, length = INF;
 
-/**
- * add rotation angle to ItemState's rotation
- * rotate the ItemState's pivot 
-*/
-std::vector<ItemState> DnCApproach::rotateItemStates(
-    std::vector<ItemState> &itemStates,
-    double rotationAngle)
-{
-    std::vector<ItemState> rotateItemStates = itemStates;
-    for (ItemState &itemState : rotateItemStates)
+    Item item1, item2, mergedItem;
+
+    if (itemState1.second >= itemState2.second)
     {
-        itemState.rotatedBy += rotationAngle;
-        itemState.pivot.rotate({0, 0}, geo::DEG2RAD(rotationAngle));
-        itemState.pivot = {std::floor(itemState.pivot.x + 0.5), std::floor(itemState.pivot.y + 0.5)}; // pivot approximation
+        item1 = itemState1.first;
+        item2 = itemState2.first;
     }
-    return rotateItemStates;
-}
-
-/**
- * returns the best orientation by rotating leftHalf and rightHalf
- * with different angles and checking which orientation provides the minimum
- * area rectangle that covers both set of Items
-*/
-std::vector<ItemState> DnCApproach::findBestOrientation(
-    std::vector<Item> &items,
-    std::vector<ItemState> &leftHalf,
-    std::vector<ItemState> &rightHalf)
-{
-    double currentBest = INF;
-    std::vector<ItemState> bestOrientation;
-
-    for (double r1 : rotations)
+    else
     {
-        std::vector<ItemState> rotatedLeft = rotateItemStates(leftHalf, r1);
-        for (double r2 : rotations)
+        item1 = itemState2.first;
+        item2 = itemState1.first;
+    }
+
+    for (int i = 0; i < (360 / (int)angle); i++)
+    {
+        Item tmpMergedItem = mergeHeuristic1(item1, item2);
+        auto minRectangle = minAreaRectangle(tmpMergedItem);
+        double tmpArea = minRectangle.first * minRectangle.second;
+        if (tmpArea < minArea)
         {
-            std::vector<ItemState> rotatedRight = rotateItemStates(rightHalf, r2);
-            std::pair<double, Point> mergeResult = mergeItemsSet(items, rotatedLeft, rotatedRight);
-            double minimumEnclosingRectangleArea = mergeResult.first;
-            Point pivotOfRightHalf = mergeResult.second;
-            if (minimumEnclosingRectangleArea < currentBest)
-            {
-                currentBest = minimumEnclosingRectangleArea;
-                for (ItemState &itemState : rightHalf)
-                {
-                    itemState.pivot = itemState.pivot + pivotOfRightHalf;
-                }
-                bestOrientation = leftHalf;
-                bestOrientation.insert(bestOrientation.end(), rightHalf.begin(), rightHalf.end());
-            }
+            mergedItem = tmpMergedItem;
+            minArea = tmpArea;
+            length = minRectangle.first;
         }
+        else if (tmpArea == minArea and length > minRectangle.first)
+        {
+            mergedItem = tmpMergedItem;
+            length = minRectangle.first;
+        }
+        item1 = item1.rotate(geo::DEG2RAD(angle), Point(0, 0));
     }
 
-    return bestOrientation;
+    return {mergedItem, minArea};
 }
 
-/**
- * similar to Merge Sort
- * in each step it merges two set of Items by rotating different angles
- * and returns the best orientation
- * best orientation is the orientation of Items that can be enclosed with 
- * the minimum area rectangle 
-*/
-std::vector<ItemState> DnCApproach::divideAndConquer(std::vector<Item> &items, int left, int right)
+ItemState approach1::split(std::vector<Item> &items, int left, int right)
 {
     if (left == right)
     {
-        return {ItemState(left, 0, items[left].pivotPoint)};
+        auto minRectangle = minAreaRectangle(items[left]);
+        return {items[left], minRectangle.first * minRectangle.second};
     }
-    int mid = (left + right) >> 1;
-    auto leftHalf = divideAndConquer(items, left, mid);
-    auto rightHalf = divideAndConquer(items, mid + 1, right);
+    int mid = left + (right - left) / 2;
+    ItemState resultLeft = split(items, left, mid);
+    ItemState resultRight = split(items, mid + 1, right);
 
-    auto bestOrientation = findBestOrientation(items, leftHalf, rightHalf);
-    return bestOrientation;
+    return mergeItem(resultLeft, resultRight);
 }
 
-/**
- * given a list of Items (at max 10 Items)
- * an orientation ot the Items is generated by divideAndConquer() method
- * the orientation is placed on a stock
- * calculates the packing density
-*/
-void DnCApproach::solution(std::vector<Item> &items)
+void approach1::solution(std::vector<Item> &items)
 {
-    int numberOfItems = items.size();
-    std::vector<ItemState> orientation = divideAndConquer(items, 0, numberOfItems - 1);
+    ItemState result = split(items, 0, items.size() - 1);
 }

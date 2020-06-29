@@ -16,7 +16,7 @@ target_link_libraries(io PRIVATE Item approach0)
 target_link_libraries(Stock PRIVATE Matrix)
 target_link_libraries(rasterization PRIVATE Matrix geometry Point)
 target_link_libraries(algorithm PRIVATE Matrix)
-target_link_libraries(divide_and_conquer_approach PRIVATE Point Item Matrix geometry)
+target_link_libraries(divide_and_conquer_approach PRIVATE Point Item geometry)
 target_link_libraries(approach0 PRIVATE Point Item geometry)
 
 target_include_directories(io PUBLIC "${PROJECT_SOURCE_DIR}/include")

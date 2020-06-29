@@ -1,41 +1,22 @@
 #ifndef DIVIVE_N_CONQUER_APPROACH_HPP
 #define DIVIVE_N_CONQUER_APPROACH_HPP
 
-#include <vector>
-#include <tuple>
-#include <cassert>
+#include <Item.hpp>
+#include <Point.hpp>
+#include <geometry.hpp>
 
-#include "Point.hpp"
-#include "Item.hpp"
-#include "Matrix.hpp"
-#include "geometry.hpp"
+#define INF 4e18
 
-static std::vector<double> rotations({45, 90, 135, 180, 225, 270, 315});
+typedef std::pair<Item, double> ItemState;
 
-struct ItemState
+namespace approach1
 {
-    /* data */
-    int itemId;
-    double rotatedBy;
-    Point pivot;
+    Item mergeHeuristic1(Item &, Item &);
 
-    ItemState() {}
-    ItemState(int id, double angle, Point p) : itemId(id), rotatedBy(angle), pivot(p) {}
-};
-
-namespace DnCApproach
-{
-    std::pair<double, Point> mergeItemsSet(
-        std::vector<Item> &,
-        std::vector<ItemState> &,
-        std::vector<ItemState> &);
-    std::vector<ItemState> rotateItemStates(std::vector<ItemState> &, double);
-    std::vector<ItemState> findBestOrientation(
-        std::vector<Item> &,
-        std::vector<ItemState> &,
-        std::vector<ItemState> &);
-    std::vector<ItemState> divideAndConquer(std::vector<Item> &, int, int);
+    std::pair<double, double> minAreaRectangle(Item &);
+    ItemState mergeItem(ItemState &, ItemState &);
+    ItemState split(std::vector<Item> &, int, int);
     void solution(std::vector<Item> &);
-}; // namespace DnCApproach
+}; // namespace approach1
 
 #endif // DIVIVE_N_CONQUER_APPROACH_HPP
