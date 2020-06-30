@@ -70,6 +70,9 @@ Item approach1::placement(Item item, Point p, Point q, Point r, Point s)
 Item approach1::outerface(Item a, Item b, Point p, Point q, Point r, Point s)
 {
     Item outerface;
+
+    vector<Point> face;
+    
     return outerface;
 }
 
@@ -94,23 +97,41 @@ std::pair<double, double> approach1::minAreaRectangle(Item &item)
 }
 
 /**
+ * reflection of points to a line y = mx + b
+*/
+Item approach1::reflectAcrossLine(Item item, Point p, Point q)
+{
+
+    double x1 = p.x, x2 = q.x;
+    double y1 = p.y, y2 = q.y;
+    assert( fabs(x2-x1) < geo::EPS );
+    double m = (y2 - y1) / (x2 - x1);
+    double b = y1 - m * x1;
+    for(auto &point : item.vertices)
+    {
+        point.x = ((1 - m * m) * point.x + 2 * m * point.y - 2 * m * b) / (m * m + 1);
+        point.y = ((m * m - 1) * point.y + 2 * m * point.x + 2 * b) / (m * m + 1);
+    }
+    return item;
+}
+/**
  * merges two item by proposed heuristic1
 */
 Item approach1::mergeHeuristic1(Item &item1, Item &item2)
 {
     Item mergedItem;
 
-    auto pq = findLargestEdge(item1);
-    auto rs = findLargestEdge(item2);
-    p = pq.first, q = pq.second;
-    r = rs.first, s = rs.second;
+    pair<Point, Point> pq = findLargestEdge(item1);
+    pair<Point, Point> rs = findLargestEdge(item2);
+    Point p = pq.first, q = pq.second;
+    Point r = rs.first, s = rs.second;
     
     Item item2PR = placement(item2, p, q, r, s);
     Item item2PS = placement(item2, p, q, s, r);
     Item item2QR = placement(item2, q, p, r, s);
     Item item2QS = placement(item2, q, p, s, r);
 
-    vector<Item> outerfaces({ 
+    std::vector<Item> outerfaces({ 
         outerface(item1, item2PR, p, q, r, s), 
         outerface(item1, item2PS, p, q, s, r),
         outerface(item1, item2QR, q, p, r, s), 

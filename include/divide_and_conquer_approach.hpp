@@ -4,6 +4,7 @@
 #include <Item.hpp>
 #include <Point.hpp>
 #include <geometry.hpp>
+#include <algorithm>
 
 #define INF 4e18
 
@@ -14,6 +15,7 @@ namespace approach1
 	int orient(Point, Point, Point);
 	std::pair<Point,Point> findLargestEdge(Item &);
 	double findRotationAngle(Point, Point);
+	Item reflectAcrossLine(Item, Point, Point);
 	Item placement(Item, Point, Point, Point, Point);
 	Item outerface(Item, Item, Point, Point, Point, Point);
     Item mergeHeuristic1(Item &, Item &);
