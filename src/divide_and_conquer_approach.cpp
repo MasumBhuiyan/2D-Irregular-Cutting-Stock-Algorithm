@@ -1,10 +1,9 @@
 #include "divide_and_conquer_approach.hpp"
 
-
 /**
  * returns 1 if left, -1 otherwise
 */
-int approach1::orient(Point a, Point b, Point c) 
+int approach1::orient(Point a, Point b, Point c)
 {
     int p = (b - a).determinant(c - a);
     return p > 0 ? 1 : -1;
@@ -13,18 +12,18 @@ int approach1::orient(Point a, Point b, Point c)
 /**
  *finds the largest edge of an item
 */
-std::pair<Point,Point> approach1::findLargestEdge(Item &item)
+std::pair<Point, Point> approach1::findLargestEdge(Item &item)
 {
     int noOfVertices = item.vertices.size();
     double d = 0;
     Point p, q;
 
-    for(int i = 0; i < noOfVertices; i += 1) 
+    for (int i = 0; i < noOfVertices; i += 1)
     {
-        Point _p = item.vertices[ i ];
-        Point _q = item.vertices[ (i + 1) % noOfVertices ];
+        Point _p = item.vertices[i];
+        Point _q = item.vertices[(i + 1) % noOfVertices];
         double _d = (_p.x - _q.x) * (_p.x - _q.x) + (_p.y - _q.y) * (_p.y - _q.y);
-        if( _d > d )
+        if (_d > d)
         {
             d = _d;
             p = _p;
@@ -39,8 +38,8 @@ std::pair<Point,Point> approach1::findLargestEdge(Item &item)
 */
 double approach1::findRotationAngle(Point pq, Point rs)
 {
-    double lengthOfPQ = sqrt((pq.x * pq.x) + (pq.y * pq.y)); 
-    double lengthOfRS = sqrt((rs.x * rs.x) + (rs.y * rs.y)); 
+    double lengthOfPQ = sqrt((pq.x * pq.x) + (pq.y * pq.y));
+    double lengthOfRS = sqrt((rs.x * rs.x) + (rs.y * rs.y));
     double angle = acos(((pq.x * rs.x) + (pq.y * rs.y)) / (lengthOfPQ * lengthOfRS));
     return angle;
 }
@@ -53,10 +52,10 @@ double approach1::findRotationAngle(Point pq, Point rs)
 Item approach1::placement(Item item, Point p, Point q, Point r, Point s)
 {
     double angle = findRotationAngle(q - p, s - r);
-    int isLeft = orient(r, s, q); 
-    for(auto &point : item.vertices)
+    int isLeft = orient(r, s, q);
+    for (auto &point : item.vertices)
     {
-        point = point.rotate(r, angle * isLeft); 
+        point = point.rotate(r, angle * isLeft);
         point = point - r;
         point = point + p;
     }
@@ -72,7 +71,7 @@ Item approach1::outerface(Item a, Item b, Point p, Point q, Point r, Point s)
     Item outerface;
 
     vector<Point> face;
-    
+
     return outerface;
 }
 
@@ -104,10 +103,10 @@ Item approach1::reflectAcrossLine(Item item, Point p, Point q)
 
     double x1 = p.x, x2 = q.x;
     double y1 = p.y, y2 = q.y;
-    assert( fabs(x2-x1) < geo::EPS );
+    assert(fabs(x2 - x1) < geo::EPS);
     double m = (y2 - y1) / (x2 - x1);
     double b = y1 - m * x1;
-    for(auto &point : item.vertices)
+    for (auto &point : item.vertices)
     {
         point.x = ((1 - m * m) * point.x + 2 * m * point.y - 2 * m * b) / (m * m + 1);
         point.y = ((m * m - 1) * point.y + 2 * m * point.x + 2 * b) / (m * m + 1);
@@ -125,29 +124,28 @@ Item approach1::mergeHeuristic1(Item &item1, Item &item2)
     pair<Point, Point> rs = findLargestEdge(item2);
     Point p = pq.first, q = pq.second;
     Point r = rs.first, s = rs.second;
-    
+
     Item item2PR = placement(item2, p, q, r, s);
     Item item2PS = placement(item2, p, q, s, r);
     Item item2QR = placement(item2, q, p, r, s);
     Item item2QS = placement(item2, q, p, s, r);
 
-    std::vector<Item> outerfaces({ 
-        outerface(item1, item2PR, p, q, r, s), 
-        outerface(item1, item2PS, p, q, s, r),
-        outerface(item1, item2QR, q, p, r, s), 
-        outerface(item1, item2QS, q, p, s, r)});
-    
-    std::vector<tuple<double,double,int>> areas;
-    for(int i = 0; i < 4; i += 1) 
+    std::vector<Item> outerfaces({outerface(item1, item2PR, p, q, r, s),
+                                  outerface(item1, item2PS, p, q, s, r),
+                                  outerface(item1, item2QR, q, p, r, s),
+                                  outerface(item1, item2QS, q, p, s, r)});
+
+    std::vector<tuple<double, double, int>> areas;
+    for (int i = 0; i < 4; i += 1)
     {
-        auto minRectangle = minAreaRectangle(outerfaces[ i ]);
-        areas.push_back({minRectangle.first * minRectangle.second, minRectangle.first, i}); 
+        auto minRectangle = minAreaRectangle(outerfaces[i]);
+        areas.push_back({minRectangle.first * minRectangle.second, minRectangle.first, i});
     }
     sort(areas.begin(), areas.end());
 
     int length, width, i;
-    tie(length, width, i) = areas[ 0 ];
-    mergedItem = outerfaces[ i ];
+    tie(length, width, i) = areas[0];
+    mergedItem = outerfaces[i];
     return mergedItem;
 }
 

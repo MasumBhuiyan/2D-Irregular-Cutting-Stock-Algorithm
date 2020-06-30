@@ -20,14 +20,14 @@ namespace geo
 typedef Point Vector;
 namespace vec
 {
-    double dot(Vector, Vector);           // dot product
-    double cross(Vector, Vector);         // cross product
-    double lenSq(Vector);                 // lenth square
-    double len(Vector);                   // length
-    double getAngleInRad(Vector, Vector); // angle inside two vector
-    bool pointInRectangle(Vector, Vector, Vector); 
+    double dot(Vector, Vector);                    // dot product
+    double cross(Vector, Vector);                  // cross product
+    double lenSq(Vector);                          // lenth square
+    double len(Vector);                            // length
+    double getAngleInRad(Vector, Vector);          // angle inside two vector
+    bool pointInRectangle(Vector, Vector, Vector); // is point inside rectangle
     int orient(Vector, Vector, Vector c);
-    bool segSegIntersection(Vector, Vector, Vector, Vector);
+    bool segSegIntersection(Vector, Vector, Vector, Vector); // segment segment intersection
 
 }; // namespace vec
 
@@ -46,7 +46,7 @@ namespace polygonal
 
 namespace no_fit_polygon
 {
-    Polygon nfpConvex(Polygon &, Polygon &); // no fit polygon of two convex polygons
+    Polygon nfpConvex(Polygon &, Polygon &);         // no fit polygon of two convex polygons
     Polygon nfpSimplePolygons(Polygon &, Polygon &); // no fit polygon of two simple polygons polygons
-}; // namespace no_fit_polygon
-#endif // GEOMETRY_HPP
+};                                                   // namespace no_fit_polygon
+#endif                                               // GEOMETRY_HPP
