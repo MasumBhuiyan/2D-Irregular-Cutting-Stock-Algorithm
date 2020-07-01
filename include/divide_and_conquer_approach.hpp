@@ -1,10 +1,13 @@
 #ifndef DIVIVE_N_CONQUER_APPROACH_HPP
 #define DIVIVE_N_CONQUER_APPROACH_HPP
 
+#include <iostream>
+#include <iomanip>
+#include <algorithm>
+
 #include <Item.hpp>
 #include <Point.hpp>
 #include <geometry.hpp>
-#include <algorithm>
 
 #define INF 4e18
 
@@ -17,9 +20,9 @@ namespace approach1
 	double findRotationAngle(Point, Point);
 	Item reflectAcrossLine(Item, Point, Point);
 	Item placement(Item, Point, Point, Point, Point);
-	Item outerface(Item, Item, Point, Point, Point, Point);
+	Polygon outerface(Polygon &, Polygon &, int, int);
 	Item mergeHeuristic1(Item &, Item &);
-	std::pair<double, double> minAreaRectangle(Item &);
+	std::pair<double, double> minAreaRectangle(Polygon &);
 	ItemState mergeItem(ItemState &, ItemState &);
 	ItemState split(std::vector<Item> &, int, int);
 	void solution(std::vector<Item> &);

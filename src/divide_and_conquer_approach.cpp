@@ -63,27 +63,51 @@ Item approach1::placement(Item item, Point p, Point q, Point r, Point s)
 }
 
 /**
- * returns the outerface of the Item a, and b after placing 
- * Item b's point r at Item a's point p
+ * returns the outerface of the Point a, and b after placing 
+ * Point b's point r at Point a's point p
 */
-Item approach1::outerface(Item a, Item b, Point p, Point q, Point r, Point s)
+Polygon approach1::outerface(Polygon &polygon1, Polygon &polygon2, int id1, int id2)
 {
-    Item outerface;
-
-    vector<Point> face;
-
-    return outerface;
+    int n = polygon1.size();
+    int m = polygon2.size();
+    assert(n >= 3 and m >= 3 and id1 < n and id2 < m);
+    Polygon mergedPolygon(polygon1.begin(), polygon1.begin() + id1 + 1);
+    int id = (id2 + 1) % m;
+    for (int k = id2 - 1;; k--)
+    {
+        if (k < 0)
+        {
+            k = m - 1;
+        }
+        mergedPolygon.push_back(polygon2[k]);
+        if (k == id)
+        {
+            break;
+        }
+    }
+    id1 = (id1 + 1) % n;
+    if (polygon2[id] != polygon1[id1])
+    {
+        mergedPolygon.push_back(polygon1[id1]);
+    }
+    if (id1 < n)
+    {
+        for (int i = id1; i < n; i++)
+        {
+            mergedPolygon.push_back(polygon1[i]);
+        }
+    }
+    return mergedPolygon;
 }
 
 /**
  * returns the min bounding rectangle axis parallel
 */
-std::pair<double, double> approach1::minAreaRectangle(Item &item)
+std::pair<double, double> approach1::minAreaRectangle(Polygon &polygon)
 {
     double min_x = INF, max_x = -INF;
     double min_y = INF, max_y = -INF;
-
-    for (Point vertex : item.vertices)
+    for (Point vertex : polygon)
     {
         min_x = std::min(min_x, vertex.x);
         min_y = std::min(min_y, vertex.y);
@@ -119,33 +143,87 @@ Item approach1::reflectAcrossLine(Item item, Point p, Point q)
 Item approach1::mergeHeuristic1(Item &item1, Item &item2)
 {
     Item mergedItem;
+    double minArea = INF;
 
-    pair<Point, Point> pq = findLargestEdge(item1);
-    pair<Point, Point> rs = findLargestEdge(item2);
-    Point p = pq.first, q = pq.second;
-    Point r = rs.first, s = rs.second;
+    auto checkForOptimal = [&](Polygon &polygon1, Polygon &polygon2, int i, int j) {
+        Polygon mergedPolygon = outerface(polygon1, polygon2, i, j);
 
-    Item item2PR = placement(item2, p, q, r, s);
-    Item item2PS = placement(item2, p, q, s, r);
-    Item item2QR = placement(item2, q, p, r, s);
-    Item item2QS = placement(item2, q, p, s, r);
+        std::cout << "Outer face: ";
+        polygonal::printPolygon(mergedPolygon);
 
-    std::vector<Item> outerfaces({outerface(item1, item2PR, p, q, r, s),
-                                  outerface(item1, item2PS, p, q, s, r),
-                                  outerface(item1, item2QR, q, p, r, s),
-                                  outerface(item1, item2QS, q, p, s, r)});
+        auto minRectangle = minAreaRectangle(mergedPolygon);
+        double minRectangleArea = minRectangle.first * minRectangle.second;
+        if (minRectangleArea < minArea)
+        {
+            minArea = minRectangleArea;
+            mergedItem = Item(mergedPolygon.size(), mergedPolygon);
+        }
+    };
 
-    std::vector<tuple<double, double, int>> areas;
-    for (int i = 0; i < 4; i += 1)
+    Polygon polygon1 = item1.vertices;
+    Polygon polygon2 = polygonal::changeOrientation(item2.vertices);
+    int n = polygon1.size();
+    int m = polygon2.size();
+    assert(n >= 3 and m >= 3);
+    polygonal::printPolygon(polygon1);
+    // for each edges of polygon1
+    for (int i = 0; i < n; i++)
     {
-        auto minRectangle = minAreaRectangle(outerfaces[i]);
-        areas.push_back({minRectangle.first * minRectangle.second, minRectangle.first, i});
-    }
-    sort(areas.begin(), areas.end());
+        // edge_i (p1, p2)
+        Point p1 = polygon1[i];
+        Point p2 = polygon1[(i + 1) % n];
+        p1.print();
+        p2.print();
+        std::cout << "A ::::::::\n";
+        // for each edges of polygon2
+        for (int j = 0; j < m; j++)
+        {
+            polygon2[j].print();
+            polygon2[(j + 1) % m].print();
+            std::cout << "B :::\n";
 
-    int length, width, i;
-    tie(length, width, i) = areas[0];
-    mergedItem = outerfaces[i];
+            Polygon tmpPolygon2 = polygonal::translateToNewOrign(p1, polygon2);
+            tmpPolygon2 = polygonal::translateToNewOrign((tmpPolygon2[j] - p1) * -1, tmpPolygon2);
+
+            std::cout << "After translation: ";
+            polygonal::printPolygon(tmpPolygon2);
+
+            assert(geo::dcmp(tmpPolygon2[j].x - p1.x, 1e-4) == 0);
+            assert(geo::dcmp(tmpPolygon2[j].y - p1.y, 1e-4) == 0);
+
+            // align the (p1, p3) edge with (p1, p2)
+            Point p3 = tmpPolygon2[(j + 1) % m];
+            double angleCCW1 = vec::getAngleInRad(p2 - p1, Point(1e8, p1.y) - p1);
+            double angleCCW2 = vec::getAngleInRad(p3 - p1, Point(1e8, p1.y) - p1);
+            double rotationAngle = angleCCW1 - angleCCW2;
+
+            tmpPolygon2 = polygonal::rotateBy(rotationAngle, Point(0, 0), tmpPolygon2);
+
+            std::cout << "After rotation by: " << geo::RAD2DEG(rotationAngle) << " degree: ";
+            polygonal::printPolygon(tmpPolygon2);
+
+            // check for intersection
+            bool isIntersecting = polygonal::polygonIntersectPolygon(polygon1, tmpPolygon2);
+            if (!isIntersecting)
+            {
+                checkForOptimal(polygon1, tmpPolygon2, i, j);
+            }
+            p3 = tmpPolygon2[(j + 1) % m];
+            if (geo::dcmp(vec::lenSq(p2 - p2) - vec::lenSq(p3 - p1)) != 1)
+            {
+                // (p1, p3) >= (p1, p2)
+                continue;
+            }
+            tmpPolygon2 = polygonal::translateToNewOrign(p2, tmpPolygon2);
+            tmpPolygon2 = polygonal::translateToNewOrign((tmpPolygon2[(j + 1) % m] - p2) * -1, tmpPolygon2);
+
+            isIntersecting = polygonal::polygonIntersectPolygon(polygon1, tmpPolygon2);
+            if (!isIntersecting)
+            {
+                checkForOptimal(polygon1, tmpPolygon2, i, j);
+            }
+        }
+    }
     return mergedItem;
 }
 
@@ -173,7 +251,7 @@ ItemState approach1::mergeItem(ItemState &itemState1, ItemState &itemState2)
     for (int i = 0; i < (360 / (int)angle); i++)
     {
         Item tmpMergedItem = mergeHeuristic1(item1, item2);
-        auto minRectangle = minAreaRectangle(tmpMergedItem);
+        auto minRectangle = minAreaRectangle(tmpMergedItem.vertices);
         double tmpArea = minRectangle.first * minRectangle.second;
         if (tmpArea < minArea)
         {
@@ -199,7 +277,7 @@ ItemState approach1::split(std::vector<Item> &items, int left, int right)
 {
     if (left == right)
     {
-        auto minRectangle = minAreaRectangle(items[left]);
+        auto minRectangle = minAreaRectangle(items[left].vertices);
         return {items[left], minRectangle.first * minRectangle.second};
     }
     int mid = left + (right - left) / 2;
