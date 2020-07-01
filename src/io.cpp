@@ -16,19 +16,26 @@ vector<Item> io::readItemsFromInputFile(string filename, double &width)
     cout << "Reading file..." << endl;
 
     /* width of the bean */
-    file >>  width;
+    file >> width;
 
     /* number of Items */
     int numberOfItems;
     file >> numberOfItems;
-    vector<Item> Items(numberOfItems);
+    vector<Item> items;
 
     /* input all the Items */
-    for (auto &item : Items)
+    for (int i = 0; i < numberOfItems; i++)
     {
+        Item item;
+        int quantity;
+        file >> quantity;
         item.read(file);
+        for (int j = 0; j < quantity; j++)
+        {
+            items.push_back(item);
+        }
     }
     cout << "Reading complete" << endl;
     file.close();
-    return Items;
+    return items;
 }
