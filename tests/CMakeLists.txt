@@ -23,6 +23,7 @@ add_executable(minRecArea_test src/approach0/minRecArea_test.cpp)
 add_executable(approach0_rotate_test src/approach0/approach0_rotate_test.cpp)
 add_executable(approach0_split_test src/approach0/approach0_split_test.cpp)
 add_executable(doesOverlap_test src/approach0/doesOverlap_test.cpp)
+add_executable(approach1_test src/approach1/approach1_test.cpp)
 
 # link libraries
 target_link_libraries(read_items_from_input_file_test PRIVATE io)
@@ -47,6 +48,8 @@ target_link_libraries(minRecArea_test PRIVATE approach0)
 target_link_libraries(approach0_rotate_test PRIVATE approach0)
 target_link_libraries(approach0_split_test PRIVATE approach0)
 target_link_libraries(doesOverlap_test PRIVATE approach0)
+target_link_libraries(approach1_test PRIVATE divide_and_conquer_approach io)
+
 
 add_test(read_items_from_input_file_test read_items_from_input_file_test)
 add_test(rotate_item_test rotate_item_test)
@@ -70,3 +73,4 @@ add_test(minRecArea_test minRecArea_test)
 add_test(approach0_rotate_test approach0_rotate_test)
 add_test(approach0_split_test approach0_split_test)
 add_test(doesOverlap_test doesOverlap_test)
+add_test(approach1_test approach1_test)
