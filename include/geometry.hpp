@@ -1,8 +1,11 @@
 #ifndef GEOMETRY_HPP
 #define GEOMETRY_HPP
 
+#include <iostream>
 #include <cmath>
 #include <vector>
+#include <cassert>
+#include <functional>
 
 #include "Point.hpp"
 
@@ -33,14 +36,21 @@ namespace vec
 
 namespace linear
 {
-    bool isOnSegment(Point, Point, Point); // returns true if the 1st Point is on the segment of 2nd Point & 3rd Point
+    bool isOnSegment(Point, Point, Point);              // returns true if the 1st Point is on the segment of 2nd Point & 3rd Point
+    int segCrossSeg(Point, Point, Point, Point);        // segment segment relation
+    bool segCrossSegInside(Point, Point, Point, Point); // segment cross segment strickly inside
 
 }; // namespace linear
 
 typedef std::vector<Point> Polygon;
 namespace polygonal
 {
-    int isPointInsidePolygon(Point, Polygon &); // checks if the Point is inside the Polygon
+    int isPointInsidePolygon(Point, Polygon &);         // checks if the Point is inside the Polygon
+    Polygon changeOrientation(Polygon &);               // converts cw if the the polygon is ccw vice-versa
+    Polygon translateToNewOrign(Point, Polygon &);      // translates to the point
+    Polygon rotateBy(double, Point, Polygon &);         // rotate by angle with respect to point
+    bool polygonIntersectPolygon(Polygon &, Polygon &); // polygon polygon relation
+    void printPolygon(Polygon &);                       // prints on console
 
 }; // namespace polygonal
 
