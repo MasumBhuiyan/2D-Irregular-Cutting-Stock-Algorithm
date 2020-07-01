@@ -13,12 +13,12 @@ int approach1::orient(Point a, Point b, Point c)
 /**
  *finds the largest edge of an item
 */
-std::pair<Point,Point> approach1::findLargestEdge(Item &item)
+std::tuple<Point,Point, int> approach1::findLargestEdge(Item &item)
 {
     int noOfVertices = item.vertices.size();
     double d = 0;
     Point p, q;
-
+    int k;
     for(int i = 0; i < noOfVertices; i += 1) 
     {
         Point _p = item.vertices[ i ];
@@ -29,9 +29,10 @@ std::pair<Point,Point> approach1::findLargestEdge(Item &item)
             d = _d;
             p = _p;
             q = _q;
+            k = i;
         }
     }
-    return {p, q};
+    return {p, q, k};
 }
 
 /** 
@@ -67,13 +68,78 @@ Item approach1::placement(Item item, Point p, Point q, Point r, Point s)
  * returns the outerface of the Item a, and b after placing 
  * Item b's point r at Item a's point p
 */
-Item approach1::outerface(Item a, Item b, Point p, Point q, Point r, Point s)
+Item approach1::outerface(Item &item1, Item &item2, int k1, int k2, int x, int y)
 {
-    Item outerface;
+    std::vector<Point> points;   
+    int lena = item1.vertices.size();
+    int lenb = item2.vertices.size();
 
-    vector<Point> face;
-    
-    return outerface;
+    if( x == 0 && y == 0 )
+    {
+        for(int i = 0; i < k1; i += 1)
+        {
+            points.push_back(item1.vertices[ i ]);
+        }
+        for(int i = k2; ; i = (((i - 1) % lenb) + lenb)%lenb)
+        {
+            points.push_back(item2.vertices[ i ]);
+            if( i == ((k2 + 1) % lenb) ) break;
+        }
+        for(int i = k1 + 1; i < lena; i += 1)
+        {
+            points.push_back(item1.vertices[ i ]);
+        }
+    }
+    else if( x == 0 && y == 1 )
+    {
+        for(int i = 0; i < k1; i += 1)
+        {
+            points.push_back(item1.vertices[ i ]);
+        }
+        for(int i = (k2 + 1) % lenb; ; i = (i + 1) % lenb)
+        {
+            points.push_back(item2.vertices[ i ]);
+            if( i == k2 ) break;
+        }
+        for(int i = k1 + 1; i < lena; i += 1)
+        {
+            points.push_back(item1.vertices[ i ]);
+        }
+    }
+    else if( x == 1 && y == 0 )
+    {
+        for(int i = 0; i <= k1; i += 1)
+        {
+            points.push_back(item1.vertices[ i ]);
+        }
+        for(int i = (k2 + 1) % lenb; ; i = (i + 1) % lenb)
+        {
+            points.push_back(item2.vertices[ i ]);
+            if( i == k2 ) break;
+        }
+        for(int i = k1 + 2; i < lena; i += 1)
+        {
+            points.push_back(item1.vertices[ i ]);
+        }
+    }
+    else
+    {
+        for(int i = 0; i <= k1; i += 1)
+        {
+            points.push_back(item1.vertices[ i ]);
+        }
+        for(int i = k2; ; i = (((i - 1) % lenb) + lenb)%lenb)
+        {
+            points.push_back(item2.vertices[ i ]);
+            if( i == ((k2 + 1) % lenb) ) break;
+        }
+        for(int i = k1 + 2; i < lena; i += 1)
+        {
+            points.push_back(item1.vertices[ i ]);
+        }
+    }
+    Item face(points.size(), points);
+    return face;
 }
 
 /**
@@ -104,13 +170,33 @@ Item approach1::reflectAcrossLine(Item item, Point p, Point q)
 
     double x1 = p.x, x2 = q.x;
     double y1 = p.y, y2 = q.y;
-    assert( fabs(x2-x1) < geo::EPS );
-    double m = (y2 - y1) / (x2 - x1);
-    double b = y1 - m * x1;
-    for(auto &point : item.vertices)
+    
+    if( (x2 - x1) < geo::EPS )
     {
-        point.x = ((1 - m * m) * point.x + 2 * m * point.y - 2 * m * b) / (m * m + 1);
-        point.y = ((m * m - 1) * point.y + 2 * m * point.x + 2 * b) / (m * m + 1);
+        for (auto &point : item.vertices)
+        {
+            point.x = 2 * x1 - point.x; 
+        }
+    }
+    else if( (y2 - y1) < geo::EPS )
+    {
+        for (auto &point : item.vertices)
+        {
+            point.y = 2 * y1 - point.y; 
+        }
+    } 
+    else
+    {
+       double m = (y2 - y1) / (x2 - x1);
+       double b = y1 - m * x1;
+        
+        for (auto &point : item.vertices)
+        {
+            double x = point.x;
+            double y = point.y; 
+            point.x = ((1 - m * m) * x + 2 * m * y - 2 * m * b) / (m * m + 1);
+            point.y = ((m * m - 1) * y + 2 * m * x + 2 * b) / (m * m + 1);
+        }
     }
     return item;
 }
@@ -121,21 +207,51 @@ Item approach1::mergeHeuristic1(Item &item1, Item &item2)
 {
     Item mergedItem;
 
-    pair<Point, Point> pq = findLargestEdge(item1);
-    pair<Point, Point> rs = findLargestEdge(item2);
-    Point p = pq.first, q = pq.second;
-    Point r = rs.first, s = rs.second;
+    Point p, q, r, s;
+    int k1, k2; 
+
+    tie(p, q, k1) = findLargestEdge(item1);
+    tie(r, s, k2) = findLargestEdge(item2);
     
     Item item2PR = placement(item2, p, q, r, s);
     Item item2PS = placement(item2, p, q, s, r);
     Item item2QR = placement(item2, q, p, r, s);
     Item item2QS = placement(item2, q, p, s, r);
 
+    if( polygonal::polygonIntersectPolygon(item1.vertices, item2PR.vertices) == true )
+    {
+        int len = item2PR.vertices.size();
+        Point a = item2PR.vertices[ k2 ];
+        Point b = item2PR.vertices[ (k2 + 1) % len ];
+        item2PR = reflectAcrossLine(item2PR, a, b);
+    }
+    if( polygonal::polygonIntersectPolygon(item1.vertices, item2PS.vertices) == true )
+    {
+        int len = item2PS.vertices.size();
+        Point a = item2PS.vertices[ k2 ];
+        Point b = item2PS.vertices[ (k2 + 1) % len ];
+        item2PR = reflectAcrossLine(item2PS, a, b);
+    }
+    if( polygonal::polygonIntersectPolygon(item1.vertices, item2QR.vertices) == true )
+    {
+        int len = item2QR.vertices.size();
+        Point a = item2QR.vertices[ k2 ];
+        Point b = item2QR.vertices[ (k2 + 1) % len ];
+        item2PR = reflectAcrossLine(item2QR, a, b);
+    }
+    if( polygonal::polygonIntersectPolygon(item1.vertices, item2QS.vertices) == true )
+    {
+        int len = item2QS.vertices.size();
+        Point a = item2QS.vertices[ k2 ];
+        Point b = item2QS.vertices[ (k2 + 1) % len ];
+        item2PR = reflectAcrossLine(item2QS, a, b);
+    }
+
     std::vector<Item> outerfaces({ 
-        outerface(item1, item2PR, p, q, r, s), 
-        outerface(item1, item2PS, p, q, s, r),
-        outerface(item1, item2QR, q, p, r, s), 
-        outerface(item1, item2QS, q, p, s, r)});
+        outerface(item1, item2PR, k1, k2, 0, 0), 
+        outerface(item1, item2PS, k1, k2, 0, 1),
+        outerface(item1, item2QR, k1, k2, 1, 0), 
+        outerface(item1, item2QS, k1, k2, 1, 1)});
     
     std::vector<tuple<double,double,int>> areas;
     for(int i = 0; i < 4; i += 1) 
