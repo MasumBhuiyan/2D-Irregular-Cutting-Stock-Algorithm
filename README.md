@@ -44,28 +44,30 @@ In operations research, the cutting-stock problem is the problem of cutting stan
 ## Algorithm &middot; ![Build Status](https://img.shields.io/travis/npm/npm/latest.svg?style=flat-square) <br>
 ```
 1 function merge(Item A, Item B):
-2     Item C
-3     for (x, y) in A:
-4         T = translate B to (x, y)
-5          if A and T does not intersect:
-6              S = insert B into A
-7              R = find axis parallel rectangle that encloses S using minimum area
-8              if area of R < area of C then update C with R
-10    return C
+2     
+3     edge PQ = findLargestEdge(A)
+4     edge RS = findLargestEdge(B)
+5     
+6     Item C_at_PR = place item B's point R at item A's point P
+7     Item C_at_PS = place item B's point S at item A's point P
+8     Item C_at_QR = place item B's point R at item A's point Q
+10    Item C_at_QS = place item B's point S at item A's point Q
+11.
+12.   return best of C_at_PR, C_at_PS, C_at_QR, C_at_QS
 ```
 ```
-1. function split(vector<Item> items, int l, int r):
-2.     if l == r then return items[ l ]
-3.     m = (l + r) / 2
-4.     Item A = split(items, l, m)
-5.     Item B = split(items, m + 1, r)
+1. function split(vector<Item> items, int left, int right):
+2.     if left == right then return items[ left ]
+3.     mid = (left + right) / 2
+4.     Item A = split(items, left, mid)
+5.     Item B = split(items, mid + 1, right)
 6      Item C
 7.     for r1 in rotations:
 8.         D = rotate A in r1 degree
 9.         for r2 in rotations:
 10.            E = rotate B in r2 degree
 11.            F = merge(D, E)
-12.            if area of F < area of C then update C with F
+12.            if F is better than C, then C = F 
 13.    return C
 ```
 <a name="credits"></a>
