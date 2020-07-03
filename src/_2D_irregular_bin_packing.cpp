@@ -13,22 +13,7 @@ Polygon dnc_approach::mergePolygons(Polygon &polygon1, Polygon &polygon2)
 
     for (int i = 0; i < (360 / (int)angle); i++)
     {
-        // Item tmpMergedItem = mergeHeuristic1(item1, item2);
-        // auto minRectangle = minAreaRectangle(tmpMergedItem);
-        // double tmpArea = minRectangle.first * minRectangle.second;
-        // if (tmpArea < minArea)
-        // {
-        //     mergedItem = tmpMergedItem;
-        //     minArea = tmpArea;
-        //     length = minRectangle.first;
-        // }
-        // else if (tmpArea == minArea and length > minRectangle.first)
-        // {
-        //     mergedItem = tmpMergedItem;
-        //     length = minRectangle.first;
-        // }
-        // item1 = item1.rotate(geo::DEG2RAD(angle), Point(0, 0));
-        }
+    }
 
     return mergedPolygon;
 }
