@@ -2,26 +2,57 @@
 #define _2D_IRREGULAR_BIN_PACKING
 
 #include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <cassert>
+#include <cmath>
 #include <vector>
+#include <tuple>
+#include <string>
+#include <cstring>
 
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
-#include <CGAL/Aff_transformation_2.h>
-#include <CGAL/Polygon_2.h>
+using namespace std;
 
-typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-typedef K::Point_2 Point;
-typedef CGAL::Polygon_2<K> Polygon;
+#include <boost/foreach.hpp>
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/point_xy.hpp>
+#include <boost/geometry/geometries/polygon.hpp>
 
+typedef boost::geometry::model::d2::point_xy<double> point;
+typedef boost::geometry::model::polygon<boost::geometry::model::d2::point_xy<double>> polygon;
 
-#define INF 4e18
+const double EPS = 1e-8;
+const double INF = 4e18;
+const double PI = acos(-1);
+
+#define X first
+#define Y second
+typedef pair<double, double> Point;
+typedef vector<pair<double, double>> Polygon;
 
 namespace dnc_approach
 {
-    Polygon rotatePolygon(Polygon &, double);
-    Polygon mergeHeuristic1(Polygon &, Polygon &);
-    Polygon mergePolygons(Polygon &, Polygon &);
-    Polygon split(std::vector<Polygon> &, int, int);
-    void solution(std::vector<Polygon> &);
+    string toStringPoly(Polygon);
+    void printPolygon(Polygon);
+    Polygon polygonUnion(Polygon, Polygon);
+    double minBoundingRectangle(Polygon);
+    double areaPoly(Polygon);
+    Point rotatePoint(Point, Point, double);
+    Polygon rotatePolygon(Polygon, Point, double);
+    Polygon reflectAcrossLine(Polygon, Point, Point);
+    double findRotationAngle(Point, Point);
+    Polygon placement(Polygon, Point, Point, Point, Point);
+    double polygonPolygonIntersectionArea(Polygon, Polygon);
+    Polygon normalize(Polygon);
+    void readIO(string, vector<Polygon> &, vector<int> &, double &);
+    void processVisualize(vector<Polygon>);
+    tuple<vector<Polygon>, Polygon> Translate(tuple<vector<Polygon>, Polygon>, Point);
+    tuple<vector<Polygon>, Polygon> Rotate(tuple<vector<Polygon>, Polygon>, Point, double);
+    tuple<vector<Polygon>, Polygon> Normalize(tuple<vector<Polygon>, Polygon>);
+    bool doesOverlap(tuple<vector<Polygon>, Polygon>, tuple<vector<Polygon>, Polygon>);
+    tuple<vector<Polygon>, Polygon> merge(tuple<vector<Polygon>, Polygon>, tuple<vector<Polygon>, Polygon>);
+    tuple<vector<Polygon>, Polygon> split(vector<Polygon> &, int, int);
+
 }; // namespace dnc_approach
 
 #endif // _2D_IRREGULAR_BIN_PACKING
