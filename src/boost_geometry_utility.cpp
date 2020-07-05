@@ -51,12 +51,12 @@ Geometry boost_geo_util::translate(Geometry &geometry, Point point)
 template <class Geometry>
 Geometry boost_geo_util::rotate(Geometry &geometry, Point ref, double angle)
 {
+    Geometry translated;
+    boost_geo::multiply_value(ref, -1);
+    translated = translate(geometry, ref); // change origin
     Geometry rotated;
-    Point newOrigin = ref;
-    boost_geo::multiply_value(newOrigin, -1);
-    rotated = translate(geometry, newOrigin);                                       // change origin
     trans::rotate_transformer<boost::geometry::degree, double, 2, 2> rotate(angle); //rotation def
-    boost::geometry::transform(rotated, rotated, rotate);
+    boost::geometry::transform(translated, rotated, rotate);
     return rotated;
 }
 
