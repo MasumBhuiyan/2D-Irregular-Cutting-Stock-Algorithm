@@ -78,7 +78,7 @@ void boost_geo_util::visualize(MultiPolygon &multipolygon)
 {
     std::ostringstream name;
     name << "frame" << std::setw(4) << std::setfill('0') << frameno++ << ".svg";
-    std::ofstream ofs("diagram/" + name.str());
+    std::ofstream ofs("../diagrams" + name.str());
     boost_geo::svg_mapper<Point> mapper(ofs, 400, 400);
     mapper.add(multipolygon);
     mapper.map(multipolygon, "fill-opacity:0.5;fill:rgb(204,153,0);stroke:rgb(204,153,0);stroke-width:1", 5);
