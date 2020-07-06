@@ -37,7 +37,7 @@ namespace boost_geo_util
     Geometry rotate(Geometry &, Point, double);
     MultiPolygon unionPolygons(MultiPolygon &, MultiPolygon &);
     MultiPolygon reflectAcrossLine(MultiPolygon &, Point, Point);
-    bool isPolygonIntersectPolygon(Polygon &, Polygon &);
+    bool isPolygonIntersectPolygon(MultiPolygon &, MultiPolygon &);
     void visualize(MultiPolygon &);
 }; // namespace boost_geo_util
 

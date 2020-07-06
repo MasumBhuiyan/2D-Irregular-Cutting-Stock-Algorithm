@@ -1,7 +1,8 @@
 #include <boost_geometry_utility.hpp>
 
 /**
- * get directed angle between the vectors
+ * get directed angle between the vectors 
+ * returns angle in counter clock-wise
  */
 double boost_geo_util::getDirectedAngle_D(Vector vector1, Vector vector2)
 {
@@ -109,10 +110,10 @@ MultiPolygon boost_geo_util::reflectAcrossLine(MultiPolygon &multiPolygon, Point
 /**
  * checks for polygon polygon intersection
  */
-bool boost_geo_util::isPolygonIntersectPolygon(Polygon &polygonA, Polygon &polygonB)
+bool boost_geo_util::isPolygonIntersectPolygon(MultiPolygon &multiPolygonA, MultiPolygon &multiPolygonB)
 {
     std::deque<Polygon> output;
-    boost_geo::intersection(polygonA, polygonB, output);
+    boost_geo::intersection(multiPolygonA, multiPolygonB, output);
     return output.size() == 0;
 }
 
