@@ -61,6 +61,52 @@ Geometry boost_geo_util::rotate(Geometry &geometry, Point ref, double angle)
 }
 
 /**
+ * performs union between two set of polygons
+ */
+MultiPolygon boost_geo_util::unionPolygons(MultiPolygon &multiPolygonA, MultiPolygon &multiPolygonB)
+{
+    MultiPolygon multiPolygonUnion;
+    boost_geo::union_(multiPolygonA, multiPolygonB, multiPolygonUnion);
+    return multiPolygonUnion;
+}
+
+/**
+ * reflect a set of  polygons about a line
+ */
+MultiPolygon boost_geo_util::reflectAcrossLine(MultiPolygon &multiPolygon, Point p, Point q)
+{
+    double x1 = p.x, x2 = q.x;
+    double y1 = p.y, y2 = q.y;
+    MultiPolygon reflected = multiPolygon;
+    for (Polygon &polygon : multiPolygon)
+    {
+        for (auto it = boost::begin(boost_geo::exterior_ring(polygon));
+             it != boost::end(boost_geo::exterior_ring(polygon));
+             ++it)
+        {
+            Point tmpPoint = *it;
+            if ((x2 - x1) < EPS)
+            {
+                *it = Point(2.0 * x1 - tmpPoint.x, tmpPoint.y);
+            }
+            else if ((y2 - y1) < EPS)
+            {
+                *it = Point(tmpPoint.x, 2.0 * y1 - tmpPoint.y);
+            }
+            else
+            {
+                double m = (y2 - y1) / (x2 - x1);
+                double b = y1 - m * x1;
+
+                *it = Point(((1 - m * m) * (tmpPoint.x) + 2 * m * (tmpPoint.y) - 2 * m * b) / (m * m + 1),
+                            ((m * m - 1) * (tmpPoint.y) + 2 * m * (tmpPoint.x) + 2 * b) / (m * m + 1));
+            }
+        }
+    }
+    return reflected;
+}
+
+/**
  * checks for polygon polygon intersection
  */
 bool boost_geo_util::isPolygonIntersectPolygon(Polygon &polygonA, Polygon &polygonB)

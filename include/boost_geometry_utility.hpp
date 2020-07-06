@@ -35,8 +35,8 @@ namespace boost_geo_util
     Geometry translate(Geometry &, Point);
     template <class Geometry>
     Geometry rotate(Geometry &, Point, double);
-    Polygon unionPolygons(Polygon &, Polygon &);
-    Polygon reflectAcrossLine(Polygon &, Point, Point);
+    MultiPolygon unionPolygons(MultiPolygon &, MultiPolygon &);
+    MultiPolygon reflectAcrossLine(MultiPolygon &, Point, Point);
     bool isPolygonIntersectPolygon(Polygon &, Polygon &);
     void visualize(MultiPolygon &);
 }; // namespace boost_geo_util
