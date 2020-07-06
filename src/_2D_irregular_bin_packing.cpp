@@ -20,7 +20,6 @@ void dnc_approach::mergeHeuristics1Placement(
     boost_geo::subtract_point(r_new, r); // translation vector
     tmpMultiPolygon = multiPolygon_b;
     boost_geo::transform(tmpMultiPolygon, multiPolygon_b, trans::translate_transformer<double, 2, 2>(r_new.x, r_new.y)); // translate
-
     if (boost_geo_util::isPolygonIntersectPolygon(multiPolygon_a, multiPolygon_b) == false)
     {
         MultiPolygon combinedMultiPolygon = boost_geo_util::unionPolygons(multiPolygon_a, multiPolygon_b);
@@ -134,7 +133,7 @@ void dnc_approach::solution(std::vector<PolygonInput> &items)
         totalAreaOfItems += boost_geo::area(polygons[i]);
     }
 
-    MultiPolygon resultMultiPolygon; // = split(polygons, 0, numberOfItems - 1);
+    MultiPolygon resultMultiPolygon = split(polygons, 0, numberOfItems - 1);
     double resultMultiPolygonArea = boost_geo::area(resultMultiPolygon);
     Box stock;
     boost_geo::envelope(resultMultiPolygon, stock);
@@ -152,4 +151,7 @@ void dnc_approach::solution(std::vector<PolygonInput> &items)
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     std::cout << "Time taken by function: " << duration.count() / 1000000.0 << " seconds" << std::endl;
+
+    std::cout << boost_geo::wkt(resultMultiPolygon) << std::endl;
+    boost_geo_util::visualize(resultMultiPolygon);
 }

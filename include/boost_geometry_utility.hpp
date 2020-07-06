@@ -1,6 +1,7 @@
 #ifndef BOOST_GEOMETRY_UTILITY_HPP
 #define BOOST_GEOMETRY_UTILITY_HPP
 
+#include <iostream>
 #include <fstream>
 #include <cassert>
 #include <vector>
