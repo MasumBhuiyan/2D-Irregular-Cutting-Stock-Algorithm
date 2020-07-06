@@ -33,35 +33,6 @@ Polygon boost_geo_util::constructBGPolygon(PolygonInput &polygonFromInput)
 }
 
 /**
- * translation to a point
- */
-template <class Geometry>
-Geometry boost_geo_util::translate(Geometry &geometry, Point point)
-{
-    Geometry translated;
-    trans::translate_transformer<double, 2, 2> translate(point.x, point.y);
-    boost_geo::transform(geometry, translated, translate);
-    return translated;
-}
-
-/**
- * rotation by angle reference to point
- * angle is defined by Degree
- * rotate clockwise
- */
-template <class Geometry>
-Geometry boost_geo_util::rotate(Geometry &geometry, Point ref, double angle)
-{
-    Geometry translated;
-    boost_geo::multiply_value(ref, -1);
-    translated = translate(geometry, ref); // change origin
-    Geometry rotated;
-    trans::rotate_transformer<boost::geometry::degree, double, 2, 2> rotate(angle); //rotation def
-    boost::geometry::transform(translated, rotated, rotate);
-    return rotated;
-}
-
-/**
  * performs union between two set of polygons
  */
 MultiPolygon boost_geo_util::unionPolygons(MultiPolygon &multiPolygonA, MultiPolygon &multiPolygonB)

@@ -9,15 +9,19 @@
 #include <vector>
 #include <string>
 #include <cstring>
+#include <chrono>
 
 #include <boost_geometry_utility.hpp>
 
 namespace dnc_approach
 {
+    void mergeHeuristics1Placement(MultiPolygon &, MultiPolygon &,
+                                   Point, Point, Point, Point,
+                                   double &, MultiPolygon &);
     MultiPolygon mergeHeuristics1(MultiPolygon &, MultiPolygon &);
     MultiPolygon mergeMultiPolygons(MultiPolygon &, MultiPolygon &);
     MultiPolygon split(std::vector<Polygon> &, int, int);
-    MultiPolygon solution(std::vector<PolygonInput> &items);
+    void solution(std::vector<PolygonInput> &items);
 
 }; // namespace dnc_approach
 

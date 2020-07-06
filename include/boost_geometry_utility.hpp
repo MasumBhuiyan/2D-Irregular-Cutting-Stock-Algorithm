@@ -15,6 +15,7 @@ namespace trans = boost::geometry::strategy::transform;
 typedef boost_geo::model::point<double, 2, boost_geo::cs::cartesian> Point;
 typedef boost_geo::model::polygon<Point> Polygon;
 typedef boost_geo::model::multi_polygon<Polygon> MultiPolygon;
+typedef boost_geo::model::box<Point> Box;
 typedef std::vector<std::pair<double, double>> PolygonInput;
 typedef Point Vector;
 
@@ -31,10 +32,6 @@ namespace boost_geo_util
 {
     double getDirectedAngle_D(Vector, Vector);
     Polygon constructBGPolygon(PolygonInput &);
-    template <class Geometry>
-    Geometry translate(Geometry &, Point);
-    template <class Geometry>
-    Geometry rotate(Geometry &, Point, double);
     MultiPolygon unionPolygons(MultiPolygon &, MultiPolygon &);
     MultiPolygon reflectAcrossLine(MultiPolygon &, Point, Point);
     bool isPolygonIntersectPolygon(MultiPolygon &, MultiPolygon &);
