@@ -49,5 +49,9 @@ void runDataset(std::string datasetName)
 int main(int argc, char const *argv[])
 {
     runDataset("../tests/dataset/sample.txt");
+    runDataset("../tests/dataset/albano.txt");
+    runDataset("../tests/dataset/blaz.txt");
+    runDataset("../tests/dataset/dagli.txt");
+    runDataset("../tests/dataset/jakobs1.txt");
     return 0;
 }

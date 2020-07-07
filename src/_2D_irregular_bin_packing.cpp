@@ -121,6 +121,7 @@ MultiPolygon dnc_approach::split(std::vector<Polygon> &polygons, int left, int r
 
 void dnc_approach::solution(std::vector<PolygonInput> &items)
 {
+    std::cout << std::fixed << std::setprecision(3);
     auto start = std::chrono::high_resolution_clock::now();
 
     int numberOfItems = items.size();
@@ -138,19 +139,20 @@ void dnc_approach::solution(std::vector<PolygonInput> &items)
     Box stock;
     boost_geo::envelope(resultMultiPolygon, stock);
     double stockArea = boost_geo::area(stock);
+    double packingDensity = (totalAreaOfItems / stockArea) * 100;
     Point stockDimension = stock.max_corner();
     boost_geo::subtract_point(stockDimension, stock.min_corner());
 
     std::cout << "total area of items........: " << totalAreaOfItems << std::endl;
     std::cout << "result polygon set area....: " << resultMultiPolygonArea << std::endl;
-    std::cout << "stock dimension [l * w]....:"
+    std::cout << "stock dimension [l * w]....: "
               << "[" << std::fabs(stockDimension.x) << ", " << std::fabs(stockDimension.y) << "]" << std::endl;
     std::cout << "stock area.................: " << stockArea << std::endl;
-    std::cout << "packing density............: " << (totalAreaOfItems / stockArea) * 100 << " %" << std::endl;
+    std::cout << "packing density............: " << packingDensity << " %" << std::endl;
 
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    std::cout << "Time taken by function: " << duration.count() / 1000000.0 << " seconds" << std::endl;
+    std::cout << "Time taken by function.....: " << duration.count() / 1000000.0 << " seconds" << std::endl;
 
     std::cout << boost_geo::wkt(resultMultiPolygon) << std::endl;
     boost_geo_util::visualize(resultMultiPolygon);

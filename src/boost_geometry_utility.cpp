@@ -83,9 +83,19 @@ MultiPolygon boost_geo_util::reflectAcrossLine(MultiPolygon &multiPolygon, Point
  */
 bool boost_geo_util::isPolygonIntersectPolygon(MultiPolygon &multiPolygonA, MultiPolygon &multiPolygonB)
 {
-    std::deque<Polygon> output;
-    boost_geo::intersection(multiPolygonA, multiPolygonB, output);
-    return output.size();
+    for (Polygon &polygonA : multiPolygonA)
+    {
+        for (Polygon &polygonB : multiPolygonB)
+        {
+            std::deque<Polygon> output;
+            boost_geo::intersection(polygonA, polygonB, output);
+            if (output.size())
+            {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 /**
@@ -115,7 +125,6 @@ void boost_geo_util::visualize(MultiPolygon &multipolygon)
             boost_geo::subtract_point(*it, Point(MIN_X, MIN_Y));
         }
     }
-    std::cout << boost_geo::wkt(multipolygon) << std::endl;
 
     std::ostringstream name;
     name << "frame" << std::setw(4) << std::setfill('0') << frameno++ << ".svg";

@@ -2,6 +2,7 @@
 #define _2D_IRREGULAR_BIN_PACKING
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <iomanip>
 #include <cassert>
@@ -10,6 +11,7 @@
 #include <string>
 #include <cstring>
 #include <chrono>
+#include <algorithm>
 
 #include <boost_geometry_utility.hpp>
 
