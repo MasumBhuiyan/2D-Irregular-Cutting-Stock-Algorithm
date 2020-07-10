@@ -5,7 +5,6 @@
 #include <fstream>
 #include <cassert>
 #include <vector>
-#include <deque>
 
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/geometries.hpp>

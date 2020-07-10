@@ -1,129 +1,24 @@
 #include <_2D_irregular_bin_packing.hpp>
 
-void dnc_approach::mergeHeuristics1Placement(
-    MultiPolygon &multiPolygon_a, MultiPolygon &multiPolygonB,
-    Point p, Point q, Point r, Point s,
-    double &minAreaOfMBR, MultiPolygon &bestOrientation)
+void zero_waste_apparels::normalize(PolygonInput &polygon)
 {
-    Vector pq = p;
-    boost_geo::subtract_point(pq, q);
-    Vector rs = r;
-    boost_geo::subtract_point(rs, s);
-    // find directed angle difference CCW
-    double angleDiff = boost_geo_util::getDirectedAngle_D(pq, rs);
-    // rotate multipolygonB by angleDiff CW to aligin the edge with respect to r
-    MultiPolygon tmpMultiPolygon, multiPolygon_b;
-    boost_geo::transform(multiPolygonB, tmpMultiPolygon, trans::translate_transformer<double, 2, 2>(-(r.x), -(r.y)));
-    boost_geo::transform(tmpMultiPolygon, multiPolygon_b, trans::rotate_transformer<boost_geo::degree, double, 2, 2>(angleDiff));
-    // translate multiPolygon_b to point p so that point r is upon p
-    Point r_new = p;
-    boost_geo::subtract_point(r_new, r); // translation vector
-    tmpMultiPolygon = multiPolygon_b;
-    boost_geo::transform(tmpMultiPolygon, multiPolygon_b, trans::translate_transformer<double, 2, 2>(r_new.x, r_new.y)); // translate
-    if (boost_geo_util::isPolygonIntersectPolygon(multiPolygon_a, multiPolygon_b) == false)
+    double _x = INF, _y = INF;
+    for (auto &point : polygon)
     {
-        MultiPolygon combinedMultiPolygon = boost_geo_util::unionPolygons(multiPolygon_a, multiPolygon_b);
-        Box minBoundRectangle;
-        boost_geo::envelope(combinedMultiPolygon, minBoundRectangle);
-        double minBoundRectangleArea = std::fabs(boost_geo::area(minBoundRectangle));
-        if (minBoundRectangleArea < minAreaOfMBR)
-        {
-            minAreaOfMBR = minBoundRectangleArea;
-            bestOrientation = combinedMultiPolygon;
-        }
+        _x = std::min(_x, point.first);
+        _y = std::min(_y, point.second);
     }
-    // reflect multipolygon_b with respect to pq
-    MultiPolygon multiPolygon_b_reflected = boost_geo_util::reflectAcrossLine(multiPolygon_b, p, q);
-    if (boost_geo_util::isPolygonIntersectPolygon(multiPolygon_a, multiPolygon_b_reflected) == false)
+    for (auto &point : polygon)
     {
-        MultiPolygon combinedMultiPolygon = boost_geo_util::unionPolygons(multiPolygon_a, multiPolygon_b_reflected);
-        Box minBoundRectangle;
-        boost_geo::envelope(combinedMultiPolygon, minBoundRectangle);
-        double minBoundRectangleArea = std::fabs(boost_geo::area(minBoundRectangle));
-        if (minBoundRectangleArea < minAreaOfMBR)
-        {
-            minAreaOfMBR = minBoundRectangleArea;
-            bestOrientation = combinedMultiPolygon;
-        }
+        point.first -= _x;
+        point.second -= _y;
     }
 }
 
-/**
- * first heuristics method for placement
-*/
-MultiPolygon dnc_approach::mergeHeuristics1(MultiPolygon &multiPolygonA, MultiPolygon &multiPolygonB)
-{
-    if (std::fabs(boost_geo::area(multiPolygonA)) < std::fabs(boost_geo::area(multiPolygonB)))
-    {
-        std::swap(multiPolygonA, multiPolygonB);
-    }
-    double minAreaOfMBR = INF; // MBR = Minimum Bound Rectangle of a ploygon
-    MultiPolygon bestOrientation;
-    int angleInterval = 90;
-    for (int angle_i = 0; angle_i < 360; angle_i += angleInterval)
-    {
-        MultiPolygon multiPolygon_a;
-        trans::rotate_transformer<boost_geo::degree, double, 2, 2> rotate(angle_i);
-        boost_geo::transform(multiPolygonA, multiPolygon_a, rotate);
-        for (Polygon &polygon_ai : multiPolygon_a)
-        {
-            std::vector<Point> polygon_ai_outerRing = polygon_ai.outer();
-            int n = polygon_ai_outerRing.size();
-            for (int i = 0; i + 1 < n; i++)
-            {
-                Point p = polygon_ai_outerRing[i]; // each edge of polygonA
-                Point q = polygon_ai_outerRing[i + 1];
-                for (Polygon &polygon_bi : multiPolygonB)
-                {
-                    std::vector<Point> polygon_bi_outerRing = polygon_bi.outer();
-                    int m = polygon_bi_outerRing.size();
-                    for (int j = 0; j + 1 < m; j++)
-                    {
-                        Point r = polygon_bi_outerRing[j]; // each edge of polygonB
-                        Point s = polygon_bi_outerRing[j + 1];
-                        mergeHeuristics1Placement(multiPolygon_a, multiPolygonB, p, q, r, s, minAreaOfMBR, bestOrientation);
-                        mergeHeuristics1Placement(multiPolygon_a, multiPolygonB, p, q, s, r, minAreaOfMBR, bestOrientation);
-                        mergeHeuristics1Placement(multiPolygon_a, multiPolygonB, q, p, r, s, minAreaOfMBR, bestOrientation);
-                        mergeHeuristics1Placement(multiPolygon_a, multiPolygonB, q, p, s, r, minAreaOfMBR, bestOrientation);
-                    }
-                }
-            }
-        }
-    }
-    assert(minAreaOfMBR != INF);
-    return bestOrientation;
-}
-
-/**
- * merge
- */
-MultiPolygon dnc_approach::mergeMultiPolygons(MultiPolygon &multiPolygonA, MultiPolygon &multiPolygonB)
-{
-    return mergeHeuristics1(multiPolygonA, multiPolygonB);
-}
-
-/**
- * divide and conquer
- */
-MultiPolygon dnc_approach::split(std::vector<Polygon> &polygons, int left, int right)
-{
-    if (left == right)
-    {
-        return MultiPolygon({polygons[left]});
-    }
-    int mid = left + (right - left) / 2;
-
-    MultiPolygon multiPolygonLeft = split(polygons, left, mid);
-    MultiPolygon multiPolygonRight = split(polygons, mid + 1, right);
-
-    return mergeMultiPolygons(multiPolygonLeft, multiPolygonRight);
-}
-
-void dnc_approach::solution(std::vector<PolygonInput> &items)
+void zero_waste_apparels::solution(std::vector<PolygonInput> &items, double &width)
 {
     std::cout << std::fixed << std::setprecision(3);
     auto start = std::chrono::high_resolution_clock::now();
-
     int numberOfItems = items.size();
     std::cout << "number of Items: " << numberOfItems << std::endl;
     std::vector<Polygon> polygons(numberOfItems);
@@ -134,26 +29,192 @@ void dnc_approach::solution(std::vector<PolygonInput> &items)
         totalAreaOfItems += boost_geo::area(polygons[i]);
     }
 
-    MultiPolygon resultMultiPolygon = split(polygons, 0, numberOfItems - 1);
+    // step 1: selection heuristic: sort by decreasing order of area
+    sort(polygons.begin(), polygons.end(), [](Polygon a, Polygon b) {
+        return (boost_geo::area(a) >= boost_geo::area(b));
+    });
+
+    // step 2: placement heuristic: bottom left fill
+    MultiPolygon resultMultiPolygon;
+    for (int i = 0; i < numberOfItems; i += 1)
+    {
+        placeItem(resultMultiPolygon, polygons[i], width);
+        boost_geo_util::visualize(resultMultiPolygon);
+    }
+
     double resultMultiPolygonArea = boost_geo::area(resultMultiPolygon);
     Box stock;
     boost_geo::envelope(resultMultiPolygon, stock);
     double stockArea = boost_geo::area(stock);
-    double packingDensity = (totalAreaOfItems / stockArea) * 100;
     Point stockDimension = stock.max_corner();
     boost_geo::subtract_point(stockDimension, stock.min_corner());
 
     std::cout << "total area of items........: " << totalAreaOfItems << std::endl;
     std::cout << "result polygon set area....: " << resultMultiPolygonArea << std::endl;
-    std::cout << "stock dimension [l * w]....: "
+    std::cout << "stock dimension [l * w]....:"
               << "[" << std::fabs(stockDimension.x) << ", " << std::fabs(stockDimension.y) << "]" << std::endl;
     std::cout << "stock area.................: " << stockArea << std::endl;
-    std::cout << "packing density............: " << packingDensity << " %" << std::endl;
+    std::cout << "packing density............: " << (totalAreaOfItems / stockArea) * 100 << " %" << std::endl;
 
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    std::cout << "Time taken by function.....: " << duration.count() / 1000000.0 << " seconds" << std::endl;
+    std::cout << "Time taken by function: " << duration.count() / 1000000.0 << " seconds" << std::endl;
 
-    std::cout << boost_geo::wkt(resultMultiPolygon) << std::endl;
+    //std::cout << boost_geo::wkt(resultMultiPolygon) << std::endl;
     boost_geo_util::visualize(resultMultiPolygon);
+}
+
+double zero_waste_apparels::getWidth(Polygon &polygon)
+{
+    double max_y = -INF;
+    double min_y = INF;
+
+    for (auto it = boost::begin(boost_geo::exterior_ring(polygon)); it != boost::end(boost_geo::exterior_ring(polygon)); ++it)
+    {
+        max_y = std::max(max_y, (*it).y);
+        min_y = std::min(min_y, (*it).y);
+    }
+    return max_y - min_y;
+}
+
+double zero_waste_apparels::getLength(Polygon &polygon)
+{
+    double max_x = -INF;
+    double min_x = INF;
+
+    for (auto it = boost::begin(boost_geo::exterior_ring(polygon)); it != boost::end(boost_geo::exterior_ring(polygon)); ++it)
+    {
+        max_x = std::max(max_x, (*it).x);
+        min_x = std::min(min_x, (*it).x);
+    }
+    return max_x - min_x;
+}
+
+void zero_waste_apparels::normalizePolygon(Polygon &polygon)
+{
+    double min_x = INF;
+    double min_y = INF;
+    for (auto it = boost::begin(boost_geo::exterior_ring(polygon)); it != boost::end(boost_geo::exterior_ring(polygon)); ++it)
+    {
+        min_x = std::min(min_x, (*it).x);
+        min_y = std::min(min_y, (*it).y);
+    }
+    for (auto it = boost::begin(boost_geo::exterior_ring(polygon)); it != boost::end(boost_geo::exterior_ring(polygon)); ++it)
+    {
+        Point t = *it;
+        t = Point(t.x - min_x, t.y - min_y);
+        *it = t;
+    }
+}
+
+void zero_waste_apparels::placeItem(MultiPolygon &stock, Polygon &piece, double &width)
+{
+    //width = 58;
+    MultiPolygon rotatedPieces;
+    for (double r = 0; r < 360; r += 90)
+    {
+        Polygon rotatedPiece;
+        boost_geo::transform(piece, rotatedPiece, trans::rotate_transformer<boost_geo::degree, double, 2, 2>(r));
+        normalizePolygon(rotatedPiece);
+        rotatedPieces.push_back(rotatedPiece);
+    }
+
+    Polygon optimalPiece;
+    double optimalVal_x = INF, optimalVal_y = INF, optimalVal_z = INF;
+
+    for (auto poly : rotatedPieces)
+    {
+
+        double lengthOfPiece = zero_waste_apparels::getLength(poly);
+        double widthOfPiece = zero_waste_apparels::getWidth(poly);
+
+        double length = 100, val_z = INF, val_x = INF, val_y = INF;
+        Polygon _piece;
+        for (double _y = 0; _y <= length - widthOfPiece; _y += 0.5)
+        {
+            for (double _x = 0; _x <= width - lengthOfPiece; _x += 0.5)
+            {
+                Polygon translatedPiece;
+                MultiPolygon translatedPieces;
+                boost_geo::transform(poly, translatedPiece, trans::translate_transformer<double, 2, 2>(_x, _y));
+                translatedPieces.push_back(translatedPiece);
+                if (boost_geo_util::isPolygonIntersectPolygon(stock, translatedPieces) == false)
+                {
+
+                    // min bound rectangle
+                    /*double min_x = INF, min_y = INF;
+	    			for(auto polygon : stock)
+	    			{
+					    for (auto it = boost::begin(boost_geo::exterior_ring(polygon)); it != boost::end(boost_geo::exterior_ring(polygon)); ++it)
+					    {
+					       	min_x = std::min(min_x, (*it).x);
+					        min_y = std::min(min_y, (*it).y);
+					    }
+	    			}
+	    			for (auto it = boost::begin(boost_geo::exterior_ring(translatedPiece)); it != boost::end(boost_geo::exterior_ring(translatedPiece)); ++it)
+					{
+					    min_x = std::min(min_x, (*it).x);
+					    min_y = std::min(min_y, (*it).y);
+					}
+	    			double max_x = -INF, max_y = -INF;
+	    			for(auto polygon : stock)
+	    			{
+	    				for (auto it = boost::begin(boost_geo::exterior_ring(polygon)); it != boost::end(boost_geo::exterior_ring(polygon)); ++it)
+					    {
+					       	max_x = std::max(max_x, (*it).x - min_x);
+					        max_y = std::max(max_y, (*it).y - min_y);
+					    }
+	    			}
+	    			for (auto it = boost::begin(boost_geo::exterior_ring(translatedPiece)); it != boost::end(boost_geo::exterior_ring(translatedPiece)); ++it)
+					{
+					    max_x = std::max(max_x, (*it).x - min_x);
+					    max_y = std::max(max_y, (*it).y - min_y);
+					}*/
+
+                    // min bounding rectangle ends
+
+                    /*if( val_z > max_x * max_y )
+	    			{
+	    				val_z = max_x * max_y;
+	    				val_y = _y + widthOfPiece;
+	    				val_x = _x + lengthOfPiece;
+	    				_piece = translatedPiece;
+	    			}
+	    			else */
+                    if (val_y > _y + widthOfPiece)
+                    {
+                        //val_z = max_x * max_y;
+                        val_y = _y + widthOfPiece;
+                        val_x = _x + lengthOfPiece;
+                        _piece = translatedPiece;
+                    }
+                    else if (val_y == _y + widthOfPiece and val_x > _x + lengthOfPiece)
+                    {
+                        //val_z = max_x * max_y;
+                        val_y = _y + widthOfPiece;
+                        val_x = _x + lengthOfPiece;
+                        _piece = translatedPiece;
+                    }
+                }
+            }
+        }
+
+        if (val_y < optimalVal_y)
+        {
+            optimalVal_x = val_x;
+            optimalVal_y = val_y;
+            optimalPiece = _piece;
+        }
+        else if (val_y == optimalVal_y and val_x < optimalVal_x)
+        {
+            optimalVal_x = val_x;
+            optimalPiece = _piece;
+        }
+        /*if( val_x * val_y < optimalVal_x )
+	    {
+	    	optimalVal_x = val_x * val_y;
+	    	optimalPiece = _piece;
+	    }*/
+    }
+    stock.push_back(optimalPiece);
 }

@@ -19,7 +19,6 @@ std::vector<PolygonInput> readDataset(std::string filename, std::vector<int> &qu
         {
             PolygonInput item;
             file >> quantity[i];
-            // reading polygon counter clockwise as given in the dataset
             int m;
             file >> m;
             while (m--)
@@ -28,6 +27,7 @@ std::vector<PolygonInput> readDataset(std::string filename, std::vector<int> &qu
                 file >> _x >> _y;
                 item.push_back({_x, _y});
             }
+            zero_waste_apparels::normalize(item);
             for (int k = 0; k < quantity[i]; k += 1)
             {
                 items.push_back(item);
@@ -43,15 +43,16 @@ void runDataset(std::string datasetName)
     double width;
     std::vector<int> quantity;
     std::vector<PolygonInput> items = readDataset(datasetName, quantity, width);
-    dnc_approach::solution(items);
+    zero_waste_apparels::solution(items, width);
 }
 
 int main(int argc, char const *argv[])
 {
     runDataset("../tests/dataset/sample.txt");
-    runDataset("../tests/dataset/albano.txt");
+    // runDataset("../tests/dataset/albano.txt");
     runDataset("../tests/dataset/blaz.txt");
     runDataset("../tests/dataset/dagli.txt");
     runDataset("../tests/dataset/jakobs1.txt");
+    runDataset("../tests/dataset/jakobs2.txt");
     return 0;
 }
