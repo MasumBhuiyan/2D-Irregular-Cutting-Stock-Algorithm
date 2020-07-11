@@ -5,6 +5,8 @@
 
 #include <boost_geometry_utility.hpp>
 
+bool vis[500][500];
+
 namespace zero_waste_apparels
 {
     void solution(std::vector<PolygonInput> &, double &);
