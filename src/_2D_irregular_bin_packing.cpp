@@ -31,7 +31,10 @@ void zero_waste_apparels::solution(std::vector<PolygonInput> &items, double &wid
 
     // step 1: selection heuristic: sort by decreasing order of area
     sort(polygons.begin(), polygons.end(), [](Polygon a, Polygon b) {
-        return (boost_geo::area(a) >= boost_geo::area(b));
+            double area1 = boost_geo::area(a);
+            double area2 = boost_geo::area(b);
+            if( area1 > area2 ) return 1;
+            return 0;
     });
 
     // step 2: placement heuristic: bottom left fill
@@ -107,114 +110,76 @@ void zero_waste_apparels::normalizePolygon(Polygon &polygon)
     }
 }
 
-void zero_waste_apparels::placeItem(MultiPolygon &stock, Polygon &piece, double &width)
+void zero_waste_apparels::placeItem(MultiPolygon &stock, Polygon &piece, double& width)
 {
-    //width = 58;
     MultiPolygon rotatedPieces;
-    for (double r = 0; r < 360; r += 90)
+    for(double r = 0; r < 360; r += 90)
     {
         Polygon rotatedPiece;
         boost_geo::transform(piece, rotatedPiece, trans::rotate_transformer<boost_geo::degree, double, 2, 2>(r));
         normalizePolygon(rotatedPiece);
         rotatedPieces.push_back(rotatedPiece);
     }
-
+    
     Polygon optimalPiece;
     double optimalVal_x = INF, optimalVal_y = INF, optimalVal_z = INF;
 
-    for (auto poly : rotatedPieces)
+    for(auto poly : rotatedPieces)
     {
-
-        double lengthOfPiece = zero_waste_apparels::getLength(poly);
-        double widthOfPiece = zero_waste_apparels::getWidth(poly);
-
-        double length = 100, val_z = INF, val_x = INF, val_y = INF;
+        double lengthOfPiece = zero_waste_apparels::getLength(poly); 
+        double widthOfPiece = zero_waste_apparels::getWidth(poly); 
+        
+        double length = 300, val_z = INF, val_x = INF, val_y = INF;
         Polygon _piece;
-        for (double _y = 0; _y <= length - widthOfPiece; _y += 0.5)
+        for(double _y = 0; _y <= length - widthOfPiece; _y += 1)
         {
-            for (double _x = 0; _x <= width - lengthOfPiece; _x += 0.5)
+            for(double _x = 0; _x <= width - lengthOfPiece; _x += 1)
             {
+                if( vis[ (int)_x ][ (int)_y ] ) continue;
                 Polygon translatedPiece;
                 MultiPolygon translatedPieces;
                 boost_geo::transform(poly, translatedPiece, trans::translate_transformer<double, 2, 2>(_x, _y));
                 translatedPieces.push_back(translatedPiece);
-                if (boost_geo_util::isPolygonIntersectPolygon(stock, translatedPieces) == false)
+                if( boost_geo_util::isPolygonIntersectPolygon(stock, translatedPieces) == false ) 
                 {
-
-                    // min bound rectangle
-                    /*double min_x = INF, min_y = INF;
-	    			for(auto polygon : stock)
-	    			{
-					    for (auto it = boost::begin(boost_geo::exterior_ring(polygon)); it != boost::end(boost_geo::exterior_ring(polygon)); ++it)
-					    {
-					       	min_x = std::min(min_x, (*it).x);
-					        min_y = std::min(min_y, (*it).y);
-					    }
-	    			}
-	    			for (auto it = boost::begin(boost_geo::exterior_ring(translatedPiece)); it != boost::end(boost_geo::exterior_ring(translatedPiece)); ++it)
-					{
-					    min_x = std::min(min_x, (*it).x);
-					    min_y = std::min(min_y, (*it).y);
-					}
-	    			double max_x = -INF, max_y = -INF;
-	    			for(auto polygon : stock)
-	    			{
-	    				for (auto it = boost::begin(boost_geo::exterior_ring(polygon)); it != boost::end(boost_geo::exterior_ring(polygon)); ++it)
-					    {
-					       	max_x = std::max(max_x, (*it).x - min_x);
-					        max_y = std::max(max_y, (*it).y - min_y);
-					    }
-	    			}
-	    			for (auto it = boost::begin(boost_geo::exterior_ring(translatedPiece)); it != boost::end(boost_geo::exterior_ring(translatedPiece)); ++it)
-					{
-					    max_x = std::max(max_x, (*it).x - min_x);
-					    max_y = std::max(max_y, (*it).y - min_y);
-					}*/
-
-                    // min bounding rectangle ends
-
-                    /*if( val_z > max_x * max_y )
-	    			{
-	    				val_z = max_x * max_y;
-	    				val_y = _y + widthOfPiece;
-	    				val_x = _x + lengthOfPiece;
-	    				_piece = translatedPiece;
-	    			}
-	    			else */
-                    if (val_y > _y + widthOfPiece)
+                    if( val_y > _y + widthOfPiece )
                     {
-                        //val_z = max_x * max_y;
                         val_y = _y + widthOfPiece;
                         val_x = _x + lengthOfPiece;
                         _piece = translatedPiece;
                     }
-                    else if (val_y == _y + widthOfPiece and val_x > _x + lengthOfPiece)
+                    else if( val_y == _y + widthOfPiece and val_x > _x + lengthOfPiece )
                     {
-                        //val_z = max_x * max_y;
                         val_y = _y + widthOfPiece;
                         val_x = _x + lengthOfPiece;
                         _piece = translatedPiece;
                     }
-                }
+                }   
             }
         }
 
-        if (val_y < optimalVal_y)
+        if( val_y < optimalVal_y )
         {
             optimalVal_x = val_x;
             optimalVal_y = val_y;
             optimalPiece = _piece;
         }
-        else if (val_y == optimalVal_y and val_x < optimalVal_x)
+        else if( val_y == optimalVal_y and val_x < optimalVal_x )
         {
             optimalVal_x = val_x;
             optimalPiece = _piece;
         }
-        /*if( val_x * val_y < optimalVal_x )
-	    {
-	    	optimalVal_x = val_x * val_y;
-	    	optimalPiece = _piece;
-	    }*/
+    }
+
+    double widthOfPiece = zero_waste_apparels::getWidth(optimalPiece);
+    double lengthOfPiece = zero_waste_apparels::getLength(optimalPiece);
+    for(double _x = optimalVal_x; _x <= optimalVal_x + lengthOfPiece; _x += 1) {
+        for(double _y = optimalVal_y; _y <= optimalVal_y + widthOfPiece; _y += 1) {
+            if( vis[ (int)_x ][ (int)_y ] ) continue;
+            MultiPolygon mpoly; mpoly.push_back(optimalPiece);
+            Point t(_x, _y);
+            vis[ (int)_x ][ (int)_y ] = boost_geo_util::isPointInsidePolygons(mpoly, t);
+        }
     }
     stock.push_back(optimalPiece);
 }
