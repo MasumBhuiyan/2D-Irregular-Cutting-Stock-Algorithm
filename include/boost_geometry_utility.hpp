@@ -35,6 +35,7 @@ namespace boost_geo_util
     MultiPolygon unionPolygons(MultiPolygon &, MultiPolygon &);
     MultiPolygon reflectAcrossLine(MultiPolygon &, Point, Point);
     bool isPolygonIntersectPolygon(MultiPolygon &, MultiPolygon &);
+    bool isPointInsidePolygons(MultiPolygon &, Point&);
     void visualize(MultiPolygon &);
 }; // namespace boost_geo_util
 
