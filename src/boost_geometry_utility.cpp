@@ -1,5 +1,13 @@
 #include <boost_geometry_utility.hpp>
 
+bool boost_geo_util::isPointInsidePolygons(MultiPolygon &polygons, Point &point)
+{
+    for(auto poly : polygons)
+    {
+        if( boost::geometry::within(point, poly) == true ) return true;
+    }
+    return false;
+}
 double boost_geo_util::getDirectedAngle_D(Vector vector1, Vector vector2)
 {
     double angle = atan2(vector2.y, vector2.x) - atan2(vector1.y, vector1.x);
