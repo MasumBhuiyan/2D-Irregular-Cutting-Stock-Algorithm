@@ -1,8 +1,8 @@
 # add library
-add_library(_2D_irregular_bin_packing ../include/_2D_irregular_bin_packing.hpp _2D_irregular_bin_packing.cpp)
+add_library(bin_packing ../include/bin_packing.hpp bin_packing.cpp)
 
 # link libraries
 
 
 # include directories  
-target_include_directories(_2D_irregular_bin_packing PUBLIC "${PROJECT_SOURCE_DIR}/include")
+target_include_directories(bin_packing PUBLIC "${PROJECT_SOURCE_DIR}/include")

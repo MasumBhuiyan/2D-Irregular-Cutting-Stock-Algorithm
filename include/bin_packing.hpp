@@ -1,5 +1,5 @@
-#ifndef _2D_IRREGULAR_BIN_PACKING
-#define _2D_IRREGULAR_BIN_PACKING
+#ifndef BIN_PACKING
+#define BIN_PACKING
 
 #include <iostream>
 #include <fstream>
@@ -37,25 +37,22 @@ static int frameno;
 
 namespace boost_geo_util
 {
-    double getDirectedAngle_D(Vector, Vector);
     Polygon constructBGPolygon(PolygonInput &);
-    MultiPolygon unionPolygons(MultiPolygon &, MultiPolygon &);
-    MultiPolygon reflectAcrossLine(MultiPolygon &, Point, Point);
     bool isPolygonIntersectPolygon(MultiPolygon &, MultiPolygon &);
     bool isPointInsidePolygons(MultiPolygon &, Point &);
-    void visualize(MultiPolygon &, std::string prfx = "");
+    void visualize(MultiPolygon &, std::string);
 }; // namespace boost_geo_util
 
-namespace zero_waste_apparels
+namespace bin_packing
 {
-    void runDataset(std::string);
+    void runDataset(std::string, std::string, double);
     std::vector<PolygonInput> readDataset(std::string, std::vector<int> &, double &);
-    void solution(std::vector<PolygonInput> &, double &);
-    void placeItem(MultiPolygon &, Polygon &, double &);
+    void binPacking(std::vector<PolygonInput> &, double, double &, std::string);
+    void placeItem(MultiPolygon &, Polygon &, double, double &);
     void normalize(PolygonInput &);
     void normalizePolygon(Polygon &);
     double getLength(Polygon &);
     double getWidth(Polygon &);
-}; // namespace zero_waste_apparels
+}; // namespace bin_packing
 
-#endif // _2D_IRREGULAR_BIN_PACKING
+#endif // BIN_PACKING

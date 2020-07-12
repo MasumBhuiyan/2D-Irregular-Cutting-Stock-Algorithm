@@ -1,9 +1,7 @@
-#include <_2D_irregular_bin_packing.hpp>
-
+#include <bin_packing.hpp>
 
 void test_with_dataset(std::string datasetFileName)
 {
-
 }
 
 int main()

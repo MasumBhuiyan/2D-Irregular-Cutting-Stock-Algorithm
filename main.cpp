@@ -1,14 +1,12 @@
-#include <_2D_irregular_bin_packing.hpp>
+#include <bin_packing.hpp>
 
 int main(int argc, char const *argv[])
 {
-    // zero_waste_apparels::runDataset("../tests/dataset/sample.txt");
-    // zero_waste_apparels::runDataset("../tests/dataset/albano.txt");
-    // zero_waste_apparels::runDataset("../tests/dataset/blaz.txt");
-    // zero_waste_apparels::runDataset("../tests/dataset/dagli.txt");
-    // zero_waste_apparels::runDataset("../tests/dataset/jakobs1.txt");
-    // zero_waste_apparels::runDataset("../tests/dataset/jakobs2.txt");
-    zero_waste_apparels::runDataset("../tests/dataset/tshirt.txt");
-    zero_waste_apparels::runDataset("../tests/dataset/trousers.txt");
+    bin_packing::runDataset("../tests/dataset/", "trousers", 300);
+    bin_packing::runDataset("../tests/dataset/", "blaz", 29);
+    bin_packing::runDataset("../tests/dataset/", "jakobs1", 12);
+    bin_packing::runDataset("../tests/dataset/", "jakobs2", 8);
+    bin_packing::runDataset("../tests/dataset/", "marques", 84);
+    bin_packing::runDataset("../tests/dataset/", "shirts", 62);
     return 0;
 }

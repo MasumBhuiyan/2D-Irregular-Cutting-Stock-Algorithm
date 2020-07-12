@@ -1,16 +1,6 @@
-#include <_2D_irregular_bin_packing.hpp>
+#include <bin_packing.hpp>
 
 /** namespace boost_geo_util */
-
-double boost_geo_util::getDirectedAngle_D(Vector vector1, Vector vector2)
-{
-    double angle = atan2(vector2.y, vector2.x) - atan2(vector1.y, vector1.x);
-    if (angle < 0)
-    {
-        angle += 2 * PI;
-    }
-    return (angle * 180) / PI;
-}
 
 Polygon boost_geo_util::constructBGPolygon(PolygonInput &polygonFromInput)
 {
@@ -27,47 +17,6 @@ Polygon boost_geo_util::constructBGPolygon(PolygonInput &polygonFromInput)
     return polygonBG;
 }
 
-MultiPolygon boost_geo_util::unionPolygons(MultiPolygon &multiPolygonA, MultiPolygon &multiPolygonB)
-{
-    MultiPolygon multiPolygonUnion;
-    for (Polygon polygon : multiPolygonA)
-        multiPolygonUnion.push_back(polygon);
-    for (Polygon polygon : multiPolygonB)
-        multiPolygonUnion.push_back(polygon);
-    return multiPolygonUnion;
-}
-
-MultiPolygon boost_geo_util::reflectAcrossLine(MultiPolygon &multiPolygon, Point p, Point q)
-{
-    double x1 = p.x, x2 = q.x;
-    double y1 = p.y, y2 = q.y;
-    MultiPolygon reflected = multiPolygon;
-    for (Polygon &polygon : multiPolygon)
-    {
-        for (auto it = boost::begin(boost_geo::exterior_ring(polygon)); it != boost::end(boost_geo::exterior_ring(polygon)); ++it)
-        {
-            Point tmpPoint = *it;
-            if ((x2 - x1) < EPS)
-            {
-                *it = Point(2.0 * x1 - tmpPoint.x, tmpPoint.y);
-            }
-            else if ((y2 - y1) < EPS)
-            {
-                *it = Point(tmpPoint.x, 2.0 * y1 - tmpPoint.y);
-            }
-            else
-            {
-                double m = (y2 - y1) / (x2 - x1);
-                double b = y1 - m * x1;
-
-                *it = Point(((1 - m * m) * (tmpPoint.x) + 2 * m * (tmpPoint.y) - 2 * m * b) / (m * m + 1),
-                            ((m * m - 1) * (tmpPoint.y) + 2 * m * (tmpPoint.x) + 2 * b) / (m * m + 1));
-            }
-        }
-    }
-    return reflected;
-}
-
 bool boost_geo_util::isPolygonIntersectPolygon(MultiPolygon &multiPolygonA, MultiPolygon &multiPolygonB)
 {
     for (auto polygon_a : multiPolygonA)
@@ -77,20 +26,21 @@ bool boost_geo_util::isPolygonIntersectPolygon(MultiPolygon &multiPolygonA, Mult
             std::deque<Polygon> output;
             boost_geo::intersection(polygon_a, polygon_b, output);
             if (output.size() > 0)
+            {
                 return true;
+            }
         }
     }
     return false;
-    //return boost_geo::overlaps(multiPolygonA, multiPolygonB);
 }
 
-void boost_geo_util::visualize(MultiPolygon &multipolygon, std::string prfx)
+void boost_geo_util::visualize(MultiPolygon &multipolygon, std::string datasetName)
 {
     Box box;
     boost::geometry::envelope(multipolygon, box);
-    std::cout << "make_envelope:" << boost::geometry::dsv(box) << std::endl;
+    std::cout << "make_envelope..............: " << boost::geometry::dsv(box) << std::endl;
     std::ostringstream name;
-    name << prfx << "frame" << std::setw(4) << std::setfill('0') << frameno++ << ".svg";
+    name << "frame_" << std::setw(4) << std::setfill('0') << frameno++ << "_" << datasetName << ".svg";
     std::ofstream svg("../diagrams/" + name.str());
     boost_geo::svg_mapper<Point> mapper(svg, 700, 600);
     mapper.add(multipolygon);
@@ -108,10 +58,10 @@ bool boost_geo_util::isPointInsidePolygons(MultiPolygon &polygons, Point &point)
     return false;
 }
 
-/** namespace zero_waste_apparels */
+/** namespace bin_packing */
 bool vis[5000][10000];
 
-std::vector<PolygonInput> zero_waste_apparels::readDataset(std::string filename, std::vector<int> &quantity, double &width)
+std::vector<PolygonInput> bin_packing::readDataset(std::string filename, std::vector<int> &quantity, double &width)
 {
     std::vector<PolygonInput> items;
     std::ifstream file(filename);
@@ -138,7 +88,7 @@ std::vector<PolygonInput> zero_waste_apparels::readDataset(std::string filename,
                 file >> _x >> _y;
                 item.push_back({_x, _y});
             }
-            zero_waste_apparels::normalize(item);
+            bin_packing::normalize(item);
             for (int k = 0; k < quantity[i]; k += 1)
             {
                 items.push_back(item);
@@ -149,22 +99,16 @@ std::vector<PolygonInput> zero_waste_apparels::readDataset(std::string filename,
     return items;
 }
 
-void zero_waste_apparels::runDataset(std::string datasetName)
+void bin_packing::runDataset(std::string locationName, std::string datasetName, double length)
 {
+    std::cout << "dataset....................: " << datasetName << std::endl;
     double width;
     std::vector<int> quantity;
-    std::vector<PolygonInput> items = readDataset(datasetName, quantity, width);
-    /* for(auto &poly : items) {
-        for(auto &point : poly) {
-            point.first /= 2;
-            point.second /= 2;
-        }
-    }
-    width /= 2;*/
-    zero_waste_apparels::solution(items, width);
+    std::vector<PolygonInput> items = readDataset(locationName + datasetName + ".txt", quantity, width);
+    bin_packing::binPacking(items, length, width, datasetName);
 }
 
-void zero_waste_apparels::normalize(PolygonInput &polygon)
+void bin_packing::normalize(PolygonInput &polygon)
 {
     double _x = INF, _y = INF;
     for (auto &point : polygon)
@@ -179,11 +123,11 @@ void zero_waste_apparels::normalize(PolygonInput &polygon)
     }
 }
 
-void zero_waste_apparels::solution(std::vector<PolygonInput> &items, double &width)
+void bin_packing::binPacking(std::vector<PolygonInput> &items, double length, double &width, std::string datasetName)
 {
     auto start = std::chrono::high_resolution_clock::now();
     int numberOfItems = items.size();
-    std::cout << "number of Items: " << numberOfItems << std::endl;
+    std::cout << "number of items............: " << numberOfItems << std::endl;
     std::vector<Polygon> polygons(numberOfItems);
     double totalAreaOfItems = 0;
     for (int i = 0; i < numberOfItems; i++)
@@ -194,15 +138,16 @@ void zero_waste_apparels::solution(std::vector<PolygonInput> &items, double &wid
 
     // step 1: selection heuristic: sort by decreasing order of area
     sort(polygons.begin(), polygons.end(), [](Polygon a, Polygon b) {
-        return (boost_geo::area(a) >= boost_geo::area(b));
+        return (std::fabs(boost_geo::area(a)) > std::fabs(boost_geo::area(b)));
     });
 
     // step 2: placement heuristic: bottom left fill
     MultiPolygon resultMultiPolygon;
     for (int i = 0; i < numberOfItems; i += 1)
     {
-        zero_waste_apparels::placeItem(resultMultiPolygon, polygons[i], width);
-        boost_geo_util::visualize(resultMultiPolygon);
+        bin_packing::placeItem(resultMultiPolygon, polygons[i], length, width);
+        std::cout << "[" << std::setw(3) << (int)(((i + 1) / (1.0 * numberOfItems)) * 100) << "%] "
+                  << "placed..............: " << i + 1 << " / " << numberOfItems << std::endl;
     }
 
     double resultMultiPolygonArea = boost_geo::area(resultMultiPolygon);
@@ -223,11 +168,10 @@ void zero_waste_apparels::solution(std::vector<PolygonInput> &items, double &wid
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     std::cout << "Time taken by function.....: " << duration.count() / 1000000.0 << " seconds" << std::endl;
 
-    //std::cout << boost_geo::wkt(resultMultiPolygon) << std::endl;
-    boost_geo_util::visualize(resultMultiPolygon, "final");
+    boost_geo_util::visualize(resultMultiPolygon, datasetName);
 }
 
-double zero_waste_apparels::getWidth(Polygon &polygon)
+double bin_packing::getWidth(Polygon &polygon)
 {
     double max_y = -INF;
     double min_y = INF;
@@ -240,7 +184,7 @@ double zero_waste_apparels::getWidth(Polygon &polygon)
     return max_y - min_y;
 }
 
-double zero_waste_apparels::getLength(Polygon &polygon)
+double bin_packing::getLength(Polygon &polygon)
 {
     double max_x = -INF;
     double min_x = INF;
@@ -253,7 +197,7 @@ double zero_waste_apparels::getLength(Polygon &polygon)
     return max_x - min_x;
 }
 
-void zero_waste_apparels::normalizePolygon(Polygon &polygon)
+void bin_packing::normalizePolygon(Polygon &polygon)
 {
     double min_x = INF;
     double min_y = INF;
@@ -270,15 +214,14 @@ void zero_waste_apparels::normalizePolygon(Polygon &polygon)
     }
 }
 
-void zero_waste_apparels::placeItem(MultiPolygon &stock, Polygon &piece, double &width)
+void bin_packing::placeItem(MultiPolygon &stock, Polygon &piece, double length, double &width)
 {
-    //width = 58;
     MultiPolygon rotatedPieces;
     for (double r = 0; r < 360; r += 90)
     {
         Polygon rotatedPiece;
         boost_geo::transform(piece, rotatedPiece, trans::rotate_transformer<boost_geo::degree, double, 2, 2>(r));
-        zero_waste_apparels::normalizePolygon(rotatedPiece);
+        bin_packing::normalizePolygon(rotatedPiece);
         rotatedPieces.push_back(rotatedPiece);
     }
 
@@ -287,10 +230,10 @@ void zero_waste_apparels::placeItem(MultiPolygon &stock, Polygon &piece, double 
 
     for (auto poly : rotatedPieces)
     {
-        double lengthOfPiece = zero_waste_apparels::getLength(poly);
-        double widthOfPiece = zero_waste_apparels::getWidth(poly);
+        double lengthOfPiece = bin_packing::getLength(poly);
+        double widthOfPiece = bin_packing::getWidth(poly);
 
-        double length = 300, val_z = INF, val_x = INF, val_y = INF;
+        double val_x = INF, val_y = INF;
         Polygon _piece;
         for (double _y = 0; _y <= length - widthOfPiece; _y += 1)
         {
@@ -333,14 +276,16 @@ void zero_waste_apparels::placeItem(MultiPolygon &stock, Polygon &piece, double 
         }
     }
 
-    double widthOfPiece = zero_waste_apparels::getWidth(optimalPiece);
-    double lengthOfPiece = zero_waste_apparels::getLength(optimalPiece);
+    double widthOfPiece = bin_packing::getWidth(optimalPiece);
+    double lengthOfPiece = bin_packing::getLength(optimalPiece);
     for (double _x = optimalVal_x; _x <= optimalVal_x + lengthOfPiece; _x += 1)
     {
         for (double _y = optimalVal_y; _y <= optimalVal_y + widthOfPiece; _y += 1)
         {
             if (vis[(int)_x][(int)_y])
+            {
                 continue;
+            }
             MultiPolygon mpoly;
             mpoly.push_back(optimalPiece);
             Point t(_x, _y);
