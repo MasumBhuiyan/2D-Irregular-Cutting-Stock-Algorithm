@@ -22,8 +22,7 @@ add_subdirectory(src)
 
 target_link_libraries(
     run
-    boost_geometry_utility
-    _2D_irregular_bin_packing
+    bin_packing
 )
 
 target_include_directories(
