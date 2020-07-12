@@ -5,10 +5,9 @@
 2. [ Installation ](#installation)
 3. [ Build ](#build)
 4. [ Algorithm ](#algorithm)
-5. [Result](#result)
-6. [ Credits ](#credits)
-7. [ License ](#license)
-8. [ Conclusion ](#conclusion) 
+5. [ Credits ](#credits)
+6. [ License ](#license)
+7. [ Conclusion ](#conclusion) 
 
 
 <a name="description"></a>
@@ -71,12 +70,6 @@ In operations research, the cutting-stock problem is the problem of cutting stan
 12.            if F is better than C, then C = F 
 13.    return C
 ```
-<a name="result"></a>
-## Result
-![](diagrams/marques.png)
-![](diagrams/blaz.png)
-![](diagrams/jakobs1.png)
-<a name="credits"></a>
 ## Credits 
 
 <table style="width:100%">
