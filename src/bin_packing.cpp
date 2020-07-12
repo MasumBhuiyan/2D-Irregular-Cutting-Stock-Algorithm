@@ -101,7 +101,7 @@ std::vector<PolygonInput> bin_packing::readDataset(std::string filename, std::ve
 
 void bin_packing::runDataset(std::string locationName, std::string datasetName, double length)
 {
-    std::cout << "dataset....................: " << datasetName << std::endl;
+    std::cout << "\033[1;32mdataset....................: " << datasetName << "\033[0m" << std::endl;
     double width;
     std::vector<int> quantity;
     std::vector<PolygonInput> items = readDataset(locationName + datasetName + ".txt", quantity, width);
@@ -127,7 +127,7 @@ void bin_packing::binPacking(std::vector<PolygonInput> &items, double length, do
 {
     auto start = std::chrono::high_resolution_clock::now();
     int numberOfItems = items.size();
-    std::cout << "number of items............: " << numberOfItems << std::endl;
+    std::cout << "\033[1;32mnumber of items............: " << numberOfItems << "\033[0m" << std::endl;
     std::vector<Polygon> polygons(numberOfItems);
     double totalAreaOfItems = 0;
     for (int i = 0; i < numberOfItems; i++)
@@ -147,7 +147,7 @@ void bin_packing::binPacking(std::vector<PolygonInput> &items, double length, do
     {
         bin_packing::placeItem(resultMultiPolygon, polygons[i], length, width);
         std::cout << "[" << std::setw(3) << (int)(((i + 1) / (1.0 * numberOfItems)) * 100) << "%] "
-                  << "placed..............: " << i + 1 << " / " << numberOfItems << std::endl;
+                  << "\033[1;33mplaced..............: " << i + 1 << " / " << numberOfItems << "\033[0m" << std::endl;
     }
 
     double resultMultiPolygonArea = boost_geo::area(resultMultiPolygon);
@@ -157,16 +157,16 @@ void bin_packing::binPacking(std::vector<PolygonInput> &items, double length, do
     Point stockDimension = stock.max_corner();
     boost_geo::subtract_point(stockDimension, stock.min_corner());
 
-    std::cout << "total area of items........: " << totalAreaOfItems << std::endl;
-    std::cout << "result polygon set area....: " << resultMultiPolygonArea << std::endl;
-    std::cout << "stock dimension [l * w]....: "
-              << "[" << std::fabs(stockDimension.x) << ", " << std::fabs(stockDimension.y) << "]" << std::endl;
-    std::cout << "stock area.................: " << stockArea << std::endl;
-    std::cout << "packing density............: " << (totalAreaOfItems / stockArea) * 100 << " %" << std::endl;
+    std::cout << "\033[1;36mtotal area of items........: " << totalAreaOfItems << "\033[0m" << std::endl;
+    std::cout << "\033[1;36mresult polygon set area....: " << resultMultiPolygonArea << "\033[0m" << std::endl;
+    std::cout << "\033[1;36mstock dimension [l * w]....: "
+              << "[" << std::fabs(stockDimension.x) << ", " << std::fabs(stockDimension.y) << "]" << "\033[0m" << std::endl;
+    std::cout << "\033[1;36mstock area.................: " << stockArea << "\033[0m" << std::endl;
+    std::cout << "\033[1;32mpacking density............: " << (totalAreaOfItems / stockArea) * 100 << " %\033[0m" << std::endl;
 
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    std::cout << "Time taken by function.....: " << duration.count() / 1000000.0 << " seconds" << std::endl;
+    std::cout << "\033[1;35mTime taken by function.....: " << duration.count() / 1000000.0 << " seconds\033[0m" << std::endl;
 
     boost_geo_util::visualize(resultMultiPolygon, datasetName);
 }
