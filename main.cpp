@@ -1,58 +1,14 @@
 #include <_2D_irregular_bin_packing.hpp>
 
-std::vector<PolygonInput> readDataset(std::string filename, std::vector<int> &quantity, double &width)
-{
-    std::vector<PolygonInput> items;
-    std::ifstream file(filename);
-    if (file.fail())
-    {
-        std::cerr << "file does not exists\n";
-        exit(-1);
-    }
-    else
-    {
-        int n;
-        file >> width;
-        file >> n;
-        quantity.resize(n);
-        for (int i = 0; i < n; i += 1)
-        {
-            PolygonInput item;
-            file >> quantity[i];
-            int m;
-            file >> m;
-            while (m--)
-            {
-                double _x, _y;
-                file >> _x >> _y;
-                item.push_back({_x, _y});
-            }
-            zero_waste_apparels::normalize(item);
-            for (int k = 0; k < quantity[i]; k += 1)
-            {
-                items.push_back(item);
-            }
-        }
-    }
-    file.close();
-    return items;
-}
-
-void runDataset(std::string datasetName)
-{
-    double width;
-    std::vector<int> quantity;
-    std::vector<PolygonInput> items = readDataset(datasetName, quantity, width);
-    zero_waste_apparels::solution(items, width);
-}
-
 int main(int argc, char const *argv[])
 {
-    runDataset("../tests/dataset/sample.txt");
-    // runDataset("../tests/dataset/albano.txt");
-    runDataset("../tests/dataset/blaz.txt");
-    runDataset("../tests/dataset/dagli.txt");
-    runDataset("../tests/dataset/jakobs1.txt");
-    runDataset("../tests/dataset/jakobs2.txt");
+    // zero_waste_apparels::runDataset("../tests/dataset/sample.txt");
+    // zero_waste_apparels::runDataset("../tests/dataset/albano.txt");
+    // zero_waste_apparels::runDataset("../tests/dataset/blaz.txt");
+    // zero_waste_apparels::runDataset("../tests/dataset/dagli.txt");
+    // zero_waste_apparels::runDataset("../tests/dataset/jakobs1.txt");
+    // zero_waste_apparels::runDataset("../tests/dataset/jakobs2.txt");
+    zero_waste_apparels::runDataset("../tests/dataset/tshirt.txt");
+    zero_waste_apparels::runDataset("../tests/dataset/trousers.txt");
     return 0;
 }
