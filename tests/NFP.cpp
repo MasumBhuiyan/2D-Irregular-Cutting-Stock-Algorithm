@@ -87,7 +87,7 @@ namespace no_fit_polygon
 {
     MultiPolygon triangulatePolygon(Polygon&); 
     Polygon getNoFitPolygonOfTwoConvexPolygons(Polygon, Polygon);
-    Polygon getNoFitPolygonOfTwoPolygons(Polygon, Polygon);
+    MultiPolygon getNoFitPolygonOfTwoPolygons(Polygon, Polygon);
 }; // namespace no_fit_polygon
 
 void getNoFitPolygonOfTwoConvexPolygons_test1()
@@ -186,11 +186,37 @@ void getNoFitPolygonOfTwoConvexPolygons_test3()
     }
     boost_geo_util::visualize(polygons, "getNoFitPolygonOfTwoConvexPolygons_test3");
 }
+void getNoFitPolygonOfTwoPolygons_test1()
+{
+    MultiPolygon polygons;
+    Polygon a({{
+        Point(0,0),
+        Point(0,5),
+        Point(5,10),
+        Point(10,10),
+        Point(10,5),
+        Point(5,0),
+        Point(0,0)
+    }});
+    Polygon b({{
+        Point(0,0),
+        Point(0,5),
+        Point(5,5),
+        Point(5,0),
+        Point(0,0)
+    }});
+
+    MultiPolygon noFitPolygon = no_fit_polygon::getNoFitPolygonOfTwoPolygons(a, b);
+    polygons = noFitPolygon;
+    polygons.push_back(a);
+    boost_geo_util::visualize(polygons, "getNoFitPolygonOfTwoPolygons_test1");
+}
 int main()
 {
-    getNoFitPolygonOfTwoConvexPolygons_test1();
-    getNoFitPolygonOfTwoConvexPolygons_test2();
-    getNoFitPolygonOfTwoConvexPolygons_test3();
+    //getNoFitPolygonOfTwoConvexPolygons_test1();
+    //getNoFitPolygonOfTwoConvexPolygons_test2();
+    //getNoFitPolygonOfTwoConvexPolygons_test3();
+    getNoFitPolygonOfTwoPolygons_test1();
     return 0;
 }
 void boost_geo_util::visualize(MultiPolygon &multipolygon, std::string datasetName)
@@ -316,4 +342,24 @@ Polygon no_fit_polygon::getNoFitPolygonOfTwoConvexPolygons(Polygon convexPolygon
         point = Point(point.get<0>() - x2 + x1, point.get<1>() - y2 + y1);
     }
     return noFitPolygon;
+}
+MultiPolygon no_fit_polygon::getNoFitPolygonOfTwoPolygons(Polygon polygon1, Polygon polygon2)
+{
+    MultiPolygon triangles1 = no_fit_polygon::triangulatePolygon(polygon1);
+    MultiPolygon triangles2 = no_fit_polygon::triangulatePolygon(polygon2);
+    
+    
+    MultiPolygon noFitPolygons, output;
+    for(auto poly1: triangles1)
+    {
+        for(auto poly2: triangles2)
+        {
+            Polygon noFitPolygon = no_fit_polygon::getNoFitPolygonOfTwoConvexPolygons(poly1, poly2);
+            MultiPolygon t;
+            t.push_back(noFitPolygon);
+            boost_geo::union_(noFitPolygons, t, output);
+            noFitPolygons = output; output.clear();
+        }
+    }
+    return noFitPolygons;
 }
