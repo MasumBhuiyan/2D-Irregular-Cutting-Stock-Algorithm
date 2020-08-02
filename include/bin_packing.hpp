@@ -36,22 +36,24 @@ const double PI = acos(-1);
 
 static int frameno;
 
-
-std::vector<vector<Point>> allPairDominantPoints;
-std::vector<vector<Polygon>> allPairNoFitPolygons;
-std::vector<vector<double>> allPairClusterValues;
+/*
+// Global variables
+std::vector<std::vector<Point>> allPairDominantPoints;
+std::vector<std::vector<Polygon>> allPairNoFitPolygons;
+std::vector<std::vector<double>> allPairClusterValues;
 std::vector<Polygon> allInnerFitPolygons;
-std::vector<vector<Polygon>> convexHullVacancies;
+std::vector<std::vector<Polygon>> convexHullVacancies;
 std::vector<bool> convavity;
+*/
 
-namespace guided_cuckoo_search
+namespace bin_packing
 {
     std::tuple<std::vector<Polygon>, double> readDataset(std::string); // 1
     std::tuple<std::vector<Polygon>> gcs(std::vector<Polygon>&, double); // 2
     std::tuple<std::vector<Point>, std::vector<double>> generateInitialSolution(std::vector<Polygon>&, double); // 3
     std::tuple<std::vector<Point>, std::vector<double>> cluster(std::vector<Polygon>&); // 4
-    void sort(std::vector<vector<Polygon>>&); // 5
-    std::vector<Polygon> blf(std::vector<vector<Polygon>>&); // 6
+    void sort(std::vector<std::vector<Polygon>>&); // 5
+    std::vector<Polygon> blf(std::vector<std::vector<Polygon>>&); // 6
     Polygon translatePolygon(Polygon&, Point); // 7
     std::vector<Polygon> translatePolygons(std::vector<Polygon>&, Point); // 8
     Polygon rotatePolygon(Polygon&, double); // 9
@@ -68,7 +70,7 @@ namespace guided_cuckoo_search
     double calulateClusteringCriteria2(Polygon&, Polygon&); // 20
     double calulateClusterValue(Polygon&, Polygon&); // 21
     Polygon convexHull(std::vector<Point>&); // 22
-    tuple<std::vector<Point>, std::vector<double>> perfectMatching(double); // 23 // cluster percentage
+    std::tuple<std::vector<Point>, std::vector<double>> perfectMatching(double); // 23 // cluster percentage
     Point findBlfPoint(std::vector<Polygon>&, std::vector<Polygon>&); // 24 // current all ready placed polygons, polygon or polygons next to be placed. 
                                                                       //find all the places this polygon/polygons can be place. basically all NFP-IFP intersection points and vertices
                                                                       // return the bottom left Point among the points
