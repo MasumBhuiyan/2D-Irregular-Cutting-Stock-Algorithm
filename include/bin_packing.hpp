@@ -11,9 +11,10 @@
 #include <string>
 #include <cstring>
 #include <chrono>
+#include <sys/stat.h> 
+#include <sys/types.h> 
 
 #include <boost/geometry.hpp>
-#include <boost/geometry/algorithms/overlaps.hpp>
 #include <boost/geometry/geometries/geometries.hpp>
 
 namespace boost_geo = boost::geometry;
@@ -35,24 +36,9 @@ const double PI = acos(-1);
 
 static int frameno;
 
-namespace boost_geo_util
-{
-    Polygon constructBGPolygon(PolygonInput &);
-    bool isPolygonIntersectPolygon(MultiPolygon &, MultiPolygon &);
-    bool isPointInsidePolygons(MultiPolygon &, Point &);
-    void visualize(MultiPolygon &, std::string);
-}; // namespace boost_geo_util
-
 namespace bin_packing
 {
-    void runDataset(std::string, std::string, double);
-    std::vector<PolygonInput> readDataset(std::string, std::vector<int> &, double &);
-    void binPacking(std::vector<PolygonInput> &, double, double &, std::string);
-    void placeItem(MultiPolygon &, Polygon &, double, double &);
-    void normalize(PolygonInput &);
-    void normalizePolygon(Polygon &);
-    double getLength(Polygon &);
-    double getWidth(Polygon &);
-}; // namespace bin_packing
+    std::tuple<std::vector<Polygon>, double> readDataset(std::string);
+};
 
-#endif // BIN_PACKING
+#endif
