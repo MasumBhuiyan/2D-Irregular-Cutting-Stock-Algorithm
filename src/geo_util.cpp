@@ -79,18 +79,10 @@ double geo_util::crossProduct(Point p, Point q)
 */
 void geo_util::normalize(Polygon &polygon)
 {
-    double min_x = INF;
-    double min_y = INF;
-    for (auto it = boost::begin(boost_geo::exterior_ring(polygon)); it != boost::end(boost_geo::exterior_ring(polygon)); ++it)
+    Point reference = polygon.outer()[0];
+    for(auto &point: polygon.outer())
     {
-        min_x = std::min(min_x, (*it).x);
-        min_y = std::min(min_y, (*it).y);
-    }
-    for (auto it = boost::begin(boost_geo::exterior_ring(polygon)); it != boost::end(boost_geo::exterior_ring(polygon)); ++it)
-    {
-        Point t = *it;
-        t = Point(t.x - min_x, t.y - min_y);
-        *it = t;
+        point = Point(point.x - reference.x, point.y - reference.y);
     }
 }
 /**
@@ -110,22 +102,39 @@ int geo_util::orientation(Point a, Point b, Point c)
 }
 
 /**
-* rotate polygon counter clockwise at a degree(0 - 360)
+* rotate polygon CLOCKWISE for a positive degree(0 to 360)
+* or COUNTER CLOCKWISE for a negative degree
 * w.r.t a reference point
 */
-Polygon geo_util::rotatePolygon(Polygon &polygon, Point reference, double degree)
+Polygon geo_util::rotatePolygon(Polygon polygon, Point reference, double degree)
 {
     Polygon rotatedPolygon;
+    for(auto &point: polygon.outer())
+    {
+        Point t(point.x - reference.x, point.y - reference.y);
+        point = t;
+    }
     boost_geo::transform(polygon, rotatedPolygon, trans::rotate_transformer<boost_geo::degree, double, 2, 2>(degree));
+    for(auto &point: rotatedPolygon.outer())
+    {
+        Point t(point.x + reference.x, point.y + reference.y);
+        point = t;
+    }
     return rotatedPolygon;
 }
 
 /**
 * translate a polygon to a point
 */
-Polygon geo_util::translatePolygon(Polygon &polygon, Point point)
+Polygon geo_util::translatePolygon(Polygon polygon, Point point)
 {
     Polygon translatedPolygon;
+    Point reference = polygon.outer()[0];
+    for(auto &point: polygon.outer())
+    {
+        Point t(point.x - reference.x, point.y - reference.y);
+        point = t;
+    }
     boost_geo::transform(polygon, translatedPolygon, trans::translate_transformer<double, 2, 2>(point.x, point.y));
     return translatedPolygon;
 }
@@ -134,10 +143,11 @@ Polygon geo_util::translatePolygon(Polygon &polygon, Point point)
 */
 double geo_util::linePointDistance(Point a, Point b, Point p)
 {
-    Line line;
-    line.push_back(a);
-    line.push_back(b);
-    return boost_geo::distance(p, line);
+    double x1 = a.x, y1 = a.y;
+    double x2 = b.x, y2 = b.y;
+    double _a = y1 - y2, _b = x2 - x1, _c = x1 * y2 - x2 * y1;
+    double distance = std::fabs(_a * p.x + _b * p.y + _c) / sqrt(_a * _a + _b * _b);
+    return distance;
 }
 /**
 * returns the intersection area of two polygons

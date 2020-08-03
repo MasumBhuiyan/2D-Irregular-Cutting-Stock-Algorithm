@@ -12,8 +12,8 @@ namespace geo_util
     double crossProduct(Point, Point);
     void normalize(Polygon&);
     int orientation(Point, Point, Point);
-    Polygon rotatePolygon(Polygon&, Point, double);
-    Polygon translatePolygon(Polygon&, Point);
+    Polygon rotatePolygon(Polygon, Point, double);
+    Polygon translatePolygon(Polygon, Point);
     double linePointDistance(Point, Point, Point);
     double polygonPolygonIntersectionArea(Polygon&, Polygon&);
     Point segmentSegmentIntersectionPoint(Point, Point, Point, Point);

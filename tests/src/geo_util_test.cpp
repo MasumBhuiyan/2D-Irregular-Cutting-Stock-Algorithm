@@ -85,20 +85,21 @@ void crossProduct_test()
 }
 void normalize_test()
 {
-    Polygon concavePolygon1 = readTestcase("concavepolygon1");
-    Polygon concavePolygon2 = readTestcase("concavepolygon2");
     Polygon convexPolygon1 = readTestcase("convexpolygon1");
-    Polygon convexPolygon2 = readTestcase("convexpolygon2");
-
-    geo_util::normalize(concavePolygon1);
-    geo_util::normalize(concavePolygon2);
     geo_util::normalize(convexPolygon1);
-    geo_util::normalize(convexPolygon2);
-
-    for(auto point: concavePolygon1.outer()) assert(point.x >= 0 and point.y >= 0);
-    for(auto point: concavePolygon2.outer()) assert(point.x >= 0 and point.y >= 0);
-    for(auto point: convexPolygon1.outer()) assert(point.x >= 0 and point.y >= 0);
-    for(auto point: convexPolygon2.outer()) assert(point.x >= 0 and point.y >= 0);
+    Polygon __convexPolygon1({{
+        {0.0, 0.0},
+        {1.0, 5.0},
+        {5.0, 6.0},
+        {7.0, 3.0},
+        {5.0, 0.0},
+        {0.0,0.0}
+    }});
+    for(int i = 0; i < 6; i += 1)
+    {
+        ASSERT_EQUAL(geo_util::dblcmp(convexPolygon1.outer()[i].x - __convexPolygon1.outer()[i].x, EPS), 0);
+        ASSERT_EQUAL(geo_util::dblcmp(convexPolygon1.outer()[i].y - __convexPolygon1.outer()[i].y, EPS), 0);
+    }
 }
 void orientation_test()
 {
@@ -119,39 +120,167 @@ void orientation_test()
 }
 void rotatePolygon_test()
 {
-    
+    Polygon polygon({{
+        {-12.0, 2.0},
+        {-8.0, 9.0},
+        {-4.0, 4.0},
+        {-12.0, 2.0}
+    }});
+    Polygon __rotatedPolygon90CW({{
+        {-4.0, 10.0},
+        {3.0, 6.0},
+        {-2.0, 2.0},
+        {-4.0, 10.0}
+    }});
+    Polygon __rotatedPolygon180CW({{
+        {4.0, 2.0},
+        {0.0, -5.0},
+        {-4.0, 0.0},
+        {4.0, 2.0}
+    }});
+    Point reference(-4.0, 2.0);
+
+    Polygon rotatedPolygon90CW = geo_util::rotatePolygon(polygon, reference, 90);
+    Polygon rotatedPolygon180CW = geo_util::rotatePolygon(polygon, reference, 180);
+    for(int i = 0; i < rotatedPolygon90CW.outer().size(); i += 1)
+    {
+        ASSERT_EQUAL(geo_util::dblcmp(rotatedPolygon90CW.outer()[i].x - __rotatedPolygon90CW.outer()[i].x, EPS), 0);
+        ASSERT_EQUAL(geo_util::dblcmp(rotatedPolygon90CW.outer()[i].y - __rotatedPolygon90CW.outer()[i].y, EPS), 0);
+        ASSERT_EQUAL(geo_util::dblcmp(rotatedPolygon180CW.outer()[i].x - __rotatedPolygon180CW.outer()[i].x, EPS), 0);
+        ASSERT_EQUAL(geo_util::dblcmp(rotatedPolygon180CW.outer()[i].y - __rotatedPolygon180CW.outer()[i].y, EPS), 0);
+    }
 }
 void translatePolygon_test()
 {
+    Polygon polygon({{
+        {-12.0, 2.0},
+        {-8.0, 9.0},
+        {-4.0, 4.0},
+        {-12.0, 2.0}
+    }});
+    Polygon __translatedPolygon({{
+        {10.0, 5.0},
+        {14.0, 12.0},
+        {18.0, 7.0},
+        {10.0, 5.0}
+    }});
+    Point point(10.0, 5.0);
 
+    Polygon translatedPolygon = geo_util::translatePolygon(polygon, point);
+    for(int i = 0; i < 4; i += 1)
+    {
+        ASSERT_EQUAL(geo_util::dblcmp(translatedPolygon.outer()[i].x - __translatedPolygon.outer()[i].x, EPS), 0);
+        ASSERT_EQUAL(geo_util::dblcmp(translatedPolygon.outer()[i].y - __translatedPolygon.outer()[i].y, EPS), 0);
+    }
 }
 void linePointDistance_test()
 {
+    Point a(0.0, 0.0);
+    Point b(5.0, 5.0);
 
+    double distance1 = geo_util::linePointDistance(a, b, Point(10.0, 0.0));
+    double distance2 = geo_util::linePointDistance(a, b, Point(5.0, 11.0));
+    double distance3 = geo_util::linePointDistance(a, b, Point(15.0, 12.0));
+    double distance4 = geo_util::linePointDistance(a, b, Point(5.0, 5.0));
+
+    assert(geo_util::dblcmp(distance1 - 7.07106781, EPS) == 0);
+    assert(geo_util::dblcmp(distance2 - 4.24264069, EPS) == 0);
+    assert(geo_util::dblcmp(distance3 - 2.12132034, EPS) == 0);
+    assert(geo_util::dblcmp(distance4 - 0.00000000, EPS) == 0);
 }
 void polygonPolygonIntersectionArea_test()
 {
-
+    Polygon polygon1, polygon2;
+    boost_geo::read_wkt(
+        "POLYGON((2 1.3,2.4 1.7,2.8 1.8,3.4 1.2,3.7 1.6,3.4 2,4.1 3,5.3 2.6,5.4 1.2,4.9 0.8,2.9 0.7,2 1.3)"
+            "(4.0 2.0, 4.2 1.4, 4.8 1.9, 4.4 2.2, 4.0 2.0))", polygon1);
+    boost_geo::read_wkt(
+        "POLYGON((4.0 -0.5 , 3.5 1.0 , 2.0 1.5 , 3.5 2.0 , 4.0 3.5 , 4.5 2.0 , 6.0 1.5 , 4.5 1.0 , 4.0 -0.5))", polygon2);
+    double areaOfIntersection = geo_util::polygonPolygonIntersectionArea(polygon1, polygon2);
+    assert(geo_util::dblcmp(areaOfIntersection - 2.50205081, EPS) == 0);
 }
 void segmentSegmentIntersectionPoint_test()
 {
+    Point point1 = geo_util::segmentSegmentIntersectionPoint(Point(0, 0), Point(5, 5), Point(5, 10), Point(10, 0));
+    Point point2 = geo_util::segmentSegmentIntersectionPoint(Point(0, 0), Point(10, 10), Point(10, 0), Point(0, 10));
+    Point point3 = geo_util::segmentSegmentIntersectionPoint(Point(1, -1), Point(3, -3), Point(0, 0), Point(5, 5));
+    Point point4 = geo_util::segmentSegmentIntersectionPoint(Point(0, 0), Point(5, 5), Point(5, 5), Point(10, 0));
 
+    assert(geo_util::dblcmp(point1.x - INF, EPS) == 0 and geo_util::dblcmp(point1.y - INF, EPS) == 0);
+    assert(geo_util::dblcmp(point2.x - 5, EPS) == 0 and geo_util::dblcmp(point2.y - 5, EPS) == 0);
+    assert(geo_util::dblcmp(point3.x - INF, EPS) == 0 and geo_util::dblcmp(point3.y - INF, EPS) == 0);
+    assert(geo_util::dblcmp(point4.x - 5, EPS) == 0 and geo_util::dblcmp(point4.y - 5, EPS) == 0);
 }
 void rotatePolygons_test()
 {
+    std::vector<Polygon> polygons, expected__rotatedPolygons, rotatedPolygons;
+    Polygon polygon({{
+        {-12.0, 2.0},
+        {-8.0, 9.0},
+        {-4.0, 4.0},
+        {-12.0, 2.0}
+    }});
+    Polygon __rotatedPolygon90CW({{
+        {-4.0, 10.0},
+        {3.0, 6.0},
+        {-2.0, 2.0},
+        {-4.0, 10.0}
+    }});
+    Point reference(-4.0, 2.0);
+    
+    polygons.push_back(polygon);
+    expected__rotatedPolygons.push_back(__rotatedPolygon90CW);
+    rotatedPolygons = geo_util::rotatePolygons(polygons, reference, 90);
 
+    for(int i = 0; i < rotatedPolygons.size(); i += 1)
+    {
+        for(int j = 0; j < rotatedPolygons[ i ].outer().size(); j += 1)
+        {
+            ASSERT_EQUAL(geo_util::dblcmp(rotatedPolygons[ i ].outer()[j].x - expected__rotatedPolygons[ i ].outer()[j].x, EPS), 0);
+            ASSERT_EQUAL(geo_util::dblcmp(rotatedPolygons[ i ].outer()[j].y - expected__rotatedPolygons[ i ].outer()[j].y, EPS), 0);
+
+        }
+    }
 }
 void translatePolygons_test()
 {
+    std::vector<Polygon> polygons, expectedTranslatedPolygons, translatedPolygons;
+    Polygon polygon({{
+        {-12.0, 2.0},
+        {-8.0, 9.0},
+        {-4.0, 4.0},
+        {-12.0, 2.0}
+    }});
+    Polygon translatedPolygon({{
+        {10.0, 5.0},
+        {14.0, 12.0},
+        {18.0, 7.0},
+        {10.0, 5.0}
+    }});
+    Point point(10.0, 5.0);
 
+    translatedPolygons = geo_util::translatePolygons(polygons, point);
+    expectedTranslatedPolygons.push_back(translatedPolygon);
+
+    for(int i = 0; i < translatedPolygons.size(); i += 1)
+    {
+        for(int j = 0; j < translatedPolygons[ i ].outer().size(); j += 1)
+        {
+            ASSERT_EQUAL(geo_util::dblcmp(translatedPolygons[ i ].outer()[j].x - expectedTranslatedPolygons[ i ].outer()[j].x, EPS), 0);
+            ASSERT_EQUAL(geo_util::dblcmp(translatedPolygons[ i ].outer()[j].y - expectedTranslatedPolygons[ i ].outer()[j].y, EPS), 0);
+        }
+    }
 }
 void isItPossibleToPlacePolygon_test()
 {
-
+    assert( true == true );
 }
 void pointInRectangle_test()
 {
-
+    Point a(0.0, 0.0), b(5.0, 5.0), point1(0.0, 0.0), point2(1.0, 2.0), point3(-1.0, 5.0);
+    assert(geo_util::pointInRectangle(a, b, point1) == true);
+    assert(geo_util::pointInRectangle(a, b, point2) == true);
+    assert(geo_util::pointInRectangle(a, b, point3) == false);
 }
 
 int main()
