@@ -23,6 +23,7 @@ add_subdirectory(src)
 target_link_libraries(
     run
     bin_packing
+    geo_util
 )
 
 target_include_directories(

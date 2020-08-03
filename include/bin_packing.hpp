@@ -21,10 +21,10 @@ namespace boost_geo = boost::geometry;
 namespace trans = boost::geometry::strategy::transform;
 
 typedef boost_geo::model::point<double, 2, boost_geo::cs::cartesian> Point;
+typedef boost::geometry::model::linestring<Point> Line;
 typedef boost_geo::model::polygon<Point> Polygon;
 typedef boost_geo::model::multi_polygon<Polygon> MultiPolygon;
 typedef boost_geo::model::box<Point> Box;
-typedef std::vector<std::pair<double, double>> PolygonInput;
 typedef Point Vector;
 
 #define x get<0>()
@@ -36,36 +36,6 @@ const double PI = acos(-1);
 
 static int frameno;
 
-/*
-// Global variables
-std::vector<std::vector<Point>> allPairDominantPoints;
-std::vector<std::vector<Polygon>> allPairNoFitPolygons;
-std::vector<std::vector<double>> allPairClusterValues;
-std::vector<Polygon> allInnerFitPolygons;
-std::vector<std::vector<Polygon>> convexHullVacancies;
-std::vector<bool> convavity;
-*/
-
-namespace geo_util 
-{
-    // level 0
-    int dblcmp(double);
-    bool isConcave(Polygon&);
-    double getWidth(Polygon&); 
-    double getLength(Polygon&);
-    int orientation(Point, Point, Point);
-    Polygon rotatePolygon(Polygon&, double);
-    Polygon translatePolygon(Polygon&, Point);
-    double linePointDistance(Point, Point, Point);
-    double polygonPolygonIntersectionArea(Polygon&, Polygon&);
-    Point segmentSegmentIntersectionPoint(Point, Point, Point, Point);
-
-    // level 1
-    void concavityOfAllNoFitPolygons(std::vector<Polygon>&);
-    std::vector<Polygon> translatePolygons(std::vector<Polygon>&);
-    std::vector<Polygon> rotatePolygons(std::vector<Polygon>&, double);
-    bool isItPossibleToPlacePolygon(std::vector<Polygon>&, Polygon, Point);
-};
 namespace polygon_fit 
 {
     // level 0
@@ -79,6 +49,7 @@ namespace polygon_fit
 
 namespace polygon_util
 {
+    void concavityOfAllNoFitPolygons(std::vector<Polygon>&);
     Polygon convexHull(std::vector<Point>&); 
     std::vector<Polygon> findConvexHullVacancy(Polygon&);
     Point findDominantPoint(Polygon&);
@@ -102,7 +73,7 @@ namespace initial_solution
 };
 namespace overlap_minimization
 {
-    
+
 };
 namespace cuckoo_search
 {
