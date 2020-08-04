@@ -173,22 +173,31 @@ Point cluster_util::findBlfPoint(std::vector<Polygon> &alreadyPlacedPolygons, st
             }
         }
     }
-    assert(blfPoint.x == INF or blfPoint.y == INF);
+    assert(blfPoint.x != INF and blfPoint.y != INF);
     return blfPoint;
 }
 std::vector<Polygon> cluster_util::blf(std::vector<std::vector<Polygon>> &clusters)
 {
     std::vector<Polygon> polygons;
-
     for(auto cluster: clusters)
     {
         Point point = cluster_util::findBlfPoint(polygons, cluster);
         std::vector<Polygon> translatedCluster = geo_util::translatePolygons(cluster, point);
-        for(auto polygon: cluster)
+        for(auto polygon: translatedCluster)
         {
             polygons.push_back(polygon);
         }
     }
+
+    // @validation
+    int m = 0;
+    for(auto cluster: clusters)
+        m += (int)cluster.size();
+    assert(polygons.size() == m);
+    
+    for(int i = 0; i < m; i += 1)
+        for(int j = i + 1; j < m; j += 1)
+            assert( !(geo_util::polygonPolygonIntersectionArea(polygons[ i ], polygons[ j ]) > 0) );
     return polygons;
 }
 std::vector<std::vector<Polygon>> cluster_util::perfectClustering(std::vector<std::vector<double>> &clusterValues, double noOfclusterPairs)
@@ -216,6 +225,11 @@ std::vector<std::vector<double>> cluster_util::getClusterValues(std::vector<Poly
             }
         }
     }
+
+    // @validation
+    for(int i = 0; i < n; i += 1)
+        for(int j = 0; j < n; j += 1) 
+            assert(!(clusterValues[ i ][ j ] < 0.0) and !(clusterValues[ i ][ j ] > 2.0));
     return clusterValues;
 }
 std::vector<Polygon> cluster_util::generateInitialSolution(std::vector<Polygon> &polygons, double width)
@@ -224,5 +238,18 @@ std::vector<Polygon> cluster_util::generateInitialSolution(std::vector<Polygon> 
     std::vector<std::vector<Polygon>> clusters = cluster_util::perfectClustering(clusterValues, std::min((int)polygons.size(), 10));
     cluster_util::sort(clusters);
     std::vector<Polygon> initSol = cluster_util::blf(clusters);
+
+    // @validation
+    int n = polygons.size();
+    int m = 0;
+    for(auto cluster: clusters)
+        m += (int)cluster.size();
+    assert
+    ( 
+        clusterValues.size() == n and
+        clusterValues[0].size() == n and
+        m == n and
+        initSol.size() == n
+    );
     return initSol;
 }
