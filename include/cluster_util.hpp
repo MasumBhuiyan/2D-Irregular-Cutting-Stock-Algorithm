@@ -12,7 +12,7 @@ namespace cluster_util
     std::vector<Polygon> findConvexHullVacancy(Polygon&);
     std::vector<std::vector<Point>> findOppositeSideOfVacancies(Polygon &, std::vector<Polygon> &);
     Point findDominantPoint(Polygon&);
-    std::vector<std::vector<Point>> findAllPairDominantPoint(std::vector<Polygon>&);
+    std::vector<std::vector<Point>> findAllPairDominantPoint(std::vector<std::vector<Polygon>> &);
     std::vector<std::vector<Polygon>> findAllConvexHullVacancies(std::vector<Polygon>&);
     double clusteringCriteria1(Polygon&, Polygon&);
     double clusteringCriteria2(Polygon&, Polygon&);

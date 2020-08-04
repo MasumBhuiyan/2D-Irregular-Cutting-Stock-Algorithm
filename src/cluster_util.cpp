@@ -49,14 +49,29 @@ Point cluster_util::findDominantPoint(Polygon &polygon)
     }
     return dominant;
 }
-std::vector<std::vector<Point>> cluster_util::findAllPairDominantPoint(std::vector<Polygon> &polygons)
+std::vector<std::vector<Point>> cluster_util::findAllPairDominantPoint(std::vector<std::vector<Polygon>> &noFitPolygons)
 {
-    std::vector<std::vector<Point>> points;
+    int n = noFitPolygons.size();
+    std::vector<std::vector<Point>> points(n, std::vector<Point>(n));
+    for(int i = 0; i < n; i += 1)
+    {
+        for(int j = 0; j < n; j += 1)
+        {
+            if( i != j )
+            {
+                points[ i ][ j ] = cluster_util::findDominantPoint(noFitPolygons[ i ][ j ]);
+            }
+        }
+    }
     return points;
 }
 std::vector<std::vector<Polygon>> cluster_util::findAllConvexHullVacancies(std::vector<Polygon> &polygons)
 {
     std::vector<std::vector<Polygon>> allConvexHullVacancies;
+    for(auto &polygon: polygons)
+    {
+        allConvexHullVacancies.push_back(cluster_util::findConvexHullVacancy(polygon));
+    }
     return allConvexHullVacancies;
 }
 double cluster_util::clusteringCriteria1(Polygon &polygon1, Polygon &polygon2)
@@ -114,7 +129,13 @@ double cluster_util::getClusterValue(Polygon &polygon1, Polygon &polygon2)
 
 void cluster_util::sort(std::vector<std::vector<Polygon>> &clusters)
 {
-
+    sort(clusters.begin(), clusters.end(), [](std::vector<Polygon> cluster1, std::vector<Polygon> cluster2)
+    {
+        double area1 = 0.0, area2 = 0.0;
+        for(auto polygon: cluster1) area1 += std::fabs(boost_geo::area(polygon));
+        for(auto polygon: cluster2) area2 += std::fabs(boost_geo::area(polygon));
+        return geo_util::dblcmp(area1 - area2, EPS) >= 0;
+    });
 }
 Point cluster_util::findBlfPoint(std::vector<Polygon> &alreadyPlacedPolygons, std::vector<Polygon> &clusterNextToBePlaced)
 {
