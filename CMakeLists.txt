@@ -24,6 +24,8 @@ target_link_libraries(
     run
     bin_packing
     geo_util
+    polygon_fit
+    cluster_util
 )
 
 target_include_directories(

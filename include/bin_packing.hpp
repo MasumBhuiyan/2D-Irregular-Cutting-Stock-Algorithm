@@ -36,49 +36,6 @@ const double PI = acos(-1);
 
 static int frameno;
 
-namespace polygon_fit 
-{
-    // level 0
-    Polygon noFitPolygon(Polygon&, Polygon&);
-    Polygon innerFitPolygon(Polygon&, double, double);
-
-    // level 1
-    void allPairNoFitPolygons(std::vector<Polygon>&);
-    void allInnerFitPolygons(std::vector<Polygon>&, double, double);
-};
-
-namespace polygon_util
-{
-    void concavityOfAllNoFitPolygons(std::vector<Polygon>&);
-    Polygon convexHull(std::vector<Point>&); 
-    std::vector<Polygon> findConvexHullVacancy(Polygon&);
-    Point findDominantPoint(Polygon&);
-    void findAllPairDominantPoint(std::vector<Polygon>&);
-    void findAllConvexHullVacancies(std::vector<Polygon>&);
-    double calulateClusteringCriteria1(Polygon&, Polygon&);
-    double calulateClusteringCriteria2(Polygon&, Polygon&);
-    double calulateClusterValue(Polygon&, Polygon&);
-}
-namespace initial_solution
-{
-    // level 0
-    void sort(std::vector<std::vector<Polygon>>&);
-    Point findBlfPoint(std::vector<Polygon>&, std::vector<Polygon>&);
-    std::tuple<std::vector<Point>, std::vector<double>> perfectMatching(double);
-
-    // level 1
-    std::vector<Polygon> blf(std::vector<std::vector<Polygon>>&);
-    std::tuple<std::vector<Point>, std::vector<double>> cluster(std::vector<Polygon>&);
-    std::tuple<std::vector<Point>, std::vector<double>> generateInitialSolution(std::vector<Polygon>&, double);
-};
-namespace overlap_minimization
-{
-
-};
-namespace cuckoo_search
-{
-
-};
 namespace bin_packing
 {
     std::tuple<std::vector<Polygon>, double> readDataset(std::string);

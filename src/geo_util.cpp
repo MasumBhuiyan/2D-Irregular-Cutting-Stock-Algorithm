@@ -161,7 +161,7 @@ double geo_util::polygonPolygonIntersectionArea(Polygon &polygon1, Polygon &poly
     {
         intersectedArea += boost_geo::area(polygon);
     }
-    return intersectedArea;
+    return std::fabs(intersectedArea);
 }
 /**
 *   returns (INF, INF) is ab does not intersect cd
