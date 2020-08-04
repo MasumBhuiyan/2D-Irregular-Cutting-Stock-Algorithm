@@ -245,3 +245,16 @@ bool geo_util::pointInRectangle(Point a, Point b, Point c)
     bool q = ( std::min(a.y, b.y) <= c.y && std::max(a.y, b.y) >= c.y );
     return (p && q);
 }
+void geo_util::visualize(MultiPolygon multipolygon, std::string location, std::string datasetName)
+{
+    Box box;
+    boost::geometry::envelope(multipolygon, box);
+    std::cout << "make_envelope..............: " << boost::geometry::dsv(box) << std::endl;
+    std::ostringstream name;
+    name << "frame_" << std::setw(4) << std::setfill('0') << frameno++ << "_" << datasetName << ".svg";
+    std::ofstream svg(location + name.str());
+    boost_geo::svg_mapper<Point> mapper(svg, 700, 600);
+    mapper.add(multipolygon);
+    mapper.map(multipolygon, "fill-opacity:0.5;fill:rgb(204,153,0);stroke:rgb(204,153,0);stroke-width:1", 5);
+    mapper.map(box, "opacity:0.8;fill:none;stroke:rgb(255,128,0);stroke-width:4;stroke-dasharray:1,7;stroke-linecap:round");
+}

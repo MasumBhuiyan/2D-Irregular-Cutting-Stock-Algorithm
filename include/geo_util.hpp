@@ -21,6 +21,7 @@ namespace geo_util
     std::vector<Polygon> translatePolygons(std::vector<Polygon>, Point);
     bool isItPossibleToPlacePolygon(std::vector<Polygon>&, std::vector<Polygon>, Point);
     bool pointInRectangle(Point, Point, Point);
+    void visualize(MultiPolygon, std::string, std::string);
 };
 
 #endif

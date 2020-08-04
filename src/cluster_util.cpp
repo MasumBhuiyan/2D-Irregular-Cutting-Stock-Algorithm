@@ -1,11 +1,18 @@
 #include <cluster_util.hpp>
 
+/**
+* returns the convex hull of all the polygons
+* inside the multipolygon
+*/
 Polygon cluster_util::convexHull(MultiPolygon multiPolygon)
 {
     Polygon convexhull;
     boost_geo::convex_hull(multiPolygon, convexhull);
     return convexhull;
 }
+/**
+* returns the convex hull vacancies of a concave polygon
+*/
 std::vector<Polygon> cluster_util::findConvexHullVacancy(Polygon &polygon)
 {
     std::vector<Polygon> vacancies;
@@ -13,6 +20,9 @@ std::vector<Polygon> cluster_util::findConvexHullVacancy(Polygon &polygon)
     boost_geo::difference(convexhull, polygon, vacancies);
     return vacancies;
 }
+/**
+* oppsite sides of the convex hull vacancies
+*/
 std::vector<std::vector<Point>> cluster_util::findOppositeSideOfVacancies(Polygon &convexhull, std::vector<Polygon> &vacancies)
 {
     std::vector<std::vector<Point>> oppositeSideOfVacancies;
@@ -24,6 +34,9 @@ std::vector<std::vector<Point>> cluster_util::findOppositeSideOfVacancies(Polygo
     }
     return oppositeSideOfVacancies;
 }
+/**
+* returns dominant point
+*/
 Point cluster_util::findDominantPoint(Polygon &polygon)
 {
     Point dominant;
@@ -49,6 +62,9 @@ Point cluster_util::findDominantPoint(Polygon &polygon)
     }
     return dominant;
 }
+/**
+* 
+*/
 std::vector<std::vector<Point>> cluster_util::findAllPairDominantPoint(std::vector<std::vector<Polygon>> &noFitPolygons)
 {
     int n = noFitPolygons.size();
@@ -65,6 +81,9 @@ std::vector<std::vector<Point>> cluster_util::findAllPairDominantPoint(std::vect
     }
     return points;
 }
+/**
+* 
+*/
 std::vector<std::vector<Polygon>> cluster_util::findAllConvexHullVacancies(std::vector<Polygon> &polygons)
 {
     std::vector<std::vector<Polygon>> allConvexHullVacancies;
@@ -74,6 +93,9 @@ std::vector<std::vector<Polygon>> cluster_util::findAllConvexHullVacancies(std::
     }
     return allConvexHullVacancies;
 }
+/**
+* 
+*/
 double cluster_util::clusteringCriteria1(Polygon &polygon1, Polygon &polygon2)
 {
     double value = 0.0, value1 = 0.0, value2 = 0.0;
@@ -106,6 +128,9 @@ double cluster_util::clusteringCriteria1(Polygon &polygon1, Polygon &polygon2)
     value = std::max(value1, value2);
     return value;
 }
+/**
+* 
+*/
 double cluster_util::clusteringCriteria2(Polygon &polygon1, Polygon &polygon2)
 {
     MultiPolygon multiPolygon;
@@ -121,12 +146,18 @@ double cluster_util::clusteringCriteria2(Polygon &polygon1, Polygon &polygon2)
     double value = (area1 + area2) / area3;
     return value;
 }
+/**
+* 
+*/
 double cluster_util::getClusterValue(Polygon &polygon1, Polygon &polygon2)
 {
+
     double value = cluster_util::clusteringCriteria1(polygon1, polygon2) + cluster_util::clusteringCriteria2(polygon1, polygon2);
     return value;
 }
-
+/**
+* 
+*/
 void cluster_util::sort(std::vector<std::vector<Polygon>> &clusters)
 {
     sort(clusters.begin(), clusters.end(), [](std::vector<Polygon> cluster1, std::vector<Polygon> cluster2)
@@ -137,6 +168,9 @@ void cluster_util::sort(std::vector<std::vector<Polygon>> &clusters)
         return geo_util::dblcmp(area1 - area2, EPS) >= 0;
     });
 }
+/**
+* 
+*/
 std::vector<Point> cluster_util::getCandidatePlacementPositions(std::vector<Polygon> &alreadyPlacedPolygons, std::vector<Polygon> &clusterNextToBePlaced)
 {
     std::vector<Point> candidatePlacementPositions;
@@ -155,6 +189,9 @@ std::vector<Point> cluster_util::getCandidatePlacementPositions(std::vector<Poly
     }
     return candidatePlacementPositions;
 }
+/**
+* 
+*/
 Point cluster_util::findBlfPoint(std::vector<Polygon> &alreadyPlacedPolygons, std::vector<Polygon> &clusterNextToBePlaced)
 {
     Point blfPoint(INF, INF);
@@ -178,6 +215,9 @@ Point cluster_util::findBlfPoint(std::vector<Polygon> &alreadyPlacedPolygons, st
     assert(blfPoint.x != INF and blfPoint.y != INF);
     return blfPoint;
 }
+/**
+* 
+*/
 std::vector<Polygon> cluster_util::blf(std::vector<std::vector<Polygon>> &clusters)
 {
     std::vector<Polygon> polygons;
@@ -208,7 +248,9 @@ std::vector<Polygon> cluster_util::blf(std::vector<std::vector<Polygon>> &cluste
     }
     return polygons;
 }
-
+/**
+* 
+*/
 double cluster_util::getBestClusters(std::vector<std::vector<double>> &clusterValues, std::vector<double>&dp, int m, int mask)
 {
     int taken = __builtin_popcount(mask);
@@ -231,6 +273,9 @@ double cluster_util::getBestClusters(std::vector<std::vector<double>> &clusterVa
     }
     return maxProfit;
 }
+/**
+* 
+*/
 void cluster_util::printBestClusters(std::vector<std::vector<double>> &clusterValues, std::vector<double>&dp, int m, int mask, std::vector<std::tuple<int,int>> &pairs)
 {
     int taken = __builtin_popcount(mask);
@@ -255,14 +300,21 @@ void cluster_util::printBestClusters(std::vector<std::vector<double>> &clusterVa
         }
     }
 }
-std::vector<std::tuple<int,int>> cluster_util::perfectClustering(std::vector<std::vector<double>> &clusterValues, double noOfclusterPairs)
+/**
+* 
+*/
+std::tuple<double, std::vector<std::tuple<int,int>>> cluster_util::perfectClustering(std::vector<std::vector<double>> &clusterValues, double noOfclusterPairs)
 {
     std::vector<std::tuple<int,int>> clusterIds;
     std::vector<double> dp(1 << 22, -1.0);
     double bestClusterizationValue = cluster_util::getBestClusters(clusterValues, dp, noOfclusterPairs, 0);
     cluster_util::printBestClusters(clusterValues, dp, noOfclusterPairs, 0, clusterIds); 
-    return clusterIds;
+    std::cout << bestClusterizationValue << "\n";
+    return {bestClusterizationValue, clusterIds};
 }
+/**
+* 
+*/
 std::vector<std::vector<double>> cluster_util::getClusterValues(std::vector<Polygon> &polygons)
 {   
     int n = polygons.size();
@@ -294,10 +346,15 @@ std::vector<std::vector<double>> cluster_util::getClusterValues(std::vector<Poly
     }
     return clusterValues;
 }
+/**
+* 
+*/
 std::vector<Polygon> cluster_util::generateInitialSolution(std::vector<Polygon> &polygons, double width)
 {
     std::vector<std::vector<double>> clusterValues = cluster_util::getClusterValues(polygons);
-    std::vector<std::tuple<int,int>> clusterIds = cluster_util::perfectClustering(clusterValues, std::min((int)polygons.size(), 10));
+    std::vector<std::tuple<int,int>> clusterIds;
+    double bestClusterizationValue;
+    std::tie(bestClusterizationValue, clusterIds) = cluster_util::perfectClustering(clusterValues, std::min((int)polygons.size(), 10));
 
     std::vector<bool> taken((int)polygons.size(), false);
     std::vector<std::vector<Polygon>> clusters;

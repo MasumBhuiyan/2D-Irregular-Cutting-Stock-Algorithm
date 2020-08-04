@@ -8,6 +8,7 @@ void testDataset(std::string datasetName)
     double width;
     std::vector<Polygon> inputPolygons;
     std::tie(inputPolygons, width) = bin_packing::readDataset(datasetName);
+   // std::vector<Polygon> initSol = cluster_util::generateInitialSolution(std::vector<Polygon> inputPolygons, width);
 }
 
 int main(int argc, char const *argv[])
