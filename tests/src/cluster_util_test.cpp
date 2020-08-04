@@ -26,7 +26,8 @@ Polygon readTestcase(std::string testcaseName)
 
 void convexHull_test() 
 {
-
+	MultiPolygon polygon;
+	auto polygonHull = cluster_util::convexHull(polygon);
 }
 void findConvexHullVacancy_test() 
 {

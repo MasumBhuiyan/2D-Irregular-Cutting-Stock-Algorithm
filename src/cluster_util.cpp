@@ -137,7 +137,7 @@ void cluster_util::sort(std::vector<std::vector<Polygon>> &clusters)
         return geo_util::dblcmp(area1 - area2, EPS) >= 0;
     });
 }
-std::vector<Point> getCandidatePlacementPositions(std::vector<Polygon> &alreadyPlacedPolygons, std::vector<Polygon> &clusterNextToBePlaced)
+std::vector<Point> cluster_util::getCandidatePlacementPositions(std::vector<Polygon> &alreadyPlacedPolygons, std::vector<Polygon> &clusterNextToBePlaced)
 {
     std::vector<Point> candidatePlacementPositions;
     std::vector<Polygon> allNfpIfr = polygon_fit::getAllNfpIfr(alreadyPlacedPolygons, clusterNextToBePlaced);
