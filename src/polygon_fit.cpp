@@ -21,14 +21,3 @@ std::vector<Point> polygon_fit::getAllEdgeIntersectionPoints(std::vector<Polygon
     std::vector<Point> allEdgeIntersectionPoints;
     return allEdgeIntersectionPoints;
 }
-std::vector<Polygon> allInnerFitPolygons(std::vector<Polygon> &polygons, double length, double width)
-{
-    std::vector<Polygon> rectangles;
-    return rectangles;
-}
-
-std::vector<Polygon> allPairNoFitPolygons(std::vector<Polygon> &polygons)
-{
-    std::vector<Polygon> noFitPolygons;
-    return noFitPolygons;
-}
