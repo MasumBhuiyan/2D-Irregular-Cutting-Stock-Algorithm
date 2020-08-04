@@ -259,6 +259,7 @@ void translatePolygons_test()
     }});
     Point point(10.0, 5.0);
 
+    polygons.push_back(polygon);
     translatedPolygons = geo_util::translatePolygons(polygons, point);
     expectedTranslatedPolygons.push_back(translatedPolygon);
 

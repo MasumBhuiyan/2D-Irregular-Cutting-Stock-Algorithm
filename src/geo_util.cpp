@@ -198,12 +198,24 @@ std::vector<Polygon> geo_util::rotatePolygons(std::vector<Polygon> &polygons, Po
 /**
 * translates a list of polygons to a point
 */
-std::vector<Polygon> geo_util::translatePolygons(std::vector<Polygon> &polygons, Point point)
+std::vector<Polygon> geo_util::translatePolygons(std::vector<Polygon> polygons, Point point)
 {
     std::vector<Polygon> translatedPolygons;
+    Point reference = polygons[0].outer()[0];
+
     for(auto &polygon: polygons)
     {
-        translatedPolygons.push_back(geo_util::translatePolygon(polygon, point));
+        for(auto &point: polygon.outer())
+        {
+            Point t(point.x - reference.x, point.y - reference.y);
+            point = t;
+        }
+    }
+    for(auto &polygon: polygons)
+    {
+        Polygon translatedPolygon;
+        boost_geo::transform(polygon, translatedPolygon, trans::translate_transformer<double, 2, 2>(point.x, point.y));
+        translatedPolygons.push_back(translatedPolygon);
     }
     return translatedPolygons;
 }
@@ -211,12 +223,15 @@ std::vector<Polygon> geo_util::translatePolygons(std::vector<Polygon> &polygons,
 * checks if it is possible to place a polygon
 * in the container at a particular point
 */
-bool geo_util::isItPossibleToPlacePolygon(std::vector<Polygon> &alreadyPlacedPolygons, Polygon polygonNextToBePlaced, Point point)
+bool geo_util::isItPossibleToPlacePolygon(std::vector<Polygon> &alreadyPlacedPolygons, std::vector<Polygon> clusterNextToBePlaced, Point point)
 {
-    polygonNextToBePlaced = geo_util::translatePolygon(polygonNextToBePlaced, point);
+    clusterNextToBePlaced = geo_util::translatePolygons(clusterNextToBePlaced, point);
     for(auto poly: alreadyPlacedPolygons)
     {
-        if( geo_util::polygonPolygonIntersectionArea(polygonNextToBePlaced, poly) > 0 ) return false;
+        for(auto polygonNextToBePlaced: clusterNextToBePlaced)
+        {
+            if( geo_util::polygonPolygonIntersectionArea(polygonNextToBePlaced, poly) > 0 ) return false;
+        }
     }
     return true;
 }

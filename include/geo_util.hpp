@@ -18,8 +18,8 @@ namespace geo_util
     double polygonPolygonIntersectionArea(Polygon&, Polygon&);
     Point segmentSegmentIntersectionPoint(Point, Point, Point, Point);
     std::vector<Polygon> rotatePolygons(std::vector<Polygon>&, Point, double);
-    std::vector<Polygon> translatePolygons(std::vector<Polygon>&, Point);
-    bool isItPossibleToPlacePolygon(std::vector<Polygon>&, Polygon, Point);
+    std::vector<Polygon> translatePolygons(std::vector<Polygon>, Point);
+    bool isItPossibleToPlacePolygon(std::vector<Polygon>&, std::vector<Polygon>, Point);
     bool pointInRectangle(Point, Point, Point);
 };
 

@@ -137,15 +137,59 @@ void cluster_util::sort(std::vector<std::vector<Polygon>> &clusters)
         return geo_util::dblcmp(area1 - area2, EPS) >= 0;
     });
 }
+std::vector<Point> getCandidatePlacementPositions(std::vector<Polygon> &alreadyPlacedPolygons, std::vector<Polygon> &clusterNextToBePlaced)
+{
+    std::vector<Point> candidatePlacementPositions;
+    std::vector<Polygon> allNfpIfr = polygon_fit::getAllNfpIfr(alreadyPlacedPolygons, clusterNextToBePlaced);
+    std::vector<Point> allEdgeIntersectionPoints = polygon_fit::getAllEdgeIntersectionPoints(allNfpIfr);
+    for(auto polygon: allNfpIfr)
+    {
+        for(auto point: polygon.outer())
+        {
+            candidatePlacementPositions.push_back(point);
+        }
+    }
+    for(auto point: allEdgeIntersectionPoints)
+    {
+        candidatePlacementPositions.push_back(point);
+    }
+    return candidatePlacementPositions;
+}
 Point cluster_util::findBlfPoint(std::vector<Polygon> &alreadyPlacedPolygons, std::vector<Polygon> &clusterNextToBePlaced)
 {
-    Point blfPoint;
+    Point blfPoint(INF, INF);
+    std::vector<Point> candidatePlacementPositions = cluster_util::getCandidatePlacementPositions(alreadyPlacedPolygons, clusterNextToBePlaced);
+    for(auto point: candidatePlacementPositions)
+    {
+        if( geo_util::isItPossibleToPlacePolygon(alreadyPlacedPolygons, clusterNextToBePlaced, point) == true )
+        {
+             if( point.x < blfPoint.x )
+            {
+                blfPoint = point;
+            }
+            else if( point.x == blfPoint.x and point.y < blfPoint.y )
+            {
+                blfPoint = point;
+            }
+        }
+    }
+    assert(blfPoint.x == INF or blfPoint.y == INF);
     return blfPoint;
 }
 std::vector<Polygon> cluster_util::blf(std::vector<std::vector<Polygon>> &clusters)
 {
-    std::vector<Polygon> stock;
-    return stock;
+    std::vector<Polygon> polygons;
+
+    for(auto cluster: clusters)
+    {
+        Point point = cluster_util::findBlfPoint(polygons, cluster);
+        std::vector<Polygon> translatedCluster = geo_util::translatePolygons(cluster, point);
+        for(auto polygon: cluster)
+        {
+            polygons.push_back(polygon);
+        }
+    }
+    return polygons;
 }
 std::vector<std::vector<Polygon>> cluster_util::perfectClustering(std::vector<std::vector<double>> &clusterValues, double noOfclusterPairs)
 {
@@ -162,7 +206,7 @@ std::vector<std::vector<double>> cluster_util::getClusterValues(std::vector<Poly
         {
             if( i != j )
             {
-                 Polygon nfp = polygon_fit::noFitPolygon(polygons[ i ], polygons[ j ]);
+                 Polygon nfp = polygon_fit::getNoFitPolygon(polygons[ i ], {polygons[ j ]});
                  if( geo_util::isConcave(nfp) == true )
                  {
                      Point point = cluster_util::findDominantPoint(nfp);
