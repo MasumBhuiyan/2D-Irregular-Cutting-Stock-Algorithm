@@ -10,6 +10,7 @@ namespace cluster_util
 {
     Polygon convexHull(MultiPolygon); 
     std::vector<Polygon> findConvexHullVacancy(Polygon&);
+    std::vector<std::vector<Point>> findOppositeSideOfVacancies(Polygon &, std::vector<Polygon> &);
     Point findDominantPoint(Polygon&);
     std::vector<std::vector<Point>> findAllPairDominantPoint(std::vector<Polygon>&);
     std::vector<std::vector<Polygon>> findAllConvexHullVacancies(std::vector<Polygon>&);

@@ -13,10 +13,40 @@ std::vector<Polygon> cluster_util::findConvexHullVacancy(Polygon &polygon)
     boost_geo::difference(convexhull, polygon, vacancies);
     return vacancies;
 }
+std::vector<std::vector<Point>> cluster_util::findOppositeSideOfVacancies(Polygon &convexhull, std::vector<Polygon> &vacancies)
+{
+    std::vector<std::vector<Point>> oppositeSideOfVacancies;
+    for(auto vacancy: vacancies)
+    {
+        std::vector<Point> line;
+        assert( boost_geo::intersection(convexhull, vacancy, line) == true );
+        oppositeSideOfVacancies.push_back(line);
+    }
+    return oppositeSideOfVacancies;
+}
 Point cluster_util::findDominantPoint(Polygon &polygon)
 {
     Point dominant;
-    
+    Polygon convexhull = cluster_util::convexHull({polygon});
+    std::vector<Polygon> vacancies = cluster_util::findConvexHullVacancy(polygon);
+    std::vector<std::vector<Point>> oppositeSideOfVacancies = cluster_util::findOppositeSideOfVacancies(convexhull, vacancies);
+
+    int n = oppositeSideOfVacancies.size();
+    assert( vacancies.size() == oppositeSideOfVacancies.size() );
+    double maxDistance = 0.0;
+
+    for(int i = 0; i < n; i += 1)
+    {
+        for(Point point: vacancies[ i ].outer())
+        {
+            double distance = geo_util::linePointDistance(oppositeSideOfVacancies[i][0], oppositeSideOfVacancies[i][1], point);
+            if( distance > maxDistance )
+            {
+                maxDistance = distance;
+                dominant = point;
+            }
+        }
+    }
     return dominant;
 }
 std::vector<std::vector<Point>> cluster_util::findAllPairDominantPoint(std::vector<Polygon> &polygons)
