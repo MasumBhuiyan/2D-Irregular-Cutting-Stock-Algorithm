@@ -21,7 +21,9 @@ namespace cluster_util
     std::vector<Point> getCandidatePlacementPositions(std::vector<Polygon> &, std::vector<Polygon>);
     Point findBlfPoint(std::vector<Polygon>&, std::vector<Polygon>&);
     std::vector<Polygon> blf(std::vector<std::vector<Polygon>>&);
-    std::vector<std::vector<Polygon>> perfectClustering(std::vector<std::vector<double>> &, double);
+    double getBestClusters(std::vector<std::vector<double>> &, std::vector<double>&, int, int);
+    void printBestClusters(std::vector<std::vector<double>> &, std::vector<double>&, int, int, std::vector<std::tuple<int,int>>&);
+    std::vector<std::tuple<int,int>> perfectClustering(std::vector<std::vector<double>> &, double);
     std::vector<std::vector<double>> getClusterValues(std::vector<Polygon>&);
     std::vector<Polygon> generateInitialSolution(std::vector<Polygon>&, double);
 };

@@ -173,6 +173,8 @@ Point cluster_util::findBlfPoint(std::vector<Polygon> &alreadyPlacedPolygons, st
             }
         }
     }
+
+    // @validation
     assert(blfPoint.x != INF and blfPoint.y != INF);
     return blfPoint;
 }
@@ -192,18 +194,74 @@ std::vector<Polygon> cluster_util::blf(std::vector<std::vector<Polygon>> &cluste
     // @validation
     int m = 0;
     for(auto cluster: clusters)
+    {
         m += (int)cluster.size();
+    }
     assert(polygons.size() == m);
-    
+
     for(int i = 0; i < m; i += 1)
+    {
         for(int j = i + 1; j < m; j += 1)
+        {
             assert( !(geo_util::polygonPolygonIntersectionArea(polygons[ i ], polygons[ j ]) > 0) );
+        }
+    }
     return polygons;
 }
-std::vector<std::vector<Polygon>> cluster_util::perfectClustering(std::vector<std::vector<double>> &clusterValues, double noOfclusterPairs)
+
+double cluster_util::getBestClusters(std::vector<std::vector<double>> &clusterValues, std::vector<double>&dp, int m, int mask)
 {
-    std::vector<std::vector<Polygon>> clusters;
-    return clusters;
+    int taken = __builtin_popcount(mask);
+    if(taken == (m + m)) return 0.0;
+    double &maxProfit = dp[mask];
+    if( maxProfit != -1.0 ) return maxProfit;
+    maxProfit = -INF;
+    for(int i = 0; i < clusterValues.size(); i += 1)
+    {
+        int bit1 = mask & (1 << i);
+        if( bit1 > 0 ) continue;
+        for(int j = 0; j < clusterValues.size(); j += 1)
+        {
+            int bit2 = mask & (1 << j);
+            if(bit2 > 0 or i == j) continue;
+            int bitOn12 = (1 << i) + (1 << j);
+            double __maxProfit = cluster_util::getBestClusters(clusterValues, dp, m, mask ^ bitOn12) + clusterValues[ i ][ j ];
+            maxProfit = std::max(maxProfit, __maxProfit);
+        }
+    }
+    return maxProfit;
+}
+void cluster_util::printBestClusters(std::vector<std::vector<double>> &clusterValues, std::vector<double>&dp, int m, int mask, std::vector<std::tuple<int,int>> &pairs)
+{
+    int taken = __builtin_popcount(mask);
+    if(taken == (m + m)) return ;
+    double &maxProfit = dp[mask];
+    for(int i = 0; i < clusterValues.size(); i += 1)
+    {
+        int bit1 = mask & (1 << i);
+        if( bit1 > 0 ) continue;
+        for(int j = 0; j < clusterValues.size(); j += 1)
+        {
+            int bit2 = mask & (1 << j);
+            if(bit2 > 0 or i == j) continue;
+            int bitOn12 = (1 << i) + (1 << j);
+            double __maxProfit = cluster_util::getBestClusters(clusterValues, dp, m, mask ^ bitOn12) + clusterValues[ i ][ j ];
+            if( maxProfit == __maxProfit )
+            {
+                pairs.push_back({i, j});
+                cluster_util::printBestClusters(clusterValues, dp, m, mask ^ bitOn12, pairs);
+                return ;
+            }
+        }
+    }
+}
+std::vector<std::tuple<int,int>> cluster_util::perfectClustering(std::vector<std::vector<double>> &clusterValues, double noOfclusterPairs)
+{
+    std::vector<std::tuple<int,int>> clusterIds;
+    std::vector<double> dp(1 << 22, -1.0);
+    double bestClusterizationValue = cluster_util::getBestClusters(clusterValues, dp, noOfclusterPairs, 0);
+    cluster_util::printBestClusters(clusterValues, dp, noOfclusterPairs, 0, clusterIds); 
+    return clusterIds;
 }
 std::vector<std::vector<double>> cluster_util::getClusterValues(std::vector<Polygon> &polygons)
 {   
@@ -227,15 +285,31 @@ std::vector<std::vector<double>> cluster_util::getClusterValues(std::vector<Poly
     }
 
     // @validation
-    for(int i = 0; i < n; i += 1)
+    for(int i = 0; i < n; i += 1) 
+    {
         for(int j = 0; j < n; j += 1) 
+        {
             assert(!(clusterValues[ i ][ j ] < 0.0) and !(clusterValues[ i ][ j ] > 2.0));
+        }
+    }
     return clusterValues;
 }
 std::vector<Polygon> cluster_util::generateInitialSolution(std::vector<Polygon> &polygons, double width)
 {
     std::vector<std::vector<double>> clusterValues = cluster_util::getClusterValues(polygons);
-    std::vector<std::vector<Polygon>> clusters = cluster_util::perfectClustering(clusterValues, std::min((int)polygons.size(), 10));
+    std::vector<std::tuple<int,int>> clusterIds = cluster_util::perfectClustering(clusterValues, std::min((int)polygons.size(), 10));
+
+    std::vector<bool> taken((int)polygons.size(), false);
+    std::vector<std::vector<Polygon>> clusters;
+    for(auto clusterId: clusterIds)
+    {
+        int i, j; std::tie(i, j) = clusterId;
+        taken[ i ] = taken[ j ] = true;
+        std::vector<Polygon> cluster; 
+        cluster.push_back(polygons[ i ]);
+        cluster.push_back(polygons[ j ]);
+        clusters.push_back(cluster);
+    }
     cluster_util::sort(clusters);
     std::vector<Polygon> initSol = cluster_util::blf(clusters);
 
@@ -243,7 +317,9 @@ std::vector<Polygon> cluster_util::generateInitialSolution(std::vector<Polygon> 
     int n = polygons.size();
     int m = 0;
     for(auto cluster: clusters)
+    {
         m += (int)cluster.size();
+    }
     assert
     ( 
         clusterValues.size() == n and
