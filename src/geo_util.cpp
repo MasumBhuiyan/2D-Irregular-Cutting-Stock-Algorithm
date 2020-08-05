@@ -77,13 +77,17 @@ double geo_util::crossProduct(Point p, Point q)
 /**
 * translates coordinates into local coordinates
 */
-void geo_util::normalize(Polygon &polygon)
+std::vector<Polygon> geo_util::normalize(std::vector<Polygon> polygons)
 {
-    Point reference = polygon.outer()[0];
-    for(auto &point: polygon.outer())
+    Point reference = polygons[0].outer()[0];
+    for(auto &polygon: polygons) 
     {
-        point = Point(point.x - reference.x, point.y - reference.y);
+        for(auto &point: polygon.outer())
+        {
+            point = Point(point.x - reference.x, point.y - reference.y);
+        }
     }
+    return polygons;
 }
 /**
 * determines the side of point c about the line ab

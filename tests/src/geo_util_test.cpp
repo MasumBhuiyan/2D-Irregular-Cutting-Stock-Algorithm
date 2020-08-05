@@ -86,7 +86,8 @@ void crossProduct_test()
 void normalize_test()
 {
     Polygon convexPolygon1 = readTestcase("convexpolygon1");
-    geo_util::normalize(convexPolygon1);
+
+    std::vector<Polygon> ans = geo_util::normalize({convexPolygon1});
     Polygon __convexPolygon1({{
         {0.0, 0.0},
         {1.0, 5.0},
@@ -97,8 +98,8 @@ void normalize_test()
     }});
     for(int i = 0; i < 6; i += 1)
     {
-        ASSERT_EQUAL(geo_util::dblcmp(convexPolygon1.outer()[i].x - __convexPolygon1.outer()[i].x, EPS), 0);
-        ASSERT_EQUAL(geo_util::dblcmp(convexPolygon1.outer()[i].y - __convexPolygon1.outer()[i].y, EPS), 0);
+        ASSERT_EQUAL(geo_util::dblcmp(ans[0].outer()[i].x - __convexPolygon1.outer()[i].x, EPS), 0);
+        ASSERT_EQUAL(geo_util::dblcmp(ans[0].outer()[i].y - __convexPolygon1.outer()[i].y, EPS), 0);
     }
 }
 void orientation_test()

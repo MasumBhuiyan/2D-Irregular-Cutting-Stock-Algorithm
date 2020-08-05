@@ -10,7 +10,7 @@ namespace geo_util
     double getLength(Polygon&);
     double getWidth(Polygon&); 
     double crossProduct(Point, Point);
-    void normalize(Polygon&);
+    std::vector<Polygon> normalize(std::vector<Polygon>);
     int orientation(Point, Point, Point);
     Polygon rotatePolygon(Polygon, Point, double);
     Polygon translatePolygon(Polygon, Point);
