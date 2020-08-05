@@ -367,6 +367,15 @@ std::vector<Polygon> cluster_util::generateInitialSolution(std::vector<Polygon> 
         cluster.push_back(polygons[ j ]);
         clusters.push_back(cluster);
     }
+
+    for(int i = 0; i < polygons.size(); i += 1)
+    {
+        if( !taken[ i ] ) 
+        {
+            taken[ i ] = true;
+            clusters.push_back({polygons[ i ]});
+        }
+    }
     cluster_util::sort(clusters);
     std::vector<Polygon> initSol = cluster_util::blf(clusters);
 

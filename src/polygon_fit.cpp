@@ -26,18 +26,6 @@ Polygon polygon_fit::getInnerFitRectangle(std::vector<Polygon> cluster, double l
 Polygon polygon_fit::getNoFitPolygon(Polygon &polygon, std::vector<Polygon> cluster)
 {
     Polygon noFitPolygon;
-    cluster = geo_util::normalize(cluster);
-    for(auto &poly: cluster)
-    {
-        for(auto &point: poly)
-        {
-            point = Point(-point.x, -point.y);
-        }
-    }
-    for(auto point: polygon)
-    {
-        noFitPolygon.push_back(Point())
-    }
     return noFitPolygon;
 }
 std::vector<Polygon> polygon_fit::getAllNfpIfr(std::vector<Polygon> &alreadyPlacedPolygons, std::vector<Polygon> cluster)
