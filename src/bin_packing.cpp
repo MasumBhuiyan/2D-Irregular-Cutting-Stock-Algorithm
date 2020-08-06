@@ -659,9 +659,26 @@ double bin_packing::getPenetrationDepth(Polygon polygonA, Polygon polygonB)
 {
 	return 0;
 }
+double bin_packing::getTotalPenetrationDepth(MultiPolygon &packing)
+{
+	double totalPenetrationDepth = 0.0;
+	int n = packing.size();
+	for(int i = 0; i < n; i += 1)
+	{
+		for(int j = i + 1; j < n; j += 1)
+		{
+			totalPenetrationDepth += bin_packing::getPenetrationDepth(packing[i], packing[j]);
+		}
+	}
+	return totalPenetrationDepth;
+}
 double bin_packing::getOverlapPenalty(MultiPolygon &packing, int id, double rotation, Point translationPoint)
 {
 	return 0;
+}
+void bin_packing::increasePenalty(MultiPolygon &packing, std::vector<std::vector<double>> &penalty)
+{
+
 }
 Point bin_packing::cuckooSearch(MultiPolygon &packing, Polygon polygon, double rotationAngle, double width, double lenght)
 {
@@ -684,6 +701,9 @@ MultiPolygon bin_packing::minimizeOverlap(MultiPolygon packing, std::vector<doub
 		for (int i = 0; i < n; i++)
 		{
 			double overlapPenalty = bin_packing::getOverlapPenalty(packing, Q[i], 0, packing[Q[i]].outer()[0]);
+			Point bestLocation(INF, INF);
+			double bestRotationAngle = 0.0;
+
 			for (double rotationAngle : allowableRoatations)
 			{
 				Point translationPoint = bin_packing::cuckooSearch(packing, packing[Q[i]], rotationAngle, width, length);
@@ -691,9 +711,26 @@ MultiPolygon bin_packing::minimizeOverlap(MultiPolygon packing, std::vector<doub
 				if (currentOverlapPenalty < overlapPenalty)
 				{
 					overlapPenalty = currentOverlapPenalty;
+					bestLocation = translationPoint;
+					bestRotationAngle = rotationAngle;
 				}
 			}
+			packing[Q[i]] = geo_util::rotatePolygon(packing[Q[i]], packing[Q[i]].outer()[0], bestRotationAngle);
+			packing[Q[i]] = geo_util::translatePolygon(packing[Q[i]], bestLocation);
 		}
+		double totalPenetrationDepth = bin_packing::getTotalPenetrationDepth(packing);
+		if( geo_util::dblcmp(totalPenetrationDepth) == 0 )
+		{
+			return packing;
+		}
+		else if( totalPenetrationDepth < fitness )
+		{
+			fitness = totalPenetrationDepth;
+			it = 0;
+		}
+		
+		bin_packing::increasePenalty(packing, penalty); // increase penalty
+		it += 1;
 	}
 	return packing;
 }
