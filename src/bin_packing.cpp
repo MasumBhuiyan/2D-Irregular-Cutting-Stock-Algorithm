@@ -200,7 +200,16 @@ bool geo_util::pointInRectangle(Point a, Point b, Point c)
 
 double geo_util::getPackingLength(MultiPolygon &multiPolygon)
 {
-	return 0;
+	double packingLength = 0.0;
+	for(Polygon polygon: multiPolygon)
+	{
+		for(Point point: polygon.outer())
+		{
+			packingLength = std::max(packingLength, point.get<1>());
+			assert(point.get<1>() >= 0);
+		}
+	}
+	return packingLength;
 }
 
 /** namespace polygon_fit **/
@@ -614,7 +623,18 @@ std::tuple<std::vector<Polygon>, double> bin_packing::readDataset(std::string da
 }
 bool bin_packing::isFeasible(MultiPolygon &packing, double totalAreaOfInputPolygons)
 {
-	return false;
+	double overlappingArea = 0.0;
+	double feasibilityRatio = 0.0;
+	int n = packing.size();
+	for(int i = 0; i < n; i += 1) 
+	{
+		for(int j = i + 1; j < n; j += 1)
+		{
+			overlappingArea += geo_util::polygonPolygonIntersectionArea(packing[i], packing[j]);
+		}
+	}
+	feasibilityRatio = overlappingArea / totalAreaOfInputPolygons;
+	return geo_util::dblcmp(feasibilityRatio - FEASIBILTY, EPS) >= 0 ? true : false;
 }
 MultiPolygon bin_packing::minimizeOverlap(MultiPolygon &multiPolygon, std::vector<double> &allowableRoatations, double width, double length)
 {
@@ -648,7 +668,7 @@ void bin_packing::binPacking(std::vector<Polygon> &polygons, double width, std::
 		{
 			break;
 		}
-		currentPacking = bin_packing::minimizeOverlap(currentPacking, ALLOWABLE_ROTATIONS, width, currentLength);
+		currentPacking;// = bin_packing::minimizeOverlap(currentPacking, ALLOWABLE_ROTATIONS, width, currentLength);
 		if (bin_packing::isFeasible(currentPacking, totalAreaOfInputPolygons))
 		{
 			bestPacking = currentPacking;
