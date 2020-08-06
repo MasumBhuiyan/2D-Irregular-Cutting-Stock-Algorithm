@@ -11,6 +11,7 @@
 #include <string>
 #include <cstring>
 #include <chrono>
+#include <ctime>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -32,7 +33,9 @@ const double INF = 4e18;
 const double PI = acos(-1);
 const double RUN_TIME_DURATION = 20;
 const double FEASIBILTY = 1e-2;
-const int MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA = 100;
+const int MAXIMUM_GENERATION = 20;
+const int NUMBER_OF_HOST_NESTS = 20;
+const int MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA = 40;
 const std::vector<double> ALLOWABLE_ROTATIONS = {0, 90, 180, 270};
 
 static int frameno;
@@ -93,10 +96,10 @@ namespace bin_packing
     std::tuple<std::vector<Polygon>, double> readDataset(std::string);
     bool isFeasible(MultiPolygon &, double);
     double getPenetrationDepth(Polygon, Polygon);
-    double getTotalPenetrationDepth(MultiPolygon&);
-    double getOverlapPenalty(MultiPolygon &, int, double, Point);
+    double getTotalPenetrationDepth(MultiPolygon &);
+    double getOverlapPenalty(MultiPolygon &, std::vector<std::vector<double>> &, int, double, Point);
     void increasePenalty(MultiPolygon &, std::vector<std::vector<double>> &);
-    Point cuckooSearch(MultiPolygon &, Polygon, double, double, double);
+    Point cuckooSearch(MultiPolygon &, std::vector<std::vector<double>> &, int, double, double, double);
     MultiPolygon minimizeOverlap(MultiPolygon, std::vector<double>, double, double);
     void binPacking(std::vector<Polygon> &, double, std::string, std::string, double runTimeDuration = RUN_TIME_DURATION);
 }; // namespace bin_packing
