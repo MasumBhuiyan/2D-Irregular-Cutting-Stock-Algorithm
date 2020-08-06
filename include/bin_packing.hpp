@@ -32,6 +32,7 @@ const double INF = 4e18;
 const double PI = acos(-1);
 const double RUN_TIME_DURATION = 20;
 const double FEASIBILTY = 1e-2;
+const int MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA = 100;
 const std::vector<double> ALLOWABLE_ROTATIONS = {0, 90, 180, 270};
 
 static int frameno;
@@ -91,7 +92,10 @@ namespace bin_packing
 {
     std::tuple<std::vector<Polygon>, double> readDataset(std::string);
     bool isFeasible(MultiPolygon &, double);
-    MultiPolygon minimizeOverlap(MultiPolygon &, std::vector<double> &, double, double);
+    double getPenetrationDepth(Polygon, Polygon);
+    double getOverlapPenalty(MultiPolygon &, int, double, Point);
+    Point cuckooSearch(MultiPolygon &, Polygon, double, double, double);
+    MultiPolygon minimizeOverlap(MultiPolygon, std::vector<double>, double, double);
     void binPacking(std::vector<Polygon> &, double, std::string, std::string, double runTimeDuration = RUN_TIME_DURATION);
 }; // namespace bin_packing
 

@@ -201,9 +201,9 @@ bool geo_util::pointInRectangle(Point a, Point b, Point c)
 double geo_util::getPackingLength(MultiPolygon &multiPolygon)
 {
 	double packingLength = 0.0;
-	for(Polygon polygon: multiPolygon)
+	for (Polygon polygon : multiPolygon)
 	{
-		for(Point point: polygon.outer())
+		for (Point point : polygon.outer())
 		{
 			packingLength = std::max(packingLength, point.get<1>());
 			assert(point.get<1>() >= 0);
@@ -216,12 +216,12 @@ double geo_util::getPackingLength(MultiPolygon &multiPolygon)
 Polygon polygon_fit::getInnerFitRectangle(std::vector<Polygon> cluster, double length, double width)
 {
 	Polygon innerFitRectangle;
-    Point reference = cluster[0].outer()[0];
+	Point reference = cluster[0].outer()[0];
 
 	double max_x = -INF, min_x = INF, max_y = -INF, min_y = INF;
-	for(Polygon &polygon: cluster)
+	for (Polygon &polygon : cluster)
 	{
-		for(Point &point: polygon.outer())
+		for (Point &point : polygon.outer())
 		{
 			point = Point(point.get<0>() - reference.get<0>(), point.get<1>() - reference.get<1>());
 			max_x = std::max(max_x, point.get<0>());
@@ -233,7 +233,7 @@ Polygon polygon_fit::getInnerFitRectangle(std::vector<Polygon> cluster, double l
 	innerFitRectangle.outer().push_back(Point(std::abs(min_x), std::abs(min_y)));
 	innerFitRectangle.outer().push_back(Point(std::abs(min_x), length - max_y));
 	innerFitRectangle.outer().push_back(Point(width - max_x, length - max_y));
-	innerFitRectangle.outer().push_back(Point(width - max_x,std::abs(min_y)));
+	innerFitRectangle.outer().push_back(Point(width - max_x, std::abs(min_y)));
 	innerFitRectangle.outer().push_back(Point(std::abs(min_x), std::abs(min_y)));
 	return innerFitRectangle;
 }
@@ -645,9 +645,9 @@ bool bin_packing::isFeasible(MultiPolygon &packing, double totalAreaOfInputPolyg
 	double overlappingArea = 0.0;
 	double feasibilityRatio = 0.0;
 	int n = packing.size();
-	for(int i = 0; i < n; i += 1) 
+	for (int i = 0; i < n; i += 1)
 	{
-		for(int j = i + 1; j < n; j += 1)
+		for (int j = i + 1; j < n; j += 1)
 		{
 			overlappingArea += geo_util::polygonPolygonIntersectionArea(packing[i], packing[j]);
 		}
@@ -655,9 +655,46 @@ bool bin_packing::isFeasible(MultiPolygon &packing, double totalAreaOfInputPolyg
 	feasibilityRatio = overlappingArea / totalAreaOfInputPolygons;
 	return geo_util::dblcmp(feasibilityRatio - FEASIBILTY, EPS) >= 0 ? true : false;
 }
-MultiPolygon bin_packing::minimizeOverlap(MultiPolygon &multiPolygon, std::vector<double> &allowableRoatations, double width, double length)
+double bin_packing::getPenetrationDepth(Polygon polygonA, Polygon polygonB)
 {
-	MultiPolygon packing;
+	return 0;
+}
+double bin_packing::getOverlapPenalty(MultiPolygon &packing, int id, double rotation, Point translationPoint)
+{
+	return 0;
+}
+Point bin_packing::cuckooSearch(MultiPolygon &packing, Polygon polygon, double rotationAngle, double width, double lenght)
+{
+	return Point(0, 0);
+}
+MultiPolygon bin_packing::minimizeOverlap(MultiPolygon packing, std::vector<double> allowableRoatations, double width, double length)
+{
+	int n = packing.size();
+	std::vector<std::vector<double>> penalty(n, std::vector<double>(n, 1.0));
+	int it = 0;
+	double fitness = INF;
+	std::vector<int> Q(n);
+	for (int i = 0; i < n; i++)
+	{
+		Q[i] = i;
+	}
+	while (it < MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA)
+	{
+		std::random_shuffle(Q.begin(), Q.end());
+		for (int i = 0; i < n; i++)
+		{
+			double overlapPenalty = bin_packing::getOverlapPenalty(packing, Q[i], 0, packing[Q[i]].outer()[0]);
+			for (double rotationAngle : allowableRoatations)
+			{
+				Point translationPoint = bin_packing::cuckooSearch(packing, packing[Q[i]], rotationAngle, width, length);
+				double currentOverlapPenalty = bin_packing::getOverlapPenalty(packing, Q[i], rotationAngle, translationPoint);
+				if (currentOverlapPenalty < overlapPenalty)
+				{
+					overlapPenalty = currentOverlapPenalty;
+				}
+			}
+		}
+	}
 	return packing;
 }
 void bin_packing::binPacking(std::vector<Polygon> &polygons, double width, std::string location, std::string datasetName, double runTimeDuration)
@@ -687,7 +724,7 @@ void bin_packing::binPacking(std::vector<Polygon> &polygons, double width, std::
 		{
 			break;
 		}
-		currentPacking;// = bin_packing::minimizeOverlap(currentPacking, ALLOWABLE_ROTATIONS, width, currentLength);
+		currentPacking = bin_packing::minimizeOverlap(currentPacking, ALLOWABLE_ROTATIONS, width, currentLength);
 		if (bin_packing::isFeasible(currentPacking, totalAreaOfInputPolygons))
 		{
 			bestPacking = currentPacking;
