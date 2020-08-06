@@ -1,12 +1,6 @@
 #include <bin_packing.hpp>
 
 /** namespace geo_util **/
-
-/**
-* compares two double variables a, b
-* d = a - b
-* returns 0 if a == b, 1 if a > b, -1 if a < b
-*/
 int geo_util::dblcmp(double d, double eps)
 {
 	if (std::fabs(d) < eps)
@@ -15,10 +9,7 @@ int geo_util::dblcmp(double d, double eps)
 	}
 	return d > eps ? 1 : -1;
 }
-/**
-* checks concavity of a polygon
-* returns true if polygon is concave, false otherwise
-*/
+
 bool geo_util::isConcave(Polygon &polygon)
 {
 	int n = polygon.outer().size();
@@ -41,9 +32,7 @@ bool geo_util::isConcave(Polygon &polygon)
 
 	return false;
 }
-/**
-* returns length of a polygon
-*/
+
 double geo_util::getLength(Polygon &polygon)
 {
 	double min_x = INF, max_x = -INF;
@@ -54,9 +43,7 @@ double geo_util::getLength(Polygon &polygon)
 	}
 	return max_x - min_x;
 }
-/**
-* returns width of a polygon
-*/
+
 double geo_util::getWidth(Polygon &polygon)
 {
 	double min_y = INF, max_y = -INF;
@@ -67,16 +54,12 @@ double geo_util::getWidth(Polygon &polygon)
 	}
 	return max_y - min_y;
 }
-/**
-* cross product of vector OP and OQ
-*/
+
 double geo_util::crossProduct(Point p, Point q)
 {
 	return p.get<0>() * q.get<1>() - p.get<1>() * q.get<0>();
 }
-/**
-* translates coordinates into local coordinates
-*/
+
 void geo_util::normalize(Polygon &polygon)
 {
 	Point reference = polygon.outer()[0];
@@ -85,12 +68,7 @@ void geo_util::normalize(Polygon &polygon)
 		point = Point(point.get<0>() - reference.get<0>(), point.get<1>() - reference.get<1>());
 	}
 }
-/**
-* determines the side of point c about the line ab
-* returns 0 if c is on the line of ab
-*         1 if c is on the positive side of ab
-*        -1 if c is on the negative side of ab
-*/
+
 int geo_util::orientation(Point a, Point b, Point c)
 {
 	double x1 = b.get<0>(), y1 = b.get<1>();
@@ -101,11 +79,7 @@ int geo_util::orientation(Point a, Point b, Point c)
 		return 0;
 	return p < 0 ? -1 : 1;
 }
-/**
-* rotate polygon CLOCKWISE for a positive degree(0 to 360)
-* or COUNTER CLOCKWISE for a negative degree
-* w.r.t a reference point
-*/
+
 Polygon geo_util::rotatePolygon(Polygon polygon, Point reference, double degree)
 {
 	Polygon rotatedPolygon;
@@ -122,9 +96,7 @@ Polygon geo_util::rotatePolygon(Polygon polygon, Point reference, double degree)
 	}
 	return rotatedPolygon;
 }
-/**
-* translate a polygon to a point
-*/
+
 Polygon geo_util::translatePolygon(Polygon polygon, Point point)
 {
 	Polygon translatedPolygon;
@@ -137,9 +109,7 @@ Polygon geo_util::translatePolygon(Polygon polygon, Point point)
 	boost_geo::transform(polygon, translatedPolygon, trans::translate_transformer<double, 2, 2>(point.get<0>(), point.get<1>()));
 	return translatedPolygon;
 }
-/**
-* perpendicular distance of a point p to a line ab
-*/
+
 double geo_util::linePointDistance(Point a, Point b, Point p)
 {
 	double x1 = a.get<0>(), y1 = a.get<1>();
@@ -148,9 +118,7 @@ double geo_util::linePointDistance(Point a, Point b, Point p)
 	double distance = std::fabs(_a * p.get<0>() + _b * p.get<1>() + _c) / sqrt(_a * _a + _b * _b);
 	return distance;
 }
-/**
-* returns the intersection area of two polygons
-*/
+
 double geo_util::polygonPolygonIntersectionArea(Polygon &polygon1, Polygon &polygon2)
 {
 	std::deque<Polygon> polygons;
@@ -162,10 +130,7 @@ double geo_util::polygonPolygonIntersectionArea(Polygon &polygon1, Polygon &poly
 	}
 	return std::fabs(intersectedArea);
 }
-/**
-*   returns (INF, INF) is ab does not intersect cd
-*           intersection point otherwise
-*/
+
 Point geo_util::segmentSegmentIntersectionPoint(Point a, Point b, Point c, Point d)
 {
 	int o1 = geo_util::orientation(a, b, c), o2 = geo_util::orientation(a, b, d);
@@ -179,10 +144,7 @@ Point geo_util::segmentSegmentIntersectionPoint(Point a, Point b, Point c, Point
 	}
 	return Point(INF, INF);
 }
-/**
-* rotates a list of polygons at particular degree(0-360) 
-* counter clockwise about a reference point
-*/
+
 std::vector<Polygon> geo_util::rotatePolygons(std::vector<Polygon> &polygons, Point reference, double degree)
 {
 	std::vector<Polygon> rotatedPolygons;
@@ -192,9 +154,7 @@ std::vector<Polygon> geo_util::rotatePolygons(std::vector<Polygon> &polygons, Po
 	}
 	return rotatedPolygons;
 }
-/**
-* translates a list of polygons to a point
-*/
+
 std::vector<Polygon> geo_util::translatePolygons(std::vector<Polygon> polygons, Point point)
 {
 	std::vector<Polygon> translatedPolygons;
@@ -216,10 +176,7 @@ std::vector<Polygon> geo_util::translatePolygons(std::vector<Polygon> polygons, 
 	}
 	return translatedPolygons;
 }
-/**
-* checks if it is possible to place a polygon
-* in the container at a particular point
-*/
+
 bool geo_util::isItPossibleToPlacePolygon(std::vector<Polygon> &alreadyPlacedPolygons, std::vector<Polygon> clusterNextToBePlaced, Point point)
 {
 	clusterNextToBePlaced = geo_util::translatePolygons(clusterNextToBePlaced, point);
@@ -233,10 +190,7 @@ bool geo_util::isItPossibleToPlacePolygon(std::vector<Polygon> &alreadyPlacedPol
 	}
 	return true;
 }
-/**
-* checks whether a point c is in a rectangle
-* enclosed by two points a, b
-*/
+
 bool geo_util::pointInRectangle(Point a, Point b, Point c)
 {
 	bool p = (std::min(a.get<0>(), b.get<0>()) <= c.get<0>() && std::max(a.get<0>(), b.get<0>()) >= c.get<0>());
@@ -245,7 +199,6 @@ bool geo_util::pointInRectangle(Point a, Point b, Point c)
 }
 
 /** namespace polygon_fit **/
-
 Polygon polygon_fit::getInnerFitRectangle(std::vector<Polygon> cluster, double length, double width)
 {
 	Polygon innerFitRectangle;
@@ -269,7 +222,6 @@ std::vector<Point> polygon_fit::getAllEdgeIntersectionPoints(std::vector<Polygon
 }
 
 /** namespace cluster_util **/
-
 Polygon cluster_util::convexHull(MultiPolygon multiPolygon)
 {
 	Polygon convexhull;
@@ -574,9 +526,7 @@ std::vector<std::vector<double>> cluster_util::getClusterValues(std::vector<Poly
 	}
 	return clusterValues;
 }
-/**
- * generates initial solution
- */
+
 MultiPolygon cluster_util::generateInitialSolution(std::vector<Polygon> &polygons, double width)
 {
 	std::vector<std::vector<double>> clusterValues = cluster_util::getClusterValues(polygons);
@@ -617,10 +567,7 @@ MultiPolygon cluster_util::generateInitialSolution(std::vector<Polygon> &polygon
 	}
 	return result;
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*********************** namespace bin_packing ***********************/
-
+/* namespace bin_packing */
 std::tuple<std::vector<Polygon>, double> bin_packing::readDataset(std::string datasetName)
 {
 	double width;
@@ -663,70 +610,12 @@ std::tuple<std::vector<Polygon>, double> bin_packing::readDataset(std::string da
 
 void bin_packing::binPacking(std::vector<Polygon> &polygons, double width, std::string location, std::string datasetName)
 {
-	// create directory for the dataset
-	std::string directoryName = location + datasetName;
-	mkdir(directoryName.c_str(), 0777);
-
-	std::ofstream resultDoc;
-	resultDoc.open(location + datasetName + "/output.txt"); // output file
-
-	std::cout << "\033[1;32mdataset....................: " << datasetName << "\033[0m" << std::endl;
-	resultDoc << "dataset....................: " << datasetName << std::endl;
-
 	auto start = std::chrono::high_resolution_clock::now();
-	int numberOfItems = polygons.size();
-	std::cout << "\033[1;32mnumber of items............: " << numberOfItems << "\033[0m" << std::endl;
-	resultDoc << "number of items............: " << numberOfItems << std::endl;
-	double totalAreaOfItems = 0;
-	for (int i = 0; i < numberOfItems; i++)
-	{
-		Polygon polygon = polygons[i];
-		//MultiPolygon tmpMultiPolygon({polygon});
-		//boost_geo_util::visualize(tmpMultiPolygon, location + datasetName + "/", datasetName + "_item_" + std::to_string(i + 1));
-
-		//bin_packing::normalizePolygon(polygon);
-		totalAreaOfItems += std::fabs(boost_geo::area(polygon));
-	}
-
 	MultiPolygon resultMultiPolygon = cluster_util::generateInitialSolution(polygons, width);
 
-	// // step 2: placement heuristic: bottom left fill
-	// for (int i = 0; i < numberOfItems; i += 1)
-	// {
-	// 	bin_packing::placeItem(resultMultiPolygon, polygons[i], length, width);
-	// 	std::cout << "[" << std::setw(3) << (int)(((i + 1) / (1.0 * numberOfItems)) * 100) << "%] "
-	// 			  << "\033[1;33mplaced..............: " << i + 1 << " / " << numberOfItems << "\033[0m" << std::endl;
-	// }
-
-	double resultMultiPolygonArea = boost_geo::area(resultMultiPolygon);
-	Box stock;
-	boost_geo::envelope(resultMultiPolygon, stock);
-	double stockArea = boost_geo::area(stock);
-	Point stockDimension = stock.max_corner();
-	boost_geo::subtract_point(stockDimension, stock.min_corner());
-
-	std::cout << "\033[1;36mtotal area of items........: " << totalAreaOfItems << "\033[0m" << std::endl;
-	resultDoc << "total area of items........: " << totalAreaOfItems << std::endl;
-	std::cout << "\033[1;36mresult polygon set area....: " << resultMultiPolygonArea << "\033[0m" << std::endl;
-	resultDoc << "result polygon set area....: " << resultMultiPolygonArea << std::endl;
-	std::cout << "\033[1;36mstock dimension [w * l]....: "
-			  << "[" << std::fabs(stockDimension.get<0>()) << ", " << std::fabs(stockDimension.get<1>()) << "]"
-			  << "\033[0m" << std::endl;
-	resultDoc << "stock dimension [w * l]....: "
-			  << "[" << std::fabs(stockDimension.get<0>()) << ", " << std::fabs(stockDimension.get<1>()) << "]" << std::endl;
-	std::cout << "\033[1;36mstock area.................: " << stockArea << "\033[0m" << std::endl;
-	resultDoc << "stock area.................: " << stockArea << std::endl;
-
-	double packingDensity = (totalAreaOfItems / stockArea) * 100;
-	std::cout << "\033[1;32mpacking density............: " << packingDensity << " %\033[0m" << std::endl;
-	resultDoc << "packing density............: " << packingDensity << " %" << std::endl;
-
-	auto stop = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-	double timeTaken = duration.count() / 1000000.0;
-	std::cout << "\033[1;35mtime taken by function.....: " << timeTaken << " seconds\033[0m" << std::endl;
-	resultDoc << "time taken by function.....: " << timeTaken << " seconds" << std::endl;
-
-	resultDoc.close();
-	// boost_geo_util::visualize(resultMultiPolygon, location + datasetName + "/", datasetName);
+	while( true )
+	{
+		auto stop = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::minutes>(stop - start);
+	}
 }
