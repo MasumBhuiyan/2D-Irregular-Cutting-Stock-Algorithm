@@ -600,7 +600,12 @@ MultiPolygon cluster_util::generateInitialSolution(std::vector<Polygon> &polygon
 	}
 	return result;
 }
-/* namespace bin_packing */
+
+/** namespace bin_packing */
+/** 
+ * read input from dataset file
+ * file location ../io/datasets/**.txt
+ */
 std::tuple<std::vector<Polygon>, double> bin_packing::readDataset(std::string datasetName)
 {
 	double width;
@@ -640,6 +645,10 @@ std::tuple<std::vector<Polygon>, double> bin_packing::readDataset(std::string da
 	file.close();
 	return {polygons, width};
 }
+/**
+ * checks feasibilty of a packing
+ * compares with FEASIBILTY limit
+ */
 bool bin_packing::isFeasible(MultiPolygon &packing, double totalAreaOfInputPolygons)
 {
 	double overlappingArea = 0.0;
@@ -655,10 +664,19 @@ bool bin_packing::isFeasible(MultiPolygon &packing, double totalAreaOfInputPolyg
 	feasibilityRatio = overlappingArea / totalAreaOfInputPolygons;
 	return geo_util::dblcmp(feasibilityRatio - FEASIBILTY, EPS) >= 0 ? true : false;
 }
+/**
+ * naive implementation
+ * may be changed in future
+ */
 double bin_packing::getPenetrationDepth(Polygon polygonA, Polygon polygonB)
 {
-	return 0;
+	MultiPolygon intersections;
+	boost_geo::intersection(polygonA, polygonB, intersections);
+	return std::fabs(boost_geo::area(intersections));
 }
+/**
+ * returns total penitration depth of a pcking
+ */
 double bin_packing::getTotalPenetrationDepth(MultiPolygon &packing)
 {
 	double totalPenetrationDepth = 0.0;
@@ -672,6 +690,9 @@ double bin_packing::getTotalPenetrationDepth(MultiPolygon &packing)
 	}
 	return totalPenetrationDepth;
 }
+/**
+ * 
+ */
 double bin_packing::getOverlapPenalty(MultiPolygon &packing, std::vector<std::vector<double>> &penalty, int id, double rotationAngle, Point translationPoint)
 {
 	int n = packing.size();
