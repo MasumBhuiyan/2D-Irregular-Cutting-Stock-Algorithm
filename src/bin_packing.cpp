@@ -216,6 +216,25 @@ double geo_util::getPackingLength(MultiPolygon &multiPolygon)
 Polygon polygon_fit::getInnerFitRectangle(std::vector<Polygon> cluster, double length, double width)
 {
 	Polygon innerFitRectangle;
+    Point reference = cluster[0].outer()[0];
+
+	double max_x = -INF, min_x = INF, max_y = -INF, min_y = INF;
+	for(Polygon &polygon: cluster)
+	{
+		for(Point &point: polygon.outer())
+		{
+			point = Point(point.get<0>() - reference.get<0>(), point.get<1>() - reference.get<1>());
+			max_x = std::max(max_x, point.get<0>());
+			min_x = std::min(min_x, point.get<0>());
+			max_y = std::max(max_y, point.get<1>());
+			min_y = std::min(min_y, point.get<1>());
+		}
+	}
+	innerFitRectangle.outer().push_back(Point(std::abs(min_x), std::abs(min_y)));
+	innerFitRectangle.outer().push_back(Point(std::abs(min_x), length - max_y));
+	innerFitRectangle.outer().push_back(Point(width - max_x, length - max_y));
+	innerFitRectangle.outer().push_back(Point(width - max_x,std::abs(min_y)));
+	innerFitRectangle.outer().push_back(Point(std::abs(min_x), std::abs(min_y)));
 	return innerFitRectangle;
 }
 
