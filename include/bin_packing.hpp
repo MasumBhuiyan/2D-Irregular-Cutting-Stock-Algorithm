@@ -30,6 +30,9 @@ typedef Point Vector;
 const double EPS = 1e-8;
 const double INF = 4e18;
 const double PI = acos(-1);
+const double RUN_TIME_DURATION = 20;
+const double FEASIBILTY = 1e-2;
+const std::vector<double> ALLOWABLE_ROTATIONS = {0, 90, 180, 270};
 
 static int frameno;
 
@@ -51,6 +54,7 @@ namespace geo_util
     std::vector<Polygon> translatePolygons(std::vector<Polygon>, Point);
     bool isItPossibleToPlacePolygon(std::vector<Polygon> &, std::vector<Polygon>, Point);
     bool pointInRectangle(Point, Point, Point);
+    double getPackingLength(MultiPolygon &);
 }; // namespace geo_util
 
 namespace polygon_fit
@@ -86,7 +90,9 @@ namespace cluster_util
 namespace bin_packing
 {
     std::tuple<std::vector<Polygon>, double> readDataset(std::string);
-    void binPacking(std::vector<Polygon> &, double, std::string, std::string);
+    bool isFeasible(MultiPolygon &, double);
+    MultiPolygon minimizeOverlap(MultiPolygon &, std::vector<double> &, double, double);
+    void binPacking(std::vector<Polygon> &, double, std::string, std::string, double runTimeDuration = RUN_TIME_DURATION);
 }; // namespace bin_packing
 
 #endif

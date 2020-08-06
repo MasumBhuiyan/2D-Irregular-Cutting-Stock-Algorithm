@@ -198,6 +198,11 @@ bool geo_util::pointInRectangle(Point a, Point b, Point c)
 	return (p && q);
 }
 
+double geo_util::getPackingLength(MultiPolygon &multiPolygon)
+{
+	return 0;
+}
+
 /** namespace polygon_fit **/
 Polygon polygon_fit::getInnerFitRectangle(std::vector<Polygon> cluster, double length, double width)
 {
@@ -607,15 +612,53 @@ std::tuple<std::vector<Polygon>, double> bin_packing::readDataset(std::string da
 	file.close();
 	return {polygons, width};
 }
-
-void bin_packing::binPacking(std::vector<Polygon> &polygons, double width, std::string location, std::string datasetName)
+bool bin_packing::isFeasible(MultiPolygon &packing, double totalAreaOfInputPolygons)
+{
+	return false;
+}
+MultiPolygon bin_packing::minimizeOverlap(MultiPolygon &multiPolygon, std::vector<double> &allowableRoatations, double width, double length)
+{
+	MultiPolygon packing;
+	return packing;
+}
+void bin_packing::binPacking(std::vector<Polygon> &polygons, double width, std::string location, std::string datasetName, double runTimeDuration)
 {
 	auto start = std::chrono::high_resolution_clock::now();
-	MultiPolygon resultMultiPolygon = cluster_util::generateInitialSolution(polygons, width);
 
-	while( true )
+	double totalAreaOfInputPolygons = 0;
+	for (Polygon &polygon : polygons)
+	{
+		totalAreaOfInputPolygons += std::fabs(boost_geo::area(polygon));
+	}
+
+	MultiPolygon initialPacking = cluster_util::generateInitialSolution(polygons, width);
+	MultiPolygon bestPacking = initialPacking;
+	MultiPolygon currentPacking = initialPacking;
+
+	double bestLenght = geo_util::getPackingLength(initialPacking);
+	double decreasingRate = 0.1;
+	double increasingRate = 0.1;
+	double currentLength = (1.0 - decreasingRate) * bestLenght;
+
+	while (true)
 	{
 		auto stop = std::chrono::high_resolution_clock::now();
 		auto duration = std::chrono::duration_cast<std::chrono::minutes>(stop - start);
+		if (duration.count() >= runTimeDuration)
+		{
+			break;
+		}
+		currentPacking = bin_packing::minimizeOverlap(currentPacking, ALLOWABLE_ROTATIONS, width, currentLength);
+		if (bin_packing::isFeasible(currentPacking, totalAreaOfInputPolygons))
+		{
+			bestPacking = currentPacking;
+			bestLenght = currentLength;
+			currentLength = (1.0 - decreasingRate) * bestLenght;
+		}
+		else
+		{
+			currentLength = (1.0 + increasingRate) * bestLenght;
+		}
 	}
+	// visualize
 }
