@@ -219,7 +219,19 @@ Polygon geo_util::makePolygon(Polygon polygon, Point translationPoint, double ro
 	polygon = geo_util::translatePolygon(polygon, translationPoint);
 	return polygon;
 }
-
+void geo_util::visualize(MultiPolygon &multipolygon, std::string datasetName)
+{
+    Box box;
+    boost::geometry::envelope(multipolygon, box);
+    std::cout << "make_envelope..............: " << boost::geometry::dsv(box) << std::endl;
+    std::ostringstream name;
+    name << "frame_" << std::setw(4) << std::setfill('0') << frameno++ << "_" << datasetName << ".svg";
+    std::ofstream svg(name.str());
+    boost_geo::svg_mapper<Point> mapper(svg, 700, 600);
+    mapper.add(multipolygon);
+    mapper.map(multipolygon, "fill-opacity:0.5;fill:rgb(204,153,0);stroke:rgb(204,153,0);stroke-width:1", 5);
+    mapper.map(box, "opacity:0.8;fill:none;stroke:rgb(255,128,0);stroke-width:4;stroke-dasharray:1,7;stroke-linecap:round");
+}
 /** namespace polygon_fit **/
 Polygon polygon_fit::getInnerFitRectangle(std::vector<Polygon> cluster, double length, double width)
 {
@@ -259,7 +271,7 @@ Polygon polygon_fit::getNoFitPolygon(Polygon &polygon, std::vector<Polygon> clus
 		polygon2.outer().push_back(point_t(point.get<0>(), point.get<1>()));
 	}
 	MultiPolygon multiPolygon;
-	nfp_t nfp = generateNFP(polygon1, polygon2, false);
+	nfp_t nfp = generateNFP(polygon1, polygon2, true);
 	for(auto poly : nfp) 
 	{
 		Polygon ring;
@@ -658,6 +670,11 @@ MultiPolygon cluster_util::generateInitialSolution(std::vector<Polygon> &polygon
 	     	clusters.push_back(cluster);
 		}
 	}
+
+	for(auto polygon: polygons)
+	{
+		clusters.push_back({polygon});
+	}
 	cluster_util::sort(clusters);
 	double length = 100000;
 	std::vector<Polygon> initialSolution = cluster_util::blf(clusters, length, width);
@@ -933,5 +950,5 @@ void bin_packing::binPacking(std::vector<Polygon> &polygons, double width, std::
 			currentLength = (1.0 + increasingRate) * bestLenght;
 		}
 	}
-	// visualize
+	geo_util::visualize(bestPacking, datasetName);
 }
