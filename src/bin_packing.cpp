@@ -336,36 +336,49 @@ MultiPolygon polygon_fit::getAllNfpIfr(MultiPolygon &packing, MultiPolygon clust
 }
 
 /** namespace cluster_util **/
+/**
+ * returns the convex hull of the multipolygon
+ */
 Polygon cluster_util::convexHull(MultiPolygon multiPolygon)
 {
 	Polygon convexhull;
 	boost_geo::convex_hull(multiPolygon, convexhull);
 	return convexhull;
 }
-std::vector<Polygon> cluster_util::findConvexHullVacancy(Polygon &polygon)
+
+/**
+ * retruns convex hull vacaencies
+ */
+MultiPolygon cluster_util::findConvexHullVacancy(Polygon &concavePolygon)
 {
-	std::vector<Polygon> vacancies;
-	Polygon convexhull = cluster_util::convexHull({polygon});
-	boost_geo::difference(convexhull, polygon, vacancies);
+	MultiPolygon vacancies;
+	Polygon convexhull = cluster_util::convexHull({concavePolygon});
+	boost_geo::difference(convexhull, concavePolygon, vacancies);
 	return vacancies;
 }
-std::vector<std::vector<Point>> cluster_util::findOppositeSideOfVacancies(Polygon &convexhull, std::vector<Polygon> &vacancies)
+
+/**
+ * 
+ */
+vector<tuple<Point, Point>> cluster_util::findOppositeSideOfVacancies(Polygon &concavePolygonConvexHull, MultiPolygon &convexHullVacancies)
 {
-	std::vector<std::vector<Point>> oppositeSideOfVacancies;
-	for (auto vacancy : vacancies)
+	vector<tuple<Point, Point>> oppositeSideOfVacancies;
+	for (auto &vacancy : convexHullVacancies)
 	{
-		std::vector<Point> line;
-		assert(boost_geo::intersection(convexhull, vacancy, line) == true);
-		oppositeSideOfVacancies.push_back(line);
+		vector<Point> line;
+		assert(boost_geo::intersection(concavePolygonConvexHull, vacancy, line) == true);
+		assert(line.size() == 2);
+		oppositeSideOfVacancies.push_back({line[0], line[1]});
 	}
 	return oppositeSideOfVacancies;
 }
-Point cluster_util::findDominantPoint(Polygon &polygon)
+
+Point cluster_util::findDominantPoint(Polygon &concavePolygon)
 {
 	Point dominant;
-	Polygon convexhull = cluster_util::convexHull({polygon});
-	std::vector<Polygon> vacancies = cluster_util::findConvexHullVacancy(polygon);
-	std::vector<std::vector<Point>> oppositeSideOfVacancies = cluster_util::findOppositeSideOfVacancies(convexhull, vacancies);
+	Polygon convexhull = cluster_util::convexHull({concavePolygon});
+	MultiPolygon vacancies = cluster_util::findConvexHullVacancy(concavePolygon);
+	vector<tuple<Point, Point>> oppositeSideOfVacancies = cluster_util::findOppositeSideOfVacancies(convexhull, vacancies);
 
 	int n = oppositeSideOfVacancies.size();
 	assert(vacancies.size() == oppositeSideOfVacancies.size());
@@ -375,7 +388,9 @@ Point cluster_util::findDominantPoint(Polygon &polygon)
 	{
 		for (Point point : vacancies[i].outer())
 		{
-			double distance = geo_util::linePointDistance(oppositeSideOfVacancies[i][0], oppositeSideOfVacancies[i][1], point);
+			Point p, q;
+			std::tie(p, q) = oppositeSideOfVacancies[i];
+			double distance = geo_util::linePointDistance(p, q, point);
 			if (distance > maxDistance)
 			{
 				maxDistance = distance;
@@ -385,41 +400,20 @@ Point cluster_util::findDominantPoint(Polygon &polygon)
 	}
 	return dominant;
 }
-std::vector<std::vector<Point>> cluster_util::findAllPairDominantPoint(std::vector<std::vector<Polygon>> &noFitPolygons)
-{
-	int n = noFitPolygons.size();
-	std::vector<std::vector<Point>> points(n, std::vector<Point>(n));
-	for (int i = 0; i < n; i += 1)
-	{
-		for (int j = 0; j < n; j += 1)
-		{
-			if (i != j)
-			{
-				points[i][j] = cluster_util::findDominantPoint(noFitPolygons[i][j]);
-			}
-		}
-	}
-	return points;
-}
-std::vector<std::vector<Polygon>> cluster_util::findAllConvexHullVacancies(std::vector<Polygon> &polygons)
-{
-	std::vector<std::vector<Polygon>> allConvexHullVacancies;
-	for (auto &polygon : polygons)
-	{
-		allConvexHullVacancies.push_back(cluster_util::findConvexHullVacancy(polygon));
-	}
-	return allConvexHullVacancies;
-}
-double cluster_util::clusteringCriteria1(Polygon &polygon1, Polygon &polygon2)
+
+/**
+ * 
+ */
+double cluster_util::getClusteringCriteria1(Polygon &polygon1, Polygon &polygon2)
 {
 	double value = 0.0, value1 = 0.0, value2 = 0.0;
 	double areaIntersection1 = 0.0, totalVacancy1 = 0.0;
 	double areaIntersection2 = 0.0, totalVacancy2 = 0.0;
 
-	std::vector<Polygon> V1 = cluster_util::findConvexHullVacancy(polygon1);
-	std::vector<Polygon> V2 = cluster_util::findConvexHullVacancy(polygon2);
+	vector<Polygon> V1 = cluster_util::findConvexHullVacancy(polygon1);
+	vector<Polygon> V2 = cluster_util::findConvexHullVacancy(polygon2);
 
-	for (auto vacancy : V2)
+	for (auto &vacancy : V2)
 	{
 		double area = geo_util::polygonPolygonIntersectionArea(polygon1, vacancy);
 		if (area > 0)
@@ -428,7 +422,7 @@ double cluster_util::clusteringCriteria1(Polygon &polygon1, Polygon &polygon2)
 			totalVacancy1 += std::fabs(boost_geo::area(vacancy));
 		}
 	}
-	for (auto vacancy : V1)
+	for (auto &vacancy : V1)
 	{
 		double area = geo_util::polygonPolygonIntersectionArea(polygon2, vacancy);
 		if (area > 0)
@@ -438,13 +432,21 @@ double cluster_util::clusteringCriteria1(Polygon &polygon1, Polygon &polygon2)
 		}
 	}
 	if (totalVacancy1 > 0)
+	{
 		value1 = areaIntersection1 / totalVacancy1;
+	}
 	if (totalVacancy2 > 0)
+	{
 		value2 = areaIntersection2 / totalVacancy2;
+	}
 	value = std::max(value1, value2);
 	return value;
 }
-double cluster_util::clusteringCriteria2(Polygon &polygon1, Polygon &polygon2)
+
+/**
+ * 
+ */
+double cluster_util::getClusteringCriteria2(Polygon &polygon1, Polygon &polygon2)
 {
 	MultiPolygon multiPolygon;
 	multiPolygon.push_back(polygon1);
@@ -459,23 +461,35 @@ double cluster_util::clusteringCriteria2(Polygon &polygon1, Polygon &polygon2)
 	double value = (area1 + area2) / area3;
 	return value;
 }
+/**
+ * 
+ */
 double cluster_util::getClusterValue(Polygon &polygon1, Polygon &polygon2)
 {
-	double value = cluster_util::clusteringCriteria1(polygon1, polygon2) + cluster_util::clusteringCriteria2(polygon1, polygon2);
+	double value = cluster_util::getClusteringCriteria1(polygon1, polygon2) + cluster_util::getClusteringCriteria2(polygon1, polygon2);
 	return value;
 }
 
-void cluster_util::sort(std::vector<std::vector<Polygon>> &clusters)
+/**
+ * 
+ */
+void cluster_util::sortByClusterValue(vector<MultiPolygon> &clusters)
 {
-	sort(clusters.begin(), clusters.end(), [](std::vector<Polygon> cluster1, std::vector<Polygon> cluster2) {
+	sort(clusters.begin(), clusters.end(), [](MultiPolygon cluster1, MultiPolygon cluster2) {
 		double area1 = 0.0, area2 = 0.0;
 		for (auto polygon : cluster1)
+		{
 			area1 += std::fabs(boost_geo::area(polygon));
+		}
 		for (auto polygon : cluster2)
+		{
 			area2 += std::fabs(boost_geo::area(polygon));
+		}
 		return geo_util::dblcmp(area1 - area2, EPS) >= 0;
 	});
 }
+
+
 std::vector<Point> cluster_util::getCandidatePlacementPositions(std::vector<Polygon> &alreadyPlacedPolygons, std::vector<Polygon> &clusterNextToBePlaced, double length, double width)
 {
 	std::vector<Point> candidatePlacementPositions;

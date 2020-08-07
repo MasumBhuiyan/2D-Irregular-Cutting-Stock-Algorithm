@@ -79,8 +79,8 @@ namespace polygon_fit
 namespace cluster_util
 {
     Polygon convexHull(MultiPolygon multiPolygon);
-    MultiPolygon findConvexHullVacancy(Polygon &polygon);
-    vector<tuple<Point, Point>> findOppositeSideOfVacancies(Polygon &concavePolygon, MultiPolygon &convexHullVacancies);
+    MultiPolygon findConvexHullVacancy(Polygon &concavePolygon);
+    vector<tuple<Point, Point>> findOppositeSideOfVacancies(Polygon &concavePolygonConvexHull, MultiPolygon &convexHullVacancies);
     Point findDominantPoint(Polygon &concavePolygon);
     double getClusteringCriteria1(Polygon &polygon1, Polygon &polygon2);
     double getClusteringCriteria2(Polygon &polygon1, Polygon &polygon2);
