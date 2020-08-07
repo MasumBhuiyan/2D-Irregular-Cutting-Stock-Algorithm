@@ -643,7 +643,10 @@ std::vector<std::vector<std::vector<std::vector<double>>>> cluster_util::getClus
 	}
 	return clusterValues;
 }
-
+/**
+ * given a set of polygons and width
+ * retruns an initial bin packing
+ */
 MultiPolygon cluster_util::generateInitialSolution(std::vector<Polygon> &polygons, double width)
 {
 	std::vector<std::vector<std::vector<std::vector<double>>>> clusterValues = cluster_util::getClusterValues(polygons);

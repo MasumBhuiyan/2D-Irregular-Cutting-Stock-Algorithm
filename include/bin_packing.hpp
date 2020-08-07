@@ -16,6 +16,9 @@
 #include <sys/types.h>
 //#include <libnfporb.hpp>
 
+using std::tuple;
+using std::vector;
+
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/geometries.hpp>
 
@@ -38,7 +41,7 @@ const double FEASIBILTY = 1e-2;
 const int MAXIMUM_GENERATION = 20;
 const int NUMBER_OF_HOST_NESTS = 20;
 const int MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA = 40;
-const std::vector<double> ALLOWABLE_ROTATIONS = {0, 90, 180, 270};
+const vector<double> ALLOWABLE_ROTATIONS = {0, 90, 180, 270};
 
 static int frameno;
 
@@ -56,9 +59,9 @@ namespace geo_util
     double linePointDistance(Point, Point, Point);
     double polygonPolygonIntersectionArea(Polygon &, Polygon &);
     Point segmentSegmentIntersectionPoint(Point, Point, Point, Point);
-    std::vector<Polygon> rotatePolygons(std::vector<Polygon> &, Point, double);
-    std::vector<Polygon> translatePolygons(std::vector<Polygon>, Point);
-    bool isItPossibleToPlacePolygon(std::vector<Polygon> &, std::vector<Polygon>, Point);
+    vector<Polygon> rotatePolygons(vector<Polygon> &, Point, double);
+    vector<Polygon> translatePolygons(vector<Polygon>, Point);
+    bool isItPossibleToPlacePolygon(vector<Polygon> &, vector<Polygon>, Point);
     bool pointInRectangle(Point, Point, Point);
     double getPackingLength(MultiPolygon &);
     Polygon makePolygon(Polygon, Point, double);
@@ -67,45 +70,49 @@ namespace geo_util
 
 namespace polygon_fit
 {
-    Polygon getInnerFitRectangle(std::vector<Polygon>, double, double);
-    Polygon getNoFitPolygon(Polygon &, std::vector<Polygon>);
-    MultiPolygon getAllNfpIfr(std::vector<Polygon> &, std::vector<Polygon>, double, double);
-    std::vector<Point> getAllEdgeIntersectionPoints(std::vector<Polygon> &);
-}; // namespace polygon_fit
+    namespace nfp_util
+    {
+        MultiPolygon convertNfp_t2MultiPolygon(nfp_t nfp);
+        polygon_t convertPolygon2Polygon_t(Polygon polygon);
+    }; // namespace nfp_util
+
+    Polygon getInnerFitRectangle(MultiPolygon cluster, double length, double width);
+    vector<Point> getAllEdgeIntersectionPoints(MultiPolygon &allNfpIfr);
+    MultiPolygon getNoFitPolygon(Polygon &referencePolygon, MultiPolygon &cluster);
+    MultiPolygon getAllNfpIfr(MultiPolygon &packing, MultiPolygon cluster, double length, double width); // Nfp = No Fit Polygon, Ifr = Inner Fit Rectangle
+};                                                                                                       // namespace polygon_fit
 
 namespace cluster_util
 {
-    Polygon convexHull(MultiPolygon);
-    std::vector<Polygon> findConvexHullVacancy(Polygon &);
-    std::vector<std::vector<Point>> findOppositeSideOfVacancies(Polygon &, std::vector<Polygon> &);
-    Point findDominantPoint(Polygon &);
-    std::vector<std::vector<Point>> findAllPairDominantPoint(std::vector<std::vector<Polygon>> &);
-    std::vector<std::vector<Polygon>> findAllConvexHullVacancies(std::vector<Polygon> &);
-    double clusteringCriteria1(Polygon &, Polygon &);
-    double clusteringCriteria2(Polygon &, Polygon &);
-    double getClusterValue(Polygon &, Polygon &);
-    void sort(std::vector<std::vector<Polygon>> &);
-    std::vector<Point> getCandidatePlacementPositions(std::vector<Polygon> &, std::vector<Polygon> &, double, double);
-    Point findBlfPoint(std::vector<Polygon> &, std::vector<Polygon> &, double, double);
-    std::vector<Polygon> blf(std::vector<std::vector<Polygon>> &, double, double);
-    double getBestClusters(std::vector<std::vector<std::vector<std::vector<double>>>> &, std::vector<double> &, int, int);
-    void printBestClusters(std::vector<std::vector<std::vector<std::vector<double>>>> &, std::vector<double> &, int, int, std::vector<std::tuple<int, int, int, int>> &);
-    std::vector<std::tuple<int, int, int, int>> perfectClustering(std::vector<std::vector<std::vector<std::vector<double>>>> &, double);
-    std::vector<std::vector<std::vector<std::vector<double>>>> getClusterValues(std::vector<Polygon> &);
-    MultiPolygon generateInitialSolution(std::vector<Polygon> &, double);
+    Polygon convexHull(MultiPolygon multiPolygon);
+    MultiPolygon findConvexHullVacancy(Polygon &polygon);
+    vector<tuple<Point, Point>> findOppositeSideOfVacancies(Polygon &concavePolygon, MultiPolygon &convexHullVacancies);
+    Point findDominantPoint(Polygon &concavePolygon);
+    double getClusteringCriteria1(Polygon &polygon1, Polygon &polygon2);
+    double getClusteringCriteria2(Polygon &polygon1, Polygon &polygon2);
+    double getClusterValue(Polygon &polygon1, Polygon &polygon2);
+    void sortByClusterValue(vector<MultiPolygon> &clusters);
+    vector<Point> getCandidatePlacementPositions(MultiPolygon &packing, MultiPolygon &cluster, double length, double width);
+    Point findBLFPoint(MultiPolygon &packing, MultiPolygon &cluster, double length, double width); // BLF = Bottom Left fill
+    MultiPolygon bottomLeftFill(vector<MultiPolygon> &clusters, double length, double width);
+    double findBestPairWiseClusters(vector<vector<vector<vector<double>>>> &clusterValues, vector<double> &dp, int numberOfPairs, int mask);
+    void printBestPairWiseClusters(vector<vector<vector<vector<double>>>> &clusterValues, vector<double> &dp, int numberOfPairs, int mask, vector<tuple<int, int, int, int>> &clusterPairs);
+    vector<tuple<int, int, int, int>> getPerfectClustering(vector<vector<vector<vector<double>>>> &clusterValues, double width);
+    vector<vector<vector<vector<double>>>> getClusterValues(vector<Polygon> &inputPolygons);
+    MultiPolygon generateInitialSolution(vector<Polygon> &inputPolygons, double width);
 }; // namespace cluster_util
 
 namespace bin_packing
 {
-    std::tuple<std::vector<Polygon>, double> readDataset(std::string);
+    tuple<vector<Polygon>, double> readDataset(std::string);
     bool isFeasible(MultiPolygon &, double);
     double getPenetrationDepth(Polygon, Polygon);
     double getTotalPenetrationDepth(MultiPolygon &);
-    double getOverlapPenalty(MultiPolygon &, std::vector<std::vector<double>> &, int, double, Point);
-    void increasePenalty(MultiPolygon &, std::vector<std::vector<double>> &);
-    Point cuckooSearch(MultiPolygon &, std::vector<std::vector<double>> &, int, double, double, double);
-    MultiPolygon minimizeOverlap(MultiPolygon, std::vector<double>, double, double);
-    void binPacking(std::vector<Polygon> &, double, std::string, std::string, double runTimeDuration = RUN_TIME_DURATION);
+    double getOverlapPenalty(MultiPolygon &, vector<vector<double>> &, int, double, Point);
+    void increasePenalty(MultiPolygon &, vector<vector<double>> &);
+    Point cuckooSearch(MultiPolygon &, vector<vector<double>> &, int, double, double, double);
+    MultiPolygon minimizeOverlap(MultiPolygon, vector<double>, double, double);
+    void binPacking(vector<Polygon> &, double, std::string, std::string, double runTimeDuration = RUN_TIME_DURATION);
 }; // namespace bin_packing
 
 #endif
