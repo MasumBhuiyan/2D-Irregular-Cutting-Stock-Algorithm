@@ -70,12 +70,6 @@ namespace geo_util
 
 namespace polygon_fit
 {
-    namespace nfp_util
-    {
-        MultiPolygon convertNfp_t2MultiPolygon(nfp_t nfp);
-        polygon_t convertPolygon2Polygon_t(Polygon polygon);
-    }; // namespace nfp_util
-
     Polygon getInnerFitRectangle(MultiPolygon cluster, double length, double width);
     vector<Point> getAllEdgeIntersectionPoints(MultiPolygon &allNfpIfr);
     MultiPolygon getNoFitPolygon(Polygon &referencePolygon, MultiPolygon &cluster);
