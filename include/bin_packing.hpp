@@ -14,12 +14,14 @@
 #include <ctime>
 #include <sys/stat.h>
 #include <sys/types.h>
+//#include <libnfporb.hpp>
 
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/geometries.hpp>
 
 namespace boost_geo = boost::geometry;
 namespace trans = boost::geometry::strategy::transform;
+//using namespace libnfporb;
 
 typedef boost_geo::model::point<double, 2, boost_geo::cs::cartesian> Point;
 typedef boost::geometry::model::linestring<Point> Line;
@@ -59,13 +61,14 @@ namespace geo_util
     bool isItPossibleToPlacePolygon(std::vector<Polygon> &, std::vector<Polygon>, Point);
     bool pointInRectangle(Point, Point, Point);
     double getPackingLength(MultiPolygon &);
+    Polygon makePolygon(Polygon, Point, double);
 }; // namespace geo_util
 
 namespace polygon_fit
 {
     Polygon getInnerFitRectangle(std::vector<Polygon>, double, double);
     Polygon getNoFitPolygon(Polygon &, std::vector<Polygon>);
-    std::vector<Polygon> getAllNfpIfr(std::vector<Polygon> &, std::vector<Polygon>);
+    MultiPolygon getAllNfpIfr(std::vector<Polygon> &, std::vector<Polygon>, double, double);
     std::vector<Point> getAllEdgeIntersectionPoints(std::vector<Polygon> &);
 }; // namespace polygon_fit
 
@@ -81,13 +84,13 @@ namespace cluster_util
     double clusteringCriteria2(Polygon &, Polygon &);
     double getClusterValue(Polygon &, Polygon &);
     void sort(std::vector<std::vector<Polygon>> &);
-    std::vector<Point> getCandidatePlacementPositions(std::vector<Polygon> &, std::vector<Polygon> &);
-    Point findBlfPoint(std::vector<Polygon> &, std::vector<Polygon> &);
-    std::vector<Polygon> blf(std::vector<std::vector<Polygon>> &);
-    double getBestClusters(std::vector<std::vector<double>> &, std::vector<double> &, int, int);
-    void printBestClusters(std::vector<std::vector<double>> &, std::vector<double> &, int, int, std::vector<std::tuple<int, int>> &);
-    std::vector<std::tuple<int, int>> perfectClustering(std::vector<std::vector<double>> &, double);
-    std::vector<std::vector<double>> getClusterValues(std::vector<Polygon> &);
+    std::vector<Point> getCandidatePlacementPositions(std::vector<Polygon> &, std::vector<Polygon> &, double, double);
+    Point findBlfPoint(std::vector<Polygon> &, std::vector<Polygon> &, double, double);
+    std::vector<Polygon> blf(std::vector<std::vector<Polygon>> &, double, double);
+    double getBestClusters(std::vector<std::vector<std::vector<std::vector<double>>>> &, std::vector<double> &, int, int);
+    void printBestClusters(std::vector<std::vector<std::vector<std::vector<double>>>> &, std::vector<double> &, int, int, std::vector<std::tuple<int, int, int, int>> &);
+    std::vector<std::tuple<int, int, int, int>> perfectClustering(std::vector<std::vector<std::vector<std::vector<double>>>> &, double);
+    std::vector<std::vector<std::vector<std::vector<double>>>> getClusterValues(std::vector<Polygon> &);
     MultiPolygon generateInitialSolution(std::vector<Polygon> &, double);
 }; // namespace cluster_util
 
