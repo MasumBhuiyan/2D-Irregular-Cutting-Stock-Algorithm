@@ -240,22 +240,25 @@ namespace nfp_util
 	MultiPolygon convertNfp_t2MultiPolygon(nfp_t nfp)
 	{
 		MultiPolygon multiPolygon;
-		for (auto ring : nfp) {
+		for (auto &ring : nfp)
+		{
 			Polygon polygon;
-			for (auto point : ring) {
-				Point t((double) point.x_.val(), (double) point.y_.val());
-				polygon.push_back(t);
+			for (auto point : ring)
+			{
+				Point t((double)point.x_.val(), (double)point.y_.val());
+				polygon.outer().push_back(t);
 			}
 			multiPolygon.push_back(polygon);
 		}
 		return multiPolygon;
 	}
+
 	polygon_t convertPolygon2Polygon_t(Polygon polygon)
 	{
 		polygon_t polygonT;
-		for (auto point : polygon.outer()) 
+		for (auto &point : polygon.outer())
 		{
-			polygonT.outer().push_back(point_t(point.get<0>(), point.get<1>());
+			polygonT.outer().push_back(point_t(point.get<0>(), point.get<1>()));
 		}
 		return polygonT;
 	}
@@ -330,7 +333,8 @@ MultiPolygon polygon_fit::getNoFitPolygon(Polygon &referencePolygon, MultiPolygo
 	polygon_t polygon2 = nfp_util::convertPolygon2Polygon_t(cluster[0]);
 	polygon_t polygon3 = nfp_util::convertPolygon2Polygon_t(cluster[1]);
 
-	nfp_t nfp = generateNFP(generateNFP(polygon1, polygon2), polygon3);
+	nfp_t nfp12 = generateNFP(polygon1, polygon2);
+	nfp_t nfp = generateNFP(nfp12[0], polygon3);
 	noFitPolygons = nfp_util::convertNfp_t2MultiPolygon(nfp123);
 	return noFitPolygons;
 }
@@ -507,7 +511,6 @@ void cluster_util::sortByClusterValue(vector<MultiPolygon> &clusters)
 		return geo_util::dblcmp(area1 - area2, EPS) >= 0;
 	});
 }
-
 
 std::vector<Point> cluster_util::getCandidatePlacementPositions(std::vector<Polygon> &alreadyPlacedPolygons, std::vector<Polygon> &clusterNextToBePlaced, double length, double width)
 {
