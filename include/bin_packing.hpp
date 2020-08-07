@@ -60,7 +60,7 @@ namespace geo_util
     double polygonPolygonIntersectionArea(Polygon &, Polygon &);
     Point segmentSegmentIntersectionPoint(Point, Point, Point, Point);
     vector<Polygon> rotatePolygons(vector<Polygon> &, Point, double);
-    vector<Polygon> translatePolygons(vector<Polygon>, Point);
+    MultiPolygon translatePolygons(MultiPolygon cluster, Point translationPoint);
     bool isItPossibleToPlacePolygon(vector<Polygon> &, vector<Polygon>, Point);
     bool pointInRectangle(Point, Point, Point);
     double getPackingLength(MultiPolygon &);

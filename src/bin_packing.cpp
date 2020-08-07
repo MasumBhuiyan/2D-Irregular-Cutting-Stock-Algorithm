@@ -158,12 +158,12 @@ std::vector<Polygon> geo_util::rotatePolygons(std::vector<Polygon> &polygons, Po
 	return rotatedPolygons;
 }
 
-std::vector<Polygon> geo_util::translatePolygons(std::vector<Polygon> polygons, Point point)
+MultiPolygon geo_util::translatePolygons(MultiPolygon cluster, Point translationPoint);
 {
-	std::vector<Polygon> translatedPolygons;
-	Point reference = polygons[0].outer()[0];
+	MultiPolygon translatedPolygons;
+	Point reference = cluster[0].outer()[0];
 
-	for (auto &polygon : polygons)
+	for (auto &polygon : cluster)
 	{
 		for (auto &point : polygon.outer())
 		{
@@ -171,10 +171,10 @@ std::vector<Polygon> geo_util::translatePolygons(std::vector<Polygon> polygons, 
 			point = t;
 		}
 	}
-	for (auto &polygon : polygons)
+	for (auto &polygon : cluster)
 	{
 		Polygon translatedPolygon;
-		boost_geo::transform(polygon, translatedPolygon, trans::translate_transformer<double, 2, 2>(point.get<0>(), point.get<1>()));
+		boost_geo::transform(polygon, translatedPolygon, trans::translate_transformer<double, 2, 2>(translationPoint.get<0>(), translationPoint.get<1>()));
 		translatedPolygons.push_back(translatedPolygon);
 	}
 	return translatedPolygons;
@@ -332,10 +332,20 @@ MultiPolygon polygon_fit::getNoFitPolygon(Polygon &referencePolygon, MultiPolygo
 	polygon_t polygon1 = nfp_util::convertPolygon2Polygon_t(referencePolygon);
 	polygon_t polygon2 = nfp_util::convertPolygon2Polygon_t(cluster[0]);
 	polygon_t polygon3 = nfp_util::convertPolygon2Polygon_t(cluster[1]);
+	polygon_t polygon4;
 
-	nfp_t nfp12 = generateNFP(polygon1, polygon2);
-	nfp_t nfp = generateNFP(nfp12[0], polygon3);
-	noFitPolygons = nfp_util::convertNfp_t2MultiPolygon(nfp123);
+	nfp_t nfp = generateNFP(polygon1, polygon2);
+
+	for(auto ring: nfp)
+	{
+		for(auto point: ring)
+		{
+			polygon4.outer().push_back(point_t((double)point.x_.val(), (double)point.y_.val()));
+		}
+		break;
+	}
+	nfp = generateNFP(polygon4, polygon3);
+	noFitPolygons = nfp_util::convertNfp_t2MultiPolygon(nfp);
 	return noFitPolygons;
 }
 
@@ -512,10 +522,10 @@ void cluster_util::sortByClusterValue(vector<MultiPolygon> &clusters)
 	});
 }
 
-std::vector<Point> cluster_util::getCandidatePlacementPositions(std::vector<Polygon> &alreadyPlacedPolygons, std::vector<Polygon> &clusterNextToBePlaced, double length, double width)
+vector<Point> cluster_util::getCandidatePlacementPositions(MultiPolygon &packing, MultiPolygon &cluster, double length, double width)
 {
 	std::vector<Point> candidatePlacementPositions;
-	auto allNfpIfr = polygon_fit::getAllNfpIfr(alreadyPlacedPolygons, clusterNextToBePlaced, length, width);
+	MultiPolygon allNfpIfr = polygon_fit::getAllNfpIfr(packing, cluster, length, width);
 	std::vector<Point> allEdgeIntersectionPoints = polygon_fit::getAllEdgeIntersectionPoints(allNfpIfr);
 	for (auto polygon : allNfpIfr)
 	{
@@ -530,61 +540,42 @@ std::vector<Point> cluster_util::getCandidatePlacementPositions(std::vector<Poly
 	}
 	return candidatePlacementPositions;
 }
-Point cluster_util::findBlfPoint(std::vector<Polygon> &alreadyPlacedPolygons, std::vector<Polygon> &clusterNextToBePlaced, double length, double width)
+Point cluster_util::findBLFPoint(MultiPolygon &packing, MultiPolygon &cluster, double length, double width)
 {
 	Point blfPoint(INF, INF);
-	std::vector<Point> candidatePlacementPositions = cluster_util::getCandidatePlacementPositions(alreadyPlacedPolygons, clusterNextToBePlaced, length, width);
+	std::vector<Point> candidatePlacementPositions = cluster_util::getCandidatePlacementPositions(packing, cluster, length, width);
 	for (auto point : candidatePlacementPositions)
 	{
-		if (geo_util::isItPossibleToPlacePolygon(alreadyPlacedPolygons, clusterNextToBePlaced, point) == true)
+		if (geo_util::isItPossibleToPlacePolygon(packing, cluster, point) == true)
 		{
 			if (point.get<0>() < blfPoint.get<0>())
 			{
 				blfPoint = point;
 			}
-			else if (point.get<0>() == blfPoint.get<0>() and point.get<1>() < blfPoint.get<1>())
+			else if( (point.get<0>() == blfPoint.get<0>()) and (point.get<1>() < blfPoint.get<1>()))
 			{
 				blfPoint = point;
 			}
 		}
 	}
-
-	// @validation
-	assert(blfPoint.get<0>() != INF and blfPoint.get<1>() != INF);
 	return blfPoint;
 }
-std::vector<Polygon> cluster_util::blf(std::vector<std::vector<Polygon>> &clusters, double length, double width)
+MultiPolygon cluster_util::bottomLeftFill(vector<MultiPolygon> &clusters, double length, double width);
 {
-	std::vector<Polygon> polygons;
+	MultiPolygon packing;
 	for (auto cluster : clusters)
 	{
-		Point point = cluster_util::findBlfPoint(polygons, cluster, length, width);
-		std::vector<Polygon> translatedCluster = geo_util::translatePolygons(cluster, point);
+		Point blfPoint = cluster_util::findBLFPoint(packing, cluster, length, width);
+		MultiPolygon translatedCluster = geo_util::translatePolygons(cluster, blfPoint);
 		for (auto polygon : translatedCluster)
 		{
-			polygons.push_back(polygon);
+			packing.push_back(polygon);
 		}
 	}
-
-	// @validation
-	int m = 0;
-	for (auto cluster : clusters)
-	{
-		m += (int)cluster.size();
-	}
-	assert(polygons.size() == m);
-
-	for (int i = 0; i < m; i += 1)
-	{
-		for (int j = i + 1; j < m; j += 1)
-		{
-			assert(!(geo_util::polygonPolygonIntersectionArea(polygons[i], polygons[j]) > 0));
-		}
-	}
-	return polygons;
+	return packing;
 }
 
-double cluster_util::getBestClusters(std::vector<std::vector<std::vector<std::vector<double>>>> &clusterValues, std::vector<double> &dp, int m, int mask)
+double cluster_util::findBestPairWiseClusters(vector<vector<vector<vector<double>>>> &clusterValues, vector<double> &dp, int numberOfPairs, int mask)
 {
 	int taken = __builtin_popcount(mask);
 	if (taken == (m + m))
@@ -611,7 +602,7 @@ double cluster_util::getBestClusters(std::vector<std::vector<std::vector<std::ve
 				for (int l = 0; l < ALLOWABLE_ROTATIONS.size(); l += 1)
 				{
 					int bitOn12 = (1 << i) + (1 << j);
-					double __maxProfit = cluster_util::getBestClusters(clusterValues, dp, m, mask ^ bitOn12) + clusterValues[i][j][k][l];
+					double __maxProfit = cluster_util::findBestPairWiseClusters(clusterValues, dp, noOfclusterPairs, mask ^ bitOn12) + clusterValues[i][j][k][l];
 					maxProfit = std::max(maxProfit, __maxProfit);
 				}
 			}
@@ -619,7 +610,7 @@ double cluster_util::getBestClusters(std::vector<std::vector<std::vector<std::ve
 	}
 	return maxProfit;
 }
-void cluster_util::printBestClusters(std::vector<std::vector<std::vector<std::vector<double>>>> &clusterValues, std::vector<double> &dp, int m, int mask, std::vector<std::tuple<int, int, int, int>> &pairs)
+void cluster_util::printBestPairWiseClusters(vector<vector<vector<vector<double>>>> &clusterValues, vector<double> &dp, int numberOfPairs, int mask, vector<tuple<int, int, int, int>> &clusterPairs)
 {
 	int taken = __builtin_popcount(mask);
 	if (taken == (m + m))
@@ -641,11 +632,11 @@ void cluster_util::printBestClusters(std::vector<std::vector<std::vector<std::ve
 				for (int l = 0; l < ALLOWABLE_ROTATIONS.size(); l += 1)
 				{
 					int bitOn12 = (1 << i) + (1 << j);
-					double __maxProfit = cluster_util::getBestClusters(clusterValues, dp, m, mask ^ bitOn12) + clusterValues[i][j][k][l];
+					double __maxProfit = cluster_util::findBestPairWiseClusters(clusterValues, dp, noOfclusterPairs, mask ^ bitOn12) + clusterValues[i][j][k][l];
 					if (maxProfit == __maxProfit)
 					{
-						pairs.push_back({i, j, k, l});
-						cluster_util::printBestClusters(clusterValues, dp, m, mask ^ bitOn12, pairs);
+						clusterPairs.push_back({i, j, k, l});
+						cluster_util::printBestPairWiseClusters(clusterValues, dp, noOfclusterPairs, mask ^ bitOn12, clusterPairs);
 						return;
 					}
 				}
