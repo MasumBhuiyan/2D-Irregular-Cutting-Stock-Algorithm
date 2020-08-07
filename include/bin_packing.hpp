@@ -40,6 +40,7 @@ const double RUN_TIME_DURATION = 20;
 const double FEASIBILTY = 1e-2;
 const int MAXIMUM_GENERATION = 20;
 const int NUMBER_OF_HOST_NESTS = 20;
+const double INITIAL_STOCK_LENGTH = 100000;
 const int MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA = 40;
 const vector<double> ALLOWABLE_ROTATIONS = {0, 90, 180, 270};
 
