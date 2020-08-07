@@ -148,9 +148,9 @@ Point geo_util::segmentSegmentIntersectionPoint(Point a, Point b, Point c, Point
 	return Point(INF, INF);
 }
 
-std::vector<Polygon> geo_util::rotatePolygons(std::vector<Polygon> &polygons, Point reference, double degree)
+vector<Polygon> geo_util::rotatePolygons(vector<Polygon> &polygons, Point reference, double degree)
 {
-	std::vector<Polygon> rotatedPolygons;
+	vector<Polygon> rotatedPolygons;
 	for (auto &polygon : polygons)
 	{
 		rotatedPolygons.push_back(geo_util::rotatePolygon(polygon, reference, degree));
@@ -158,7 +158,7 @@ std::vector<Polygon> geo_util::rotatePolygons(std::vector<Polygon> &polygons, Po
 	return rotatedPolygons;
 }
 
-MultiPolygon geo_util::translatePolygons(MultiPolygon cluster, Point translationPoint);
+MultiPolygon geo_util::translatePolygons(MultiPolygon cluster, Point translationPoint)
 {
 	MultiPolygon translatedPolygons;
 	Point reference = cluster[0].outer()[0];
@@ -180,15 +180,17 @@ MultiPolygon geo_util::translatePolygons(MultiPolygon cluster, Point translation
 	return translatedPolygons;
 }
 
-bool geo_util::isItPossibleToPlacePolygon(std::vector<Polygon> &alreadyPlacedPolygons, std::vector<Polygon> clusterNextToBePlaced, Point point)
+bool geo_util::isItPossibleToPlacePolygon(MultiPolygon &packing, MultiPolygon clusterNextToBePlaced, Point point)
 {
 	clusterNextToBePlaced = geo_util::translatePolygons(clusterNextToBePlaced, point);
-	for (auto poly : alreadyPlacedPolygons)
+	for (auto poly : packing)
 	{
 		for (auto polygonNextToBePlaced : clusterNextToBePlaced)
 		{
 			if (geo_util::polygonPolygonIntersectionArea(polygonNextToBePlaced, poly) > 0)
+			{
 				return false;
+			}
 		}
 	}
 	return true;
@@ -526,9 +528,9 @@ void cluster_util::sortByClusterValue(vector<MultiPolygon> &clusters)
  */
 vector<Point> cluster_util::getCandidatePlacementPositions(MultiPolygon &packing, MultiPolygon &cluster, double length, double width)
 {
-	std::vector<Point> candidatePlacementPositions;
+	vector<Point> candidatePlacementPositions;
 	MultiPolygon allNfpIfr = polygon_fit::getAllNfpIfr(packing, cluster, length, width);
-	std::vector<Point> allEdgeIntersectionPoints = polygon_fit::getAllEdgeIntersectionPoints(allNfpIfr);
+	vector<Point> allEdgeIntersectionPoints = polygon_fit::getAllEdgeIntersectionPoints(allNfpIfr);
 	for (auto polygon : allNfpIfr)
 	{
 		for (auto point : polygon.outer())
@@ -548,7 +550,7 @@ vector<Point> cluster_util::getCandidatePlacementPositions(MultiPolygon &packing
 Point cluster_util::findBLFPoint(MultiPolygon &packing, MultiPolygon &cluster, double length, double width)
 {
 	Point blfPoint(INF, INF);
-	std::vector<Point> candidatePlacementPositions = cluster_util::getCandidatePlacementPositions(packing, cluster, length, width);
+	vector<Point> candidatePlacementPositions = cluster_util::getCandidatePlacementPositions(packing, cluster, length, width);
 	for (auto point : candidatePlacementPositions)
 	{
 		if (geo_util::isItPossibleToPlacePolygon(packing, cluster, point) == true)
@@ -762,55 +764,9 @@ MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygon
 		}
 	}
 	cluster_util::sortByClusterValue(clusters);
-	double length = 100000;
-	vector<Polygon> initialSolution = cluster_util::bottomLeftFill(clusters, length, width);
-	MultiPolygon result;
-	for (Polygon &polygon : initialSolution)
-	{
-		result.push_back(polygon);
-	}
-	return result;
-}
-MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygons, double width)
-{
-	std::vector<std::vector<std::vector<std::vector<double>>>> clusterValues = cluster_util::getClusterValues(polygons);
-	std::vector<std::tuple<int, int, int, int>> clusterIds = cluster_util::perfectClustering(clusterValues, std::min((int)polygons.size(), 10));
-
-	std::vector<bool> taken((int)polygons.size(), false);
-	std::vector<std::vector<Polygon>> clusters;
-	for (std::tuple<int, int, int, int> clusterId : clusterIds)
-	{
-		int i, j, k, l;
-		std::tie(i, j, k, l) = clusterId;
-		std::vector<Polygon> cluster;
-
-		Polygon polygon_i = geo_util::makePolygon(polygons[i], polygons[i].outer()[0], ALLOWABLE_ROTATIONS[k]);
-		Polygon polygon_j = geo_util::makePolygon(polygons[j], polygons[j].outer()[0], ALLOWABLE_ROTATIONS[l]);
-		auto nfp = polygon_fit::getNoFitPolygon(polygon_i, {polygon_j});
-		if (geo_util::isConcave(nfp) == true)
-		{
-			taken[i] = taken[j] = true;
-			Point point = cluster_util::findDominantPoint(nfp);
-			polygon_j = geo_util::translatePolygon(polygon_j, point);
-			cluster.push_back(polygon_i);
-			cluster.push_back(polygon_j);
-			clusters.push_back(cluster);
-		}
-	}
-
-	for (auto polygon : polygons)
-	{
-		clusters.push_back({polygon});
-	}
-	cluster_util::sort(clusters);
-	double length = 100000;
-	std::vector<Polygon> initialSolution = cluster_util::blf(clusters, length, width);
-	MultiPolygon result;
-	for (Polygon &polygon : initialSolution)
-	{
-		result.push_back(polygon);
-	}
-	return result;
+	double length = INITIAL_STOCK_LENGTH;
+	MultiPolygon initialSolution = cluster_util::bottomLeftFill(clusters, length, width);
+	return initialSolution;
 }
 
 /** namespace bin_packing */
@@ -818,10 +774,10 @@ MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygon
  * read input from dataset file
  * file location ../io/datasets/**.txt
  */
-std::tuple<std::vector<Polygon>, double> bin_packing::readDataset(std::string datasetName)
+std::tuple<vector<Polygon>, double> bin_packing::readDataset(std::string datasetName)
 {
 	double width;
-	std::vector<Polygon> polygons;
+	vector<Polygon> polygons;
 	std::ifstream file("../io/datasets/" + datasetName + ".txt");
 	if (file.fail())
 	{
@@ -905,7 +861,7 @@ double bin_packing::getTotalPenetrationDepth(MultiPolygon &packing)
 /**
  * 
  */
-double bin_packing::getOverlapPenalty(MultiPolygon &packing, std::vector<std::vector<double>> &penalty, int id, double rotationAngle, Point translationPoint)
+double bin_packing::getOverlapPenalty(MultiPolygon &packing, vector<vector<double>> &penalty, int id, double rotationAngle, Point translationPoint)
 {
 	int n = packing.size();
 	Polygon polygon = packing[id];
@@ -919,11 +875,11 @@ double bin_packing::getOverlapPenalty(MultiPolygon &packing, std::vector<std::ve
 	}
 	return overlapPenalty;
 }
-void bin_packing::increasePenalty(MultiPolygon &packing, std::vector<std::vector<double>> &penalty)
+void bin_packing::increasePenalty(MultiPolygon &packing, vector<vector<double>> &penalty)
 {
 	int n = penalty.size();
 	double maximumPenetrationDepth = -INF;
-	std::vector<std::vector<double>> penetrationDepths(n, std::vector<double>(n, 0));
+	vector<vector<double>> penetrationDepths(n, vector<double>(n, 0));
 	for (int i = 0; i < n; i++)
 	{
 		for (int j = 0; j < n; j++)
@@ -943,7 +899,7 @@ void bin_packing::increasePenalty(MultiPolygon &packing, std::vector<std::vector
 		}
 	}
 }
-Point bin_packing::cuckooSearch(MultiPolygon &packing, std::vector<std::vector<double>> &penalty, int id, double rotationAngle, double width, double lenght)
+Point bin_packing::cuckooSearch(MultiPolygon &packing, vector<vector<double>> &penalty, int id, double rotationAngle, double width, double lenght)
 {
 	Polygon polygon = packing[id];
 	polygon = geo_util::rotatePolygon(polygon, polygon.outer()[0], rotationAngle);
@@ -958,7 +914,7 @@ Point bin_packing::cuckooSearch(MultiPolygon &packing, std::vector<std::vector<d
 		min_y = std::min(min_y, point.get<1>());
 	}
 
-	std::vector<Point> hostNests(NUMBER_OF_HOST_NESTS);
+	vector<Point> hostNests(NUMBER_OF_HOST_NESTS);
 	for (int i = 0; i < NUMBER_OF_HOST_NESTS; i++)
 	{
 		srand(time(NULL));
@@ -988,13 +944,13 @@ Point bin_packing::cuckooSearch(MultiPolygon &packing, std::vector<std::vector<d
 	}
 	return bestPosition;
 }
-MultiPolygon bin_packing::minimizeOverlap(MultiPolygon packing, std::vector<double> allowableRoatations, double width, double length)
+MultiPolygon bin_packing::minimizeOverlap(MultiPolygon packing, vector<double> allowableRoatations, double width, double length)
 {
 	int n = packing.size();
-	std::vector<std::vector<double>> penalty(n, std::vector<double>(n, 1.0));
+	vector<vector<double>> penalty(n, vector<double>(n, 1.0));
 	int it = 0;
 	double fitness = INF;
-	std::vector<int> Q(n);
+	vector<int> Q(n);
 	for (int i = 0; i < n; i++)
 	{
 		Q[i] = i;
@@ -1038,7 +994,7 @@ MultiPolygon bin_packing::minimizeOverlap(MultiPolygon packing, std::vector<doub
 	}
 	return packing;
 }
-void bin_packing::binPacking(std::vector<Polygon> &polygons, double width, std::string location, std::string datasetName, double runTimeDuration)
+void bin_packing::binPacking(vector<Polygon> &polygons, double width, std::string location, std::string datasetName, double runTimeDuration)
 {
 	auto start = std::chrono::high_resolution_clock::now();
 
