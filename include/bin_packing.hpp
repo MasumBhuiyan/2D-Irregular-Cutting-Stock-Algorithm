@@ -67,7 +67,13 @@ namespace geo_util
     bool pointInRectangle(Point, Point, Point);
     double getPackingLength(MultiPolygon &);
     Polygon makePolygon(Polygon, Point, double);
-    void visualize(MultiPolygon , std::string, std::string);
+    namespace poly_util
+    {
+        Polygon translate(Polygon &polygon, Point translationPoint);
+        Polygon rotateCW(Polygon &polygon, double rotationAngleInDegree, Point referencePoint = Point(0, 0));
+    }; // namespace poly_util
+    void visualize(MultiPolygon, std::string, std::string);
+
 }; // namespace geo_util
 
 namespace polygon_fit

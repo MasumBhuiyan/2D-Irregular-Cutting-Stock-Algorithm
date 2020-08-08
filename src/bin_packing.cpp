@@ -211,6 +211,21 @@ Polygon geo_util::makePolygon(Polygon polygon, Point translationPoint, double ro
 	return polygon;
 }
 
+Polygon geo_util::poly_util::translate(Polygon &polygon, Point translationPoint)
+{
+	Polygon translatedPolygon;
+	boost_geo::transform(polygon, translatedPolygon, trans::translate_transformer<double, 2, 2>(translationPoint.get<0>(), translationPoint.get<1>()));
+	return translatedPolygon;
+}
+
+Polygon geo_util::poly_util::rotateCW(Polygon &polygon, double rotationAngleInDegree, Point referencePoint)
+{
+	boost_geo::multiply_value(referencePoint, -1);
+	Polygon translatedPolygon = geo_util::poly_util::translate(polygon, referencePoint), rotatedPolygon;
+	boost_geo::transform(translatedPolygon, rotatedPolygon, trans::rotate_transformer<boost_geo::degree, double, 2, 2>(rotationAngleInDegree));
+	return rotatedPolygon;
+}
+
 void geo_util::visualize(MultiPolygon multipolygon, std::string location, std::string datasetName)
 {
 	Box box;
