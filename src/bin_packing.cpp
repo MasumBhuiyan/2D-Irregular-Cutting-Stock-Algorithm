@@ -326,27 +326,40 @@ vector<Point> polygon_fit::getAllEdgeIntersectionPoints(MultiPolygon &allNfpIfr)
  */
 MultiPolygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, MultiPolygon cluster)
 {
+	std::cout << "entry ...\n";
+	std::cout << boost_geo::wkt(referencePolygon) << std::endl;
+	std::cout << boost_geo::wkt(cluster) << std::endl;
 	MultiPolygon noFitPolygons;
 	nfp_t nfp;
 	if (cluster.size() == 1)
 	{
+		std::cout << "case 1...\n";
 		polygon_t polygon1 = nfp_util::convertPolygon2Polygon_t(referencePolygon);
 		polygon_t polygon2 = nfp_util::convertPolygon2Polygon_t(cluster[0]);
 		reverse(polygon1.outer().begin(), polygon1.outer().end());
 		reverse(polygon2.outer().begin(), polygon2.outer().end());
 
+		std::cout << "running generateNFP()...\n";
+		std::cout << boost_geo::wkt(polygon1) << std::endl;
+		std::cout << boost_geo::wkt(polygon2) << std::endl;
 		nfp = generateNFP(polygon1, polygon2, true);
-		// std::cout << "............................ok\n";
 		// write_svg("../../tests/nfp3.svg", {polygon1, polygon2}, nfp);
 	}
 	else if (cluster.size() == 2)
 	{
+		std::cout << "case 2...\n";
+		std::cout << "ruuning conversions...\n";
 		polygon_t polygon1 = nfp_util::convertPolygon2Polygon_t(referencePolygon);
 		polygon_t polygon2 = nfp_util::convertPolygon2Polygon_t(cluster[0]);
 		polygon_t polygon3 = nfp_util::convertPolygon2Polygon_t(cluster[1]);
+		std::cout << "reversing...\n";
 		reverse(polygon1.outer().begin(), polygon1.outer().end());
 		reverse(polygon2.outer().begin(), polygon2.outer().end());
 		reverse(polygon3.outer().begin(), polygon3.outer().end());
+		std::cout << "running generateNFP()...\n";
+		std::cout << boost_geo::wkt(polygon1) << std::endl;
+		std::cout << boost_geo::wkt(polygon2) << std::endl;
+		std::cout << boost_geo::wkt(polygon3) << std::endl;
 		nfp = generateNFP(polygon1, polygon2, true);
 		polygon_t polygon4;
 		for (auto polygon : nfp)
@@ -366,7 +379,9 @@ MultiPolygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, MultiPolygon
 		nfp = generateNFP(polygon4, polygon3);
 		// write_svg("../../tests/nfp2.svg", {polygon1, polygon2, polygon3}, nfp);
 	}
+	std::cout << "calling convertNfp_t2MultiPolygon()....\n";
 	noFitPolygons = nfp_util::convertNfp_t2MultiPolygon(nfp);
+	std::cout << "end....\n";
 	return noFitPolygons;
 }
 
@@ -735,8 +750,10 @@ vector<vector<vector<vector<double>>>> cluster_util::getClusterValues(vector<Pol
 						geo_util::normalize(polygon_i);
 						geo_util::normalize(polygon_j);
 						MultiPolygon cluster({polygon_j});
+
+						std::cout << "calculating nfp for polygon " << i << ", " << j << " for rotation " << ALLOWABLE_ROTATIONS[k] << ", " << ALLOWABLE_ROTATIONS[l] << " ..." << std::endl;
 						auto nfp = polygon_fit::getNoFitPolygon(polygon_i, cluster);
-						assert(nfp.size() == 1);
+						// assert(nfp.size() == 1);
 						// std::cout << boost_geo::wkt(nfp[0]) << "\n";
 						// geo_util::visualize(nfp, "../tests/results/", "nfp");
 						if (geo_util::isConcave(nfp[0]) == true)
@@ -760,10 +777,10 @@ vector<vector<vector<vector<double>>>> cluster_util::getClusterValues(vector<Pol
  */
 MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygons, double width)
 {
-	std::cout << "generate Initial Solution...running\n";
+	std::cout << "generate initial solution running..." << std::endl;
 	vector<vector<vector<vector<double>>>> clusterValues = cluster_util::getClusterValues(inputPolygons);
 
-	std::cout << "Cluster pairs...receiving\n";
+	std::cout << "cluster pairs receiving..." << std::endl;
 	vector<tuple<int, int, int, int>> clusterPairs = cluster_util::getPerfectClustering(clusterValues, std::min((int)inputPolygons.size(), 10));
 
 	vector<bool> taken((int)inputPolygons.size(), false);
