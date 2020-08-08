@@ -9,7 +9,7 @@ void testDataset(std::string datasetName)
     double width;
     std::vector<Polygon> inputPolygons;
     std::tie(inputPolygons, width) = bin_packing::readDataset(datasetName);
-    bin_packing::binPacking(inputPolygons, width, "", "", 5.0);
+    bin_packing::binPacking(inputPolygons, width, "", datasetName, 5.0);
 }
 
 int main(int argc, char const *argv[])
