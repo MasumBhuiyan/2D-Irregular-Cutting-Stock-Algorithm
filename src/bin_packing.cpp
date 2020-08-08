@@ -15,11 +15,7 @@ int geo_util::dblcmp(double d, double eps)
 
 bool geo_util::isConcave(Polygon &polygon)
 {
-	Polygon convexhull = cluster_util::convexHull({polygon});
-	double polygonArea = std::fabs(boost_geo::area(polygon));
-	double polygonConvexHullArea = std::fabs(boost_geo::area(convexhull));
-	if( geo_util::dblcmp(polygonConvexHullArea - polygonArea) > 0 ) return true;
-	return false;
+	return !(boost_geo::is_convex(polygon.outer()));
 }
 
 double geo_util::getLength(Polygon &polygon)
@@ -52,7 +48,7 @@ double geo_util::crossProduct(Point p, Point q)
 void geo_util::normalize(Polygon &polygon)
 {
 	double min_x = INF, min_y = INF;
-	for(auto &point: polygon.outer())
+	for (auto &point : polygon.outer())
 	{
 		min_x = std::min(min_x, point.get<0>());
 		min_y = std::min(min_y, point.get<1>());
@@ -207,12 +203,14 @@ double geo_util::getPackingLength(MultiPolygon &multiPolygon)
 	}
 	return packingLength;
 }
+
 Polygon geo_util::makePolygon(Polygon polygon, Point translationPoint, double rotationAngle)
 {
 	polygon = geo_util::rotatePolygon(polygon, polygon.outer()[0], rotationAngle);
 	polygon = geo_util::translatePolygon(polygon, translationPoint);
 	return polygon;
 }
+
 void geo_util::visualize(MultiPolygon multipolygon, std::string location, std::string datasetName)
 {
 	Box box;
@@ -241,7 +239,7 @@ namespace nfp_util
 				Point t((double)point.x_.val(), (double)point.y_.val());
 				polygon.outer().push_back(t);
 			}
-			if( polygon.outer().size() ) 
+			if (polygon.outer().size())
 			{
 				polygon.outer().push_back(polygon.outer()[0]);
 			}
@@ -330,10 +328,10 @@ MultiPolygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, MultiPolygon
 {
 	MultiPolygon noFitPolygons;
 	nfp_t nfp;
-	if( cluster.size() == 1 )
-	{	
-		polygon_t polygon1 = nfp_util::convertPolygon2Polygon_t(referencePolygon); 
-		polygon_t polygon2 = nfp_util::convertPolygon2Polygon_t(cluster[0]); 
+	if (cluster.size() == 1)
+	{
+		polygon_t polygon1 = nfp_util::convertPolygon2Polygon_t(referencePolygon);
+		polygon_t polygon2 = nfp_util::convertPolygon2Polygon_t(cluster[0]);
 		reverse(polygon1.outer().begin(), polygon1.outer().end());
 		reverse(polygon2.outer().begin(), polygon2.outer().end());
 
@@ -341,24 +339,24 @@ MultiPolygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, MultiPolygon
 		// std::cout << "............................ok\n";
 		// write_svg("../../tests/nfp3.svg", {polygon1, polygon2}, nfp);
 	}
-	else if( cluster.size() == 2 )
+	else if (cluster.size() == 2)
 	{
-		polygon_t polygon1 = nfp_util::convertPolygon2Polygon_t(referencePolygon); 
-		polygon_t polygon2 = nfp_util::convertPolygon2Polygon_t(cluster[0]); 
-		polygon_t polygon3 = nfp_util::convertPolygon2Polygon_t(cluster[1]); 
+		polygon_t polygon1 = nfp_util::convertPolygon2Polygon_t(referencePolygon);
+		polygon_t polygon2 = nfp_util::convertPolygon2Polygon_t(cluster[0]);
+		polygon_t polygon3 = nfp_util::convertPolygon2Polygon_t(cluster[1]);
 		reverse(polygon1.outer().begin(), polygon1.outer().end());
 		reverse(polygon2.outer().begin(), polygon2.outer().end());
 		reverse(polygon3.outer().begin(), polygon3.outer().end());
 		nfp = generateNFP(polygon1, polygon2, true);
 		polygon_t polygon4;
-		for(auto polygon: nfp)
+		for (auto polygon : nfp)
 		{
-			for(auto point: polygon)
+			for (auto point : polygon)
 			{
 				point_t t((double)point.x_.val(), (double)point.y_.val());
 				polygon4.outer().push_back(t);
 			}
-			if( polygon4.outer().size() )
+			if (polygon4.outer().size())
 			{
 				polygon4.outer().push_back(polygon4.outer()[0]);
 			}
@@ -737,7 +735,7 @@ vector<vector<vector<vector<double>>>> cluster_util::getClusterValues(vector<Pol
 						geo_util::normalize(polygon_i);
 						geo_util::normalize(polygon_j);
 						MultiPolygon cluster({polygon_j});
-	 					auto nfp = polygon_fit::getNoFitPolygon(polygon_i, cluster);
+						auto nfp = polygon_fit::getNoFitPolygon(polygon_i, cluster);
 						assert(nfp.size() == 1);
 						// std::cout << boost_geo::wkt(nfp[0]) << "\n";
 						// geo_util::visualize(nfp, "../tests/results/", "nfp");
@@ -782,7 +780,6 @@ MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygon
 		geo_util::normalize(polygon_j);
 		MultiPolygon tmpCluster({polygon_j});
 
-
 		MultiPolygon nfp = polygon_fit::getNoFitPolygon(polygon_i, tmpCluster);
 
 		if (geo_util::isConcave(nfp[0]) == true)
@@ -805,7 +802,7 @@ MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygon
 	}
 	cluster_util::sortByClusterValue(clusters);
 	double length = INITIAL_STOCK_LENGTH;
-	MultiPolygon initialSolution;// = cluster_util::bottomLeftFill(clusters, length, width);
+	MultiPolygon initialSolution; // = cluster_util::bottomLeftFill(clusters, length, width);
 	return initialSolution;
 }
 
@@ -851,7 +848,7 @@ std::tuple<vector<Polygon>, double> bin_packing::readDataset(std::string dataset
 		}
 	}
 	std::cout << "Input polygons\n";
-	for(auto p: polygons)
+	for (auto p : polygons)
 	{
 		std::cout << boost_geo::wkt(p) << '\n';
 	}

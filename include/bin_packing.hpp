@@ -21,6 +21,7 @@ using std::vector;
 
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/geometries.hpp>
+#include <boost/geometry/algorithms/is_convex.hpp>
 
 namespace boost_geo = boost::geometry;
 namespace trans = boost::geometry::strategy::transform;
