@@ -334,9 +334,6 @@ MultiPolygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, MultiPolygon
 	{	
 		polygon_t polygon1 = nfp_util::convertPolygon2Polygon_t(referencePolygon); 
 		polygon_t polygon2 = nfp_util::convertPolygon2Polygon_t(cluster[0]); 
-		// std::cout << "getNoFitPolygon....\n";
-		// std::cout << boost_geo::wkt(polygon1) << "\n";
-		// std::cout << boost_geo::wkt(polygon2) << "\n";
 		reverse(polygon1.outer().begin(), polygon1.outer().end());
 		reverse(polygon2.outer().begin(), polygon2.outer().end());
 
@@ -768,43 +765,46 @@ MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygon
 	std::cout << "generate Initial Solution...running\n";
 	vector<vector<vector<vector<double>>>> clusterValues = cluster_util::getClusterValues(inputPolygons);
 
-	// std::cout << "Cluster pairs...receiving\n";
-	// vector<tuple<int, int, int, int>> clusterPairs = cluster_util::getPerfectClustering(clusterValues, std::min((int)inputPolygons.size(), 10));
+	std::cout << "Cluster pairs...receiving\n";
+	vector<tuple<int, int, int, int>> clusterPairs = cluster_util::getPerfectClustering(clusterValues, std::min((int)inputPolygons.size(), 10));
 
-	// vector<bool> taken((int)inputPolygons.size(), false);
-	// vector<MultiPolygon> clusters;
-	// for (auto &clusterId : clusterPairs)
-	// {
-	// 	int i, j, k, l;
-	// 	std::tie(i, j, k, l) = clusterId;
-	// 	MultiPolygon cluster;
+	vector<bool> taken((int)inputPolygons.size(), false);
+	vector<MultiPolygon> clusters;
+	for (auto &clusterId : clusterPairs)
+	{
+		int i, j, k, l;
+		std::tie(i, j, k, l) = clusterId;
+		MultiPolygon cluster;
 
-	// 	Polygon polygon_i = geo_util::rotatePolygon(inputPolygons[i], inputPolygons[i].outer()[0], ALLOWABLE_ROTATIONS[k]);
-	// 	Polygon polygon_j = geo_util::rotatePolygon(inputPolygons[j], inputPolygons[j].outer()[0], ALLOWABLE_ROTATIONS[l]);
-	// 	geo_util::normalize(polygon_i);
-	// 	geo_util::normalize(polygon_j);
-	// 	MultiPolygon tmpCluster({polygon_j});
-	// 	auto nfp = polygon_fit::getNoFitPolygon(polygon_i, tmpCluster);
-	// 	if (geo_util::isConcave(nfp[0]) == true)
-	// 	{
-	// 		taken[i] = taken[j] = true;
-	// 		Point point = cluster_util::findDominantPoint(nfp[0]);
-	// 		polygon_j = geo_util::translatePolygon(polygon_j, point);
-	// 		cluster.push_back(polygon_i);
-	// 		cluster.push_back(polygon_j);
-	// 		clusters.push_back(cluster);
-	// 	}
-	// }
+		Polygon polygon_i = geo_util::rotatePolygon(inputPolygons[i], inputPolygons[i].outer()[0], ALLOWABLE_ROTATIONS[k]);
+		Polygon polygon_j = geo_util::rotatePolygon(inputPolygons[j], inputPolygons[j].outer()[0], ALLOWABLE_ROTATIONS[l]);
+		geo_util::normalize(polygon_i);
+		geo_util::normalize(polygon_j);
+		MultiPolygon tmpCluster({polygon_j});
 
-	// for (int i = 0; i < inputPolygons.size(); i++)
-	// {
-	// 	if (taken[i] == false)
-	// 	{
-	// 		clusters.push_back({inputPolygons[i]});
-	// 	}
-	// }
-	// cluster_util::sortByClusterValue(clusters);
-	// double length = INITIAL_STOCK_LENGTH;
+
+		MultiPolygon nfp = polygon_fit::getNoFitPolygon(polygon_i, tmpCluster);
+
+		if (geo_util::isConcave(nfp[0]) == true)
+		{
+			taken[i] = taken[j] = true;
+			Point point = cluster_util::findDominantPoint(nfp[0]);
+			polygon_j = geo_util::translatePolygon(polygon_j, point);
+			cluster.push_back(polygon_i);
+			cluster.push_back(polygon_j);
+			clusters.push_back(cluster);
+		}
+	}
+
+	for (int i = 0; i < inputPolygons.size(); i++)
+	{
+		if (taken[i] == false)
+		{
+			clusters.push_back({inputPolygons[i]});
+		}
+	}
+	cluster_util::sortByClusterValue(clusters);
+	double length = INITIAL_STOCK_LENGTH;
 	MultiPolygon initialSolution;// = cluster_util::bottomLeftFill(clusters, length, width);
 	return initialSolution;
 }
