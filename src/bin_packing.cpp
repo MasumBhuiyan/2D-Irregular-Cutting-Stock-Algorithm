@@ -211,6 +211,25 @@ Polygon geo_util::makePolygon(Polygon polygon, Point translationPoint, double ro
 	return polygon;
 }
 
+Polygon geo_util::poly_util::normalize(Polygon polygon)
+{
+	double min_x = INF, min_y = INF;
+	for (auto point : polygon.outer())
+	{
+		min_x = std::min(min_x, point.get<0>());
+		min_y = std::min(min_y, point.get<1>());
+	}
+	for (auto inner : polygon.inners())
+	{
+		for (auto point : inner)
+		{
+			min_x = std::min(min_x, point.get<0>());
+			min_y = std::min(min_y, point.get<1>());
+		}
+	}
+	return geo_util::poly_util::translate(polygon, Point(-min_x, -min_y));
+}
+
 Polygon geo_util::poly_util::translate(Polygon &polygon, Point translationPoint)
 {
 	Polygon translatedPolygon;
@@ -760,8 +779,10 @@ vector<vector<vector<vector<double>>>> cluster_util::getClusterValues(vector<Pol
 				{
 					for (int l = 0; l < ALLOWABLE_ROTATIONS.size(); l += 1)
 					{
-						Polygon polygon_i = geo_util::rotatePolygon(inputPolygons[i], inputPolygons[i].outer()[0], ALLOWABLE_ROTATIONS[k]);
-						Polygon polygon_j = geo_util::rotatePolygon(inputPolygons[j], inputPolygons[j].outer()[0], ALLOWABLE_ROTATIONS[l]);
+						// Polygon polygon_i = geo_util::rotatePolygon(inputPolygons[i], inputPolygons[i].outer()[0], ALLOWABLE_ROTATIONS[k]);
+						// Polygon polygon_j = geo_util::rotatePolygon(inputPolygons[j], inputPolygons[j].outer()[0], ALLOWABLE_ROTATIONS[l]);
+						Polygon polygon_i = geo_util::poly_util::rotateCW(inputPolygons[i], ALLOWABLE_ROTATIONS[k], inputPolygons[i].outer()[0]);
+						Polygon polygon_j = geo_util::poly_util::rotateCW(inputPolygons[j], ALLOWABLE_ROTATIONS[l], inputPolygons[j].outer()[0]);
 						geo_util::normalize(polygon_i);
 						geo_util::normalize(polygon_j);
 						MultiPolygon cluster({polygon_j});

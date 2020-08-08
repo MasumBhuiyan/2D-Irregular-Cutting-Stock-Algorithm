@@ -69,6 +69,7 @@ namespace geo_util
     Polygon makePolygon(Polygon, Point, double);
     namespace poly_util
     {
+        Polygon normalize(Polygon polygon);
         Polygon translate(Polygon &polygon, Point translationPoint);
         Polygon rotateCW(Polygon &polygon, double rotationAngleInDegree, Point referencePoint = Point(0, 0));
     }; // namespace poly_util
