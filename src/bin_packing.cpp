@@ -15,23 +15,11 @@ int geo_util::dblcmp(double d, double eps)
 
 bool geo_util::isConcave(Polygon &polygon)
 {
-    int n = polygon.outer().size();
-	std::cout << boost_geo::wkt(polygon) << "\n";
-    if ( n < 4 ) return true;
-
-    bool sign = false;
-    for(int i = 0; i < n; i += 1)
-    {
-        double dx1 = polygon.outer()[(i + 2) % n].get<0>() - polygon.outer()[(i + 1) % n].get<0>();
-        double dy1 = polygon.outer()[(i + 2) % n].get<1>() - polygon.outer()[(i + 1) % n].get<1>();
-        double dx2 = polygon.outer()[i].get<0>() - polygon.outer()[(i + 1) % n].get<0>();
-        double dy2 = polygon.outer()[i].get<1>() - polygon.outer()[(i + 1) % n].get<1>();
-        double zcrossproduct = dx1 * dy2 - dy1 * dx2;
-        if (i == 0) sign = zcrossproduct > 0;
-        else if (sign != (zcrossproduct > 0)) return true;
-    }
-
-    return false;
+	Polygon convexhull = cluster_util::convexHull({polygon});
+	double polygonArea = std::fabs(boost_geo::area(polygon));
+	double polygonConvexHullArea = std::fabs(boost_geo::area(convexhull));
+	if( geo_util::dblcmp(polygonConvexHullArea - polygonArea) > 0 ) return true;
+	return false;
 }
 
 double geo_util::getLength(Polygon &polygon)
@@ -83,7 +71,7 @@ int geo_util::orientation(Point a, Point b, Point c)
 	double p = crossProduct(Point(x1 - _x, y1 - _y), Point(x2 - _x, y2 - _y));
 	if (p == 0)
 		return 0;
-	return p < 0 ? -1 : 1;
+	return geo_util::dblcmp(p - EPS) < 0 ? -1 : 1;
 }
 
 Polygon geo_util::rotatePolygon(Polygon polygon, Point reference, double degree)
@@ -441,7 +429,7 @@ vector<tuple<Point, Point>> cluster_util::findOppositeSideOfVacancies(Polygon &c
 		vector<Point> line;
 		boost_geo::intersection(concavePolygonConvexHull, vacancy, line);
 		// geo_util::visualize({vacancy}, "", "chv" + std::to_string(i)); i++;
-		assert(line.size() > 0);
+		assert(line.size() == 2);
 		// for(auto point: line)
 		// {
 		// 	std::cout << boost_geo::wkt(point) << "\n";
@@ -754,16 +742,16 @@ vector<vector<vector<vector<double>>>> cluster_util::getClusterValues(vector<Pol
 						MultiPolygon cluster({polygon_j});
 	 					auto nfp = polygon_fit::getNoFitPolygon(polygon_i, cluster);
 						assert(nfp.size() == 1);
-						std::cout << boost_geo::wkt(nfp[0]) << "\n";
+						// std::cout << boost_geo::wkt(nfp[0]) << "\n";
 						// geo_util::visualize(nfp, "../tests/results/", "nfp");
-						// if (geo_util::isConcave(nfp[0]) == true)
-						// {
-						// 	std::cout << boost_geo::wkt(nfp[0]) << "\n";
-						// 	// geo_util::visualize({nfp[0]}, "../tests/results/", "isConcave");
-						// 	Point point = cluster_util::findDominantPoint(nfp[0]);
-						// 	polygon_j = geo_util::translatePolygon(polygon_j, point);
-						// 	clusterValues[i][j][k][l] = cluster_util::getClusterValue(polygon_i, polygon_j);
-						// }
+						if (geo_util::isConcave(nfp[0]) == true)
+						{
+							std::cout << boost_geo::wkt(nfp[0]) << "\n";
+							geo_util::visualize({nfp[0]}, "../tests/results/", "isConcave");
+							Point point = cluster_util::findDominantPoint(nfp[0]);
+							polygon_j = geo_util::translatePolygon(polygon_j, point);
+							clusterValues[i][j][k][l] = cluster_util::getClusterValue(polygon_i, polygon_j);
+						}
 					}
 				}
 			}
