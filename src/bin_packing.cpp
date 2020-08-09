@@ -13,26 +13,9 @@ int geo_util::dblcmp(double d, double eps)
 	return d > eps ? 1 : -1;
 }
 
-bool geo_util::isConcave(Polygon &polygon)
+bool geo_util::isAConcavePolygon(Polygon &polygon)
 {
-	Polygon hull = cluster_util::convexHull({polygon});
-	double areaHull = std::fabs(boost_geo::area(hull)); 
-	double areaPolygon = std::fabs(boost_geo::area(polygon));
-	double areaDifference = areaHull - areaPolygon;
-	if( geo_util::dblcmp(areaDifference) > 0 )
-	{
-		// std::cout << "Is this polygon concave? Yes\n";
-		// std::cout << " =>" << boost_geo::wkt(polygon) << "\n"; 
-		// std::cout << " =>" << areaHull << " " << areaPolygon << " " << areaDifference << "\n";
-		return true;
-	} else 
-	{
-		// std::cout << "Is this polygon concave? No\n";
-		// std::cout << " =>" << boost_geo::wkt(polygon) << "\n"; 
-		// std::cout << " =>" << areaHull << " " << areaPolygon << " " << areaDifference << "\n";
-		// std::cout << " => Ans: \n";
-		return false;
-	}
+	return !(boost_geo::is_convex(polygon.outer()));
 }
 
 double geo_util::getLength(Polygon &polygon)
@@ -237,7 +220,7 @@ void geo_util::visualize(MultiPolygon multipolygon, std::string location, std::s
 {
 	Box box;
 	boost::geometry::envelope(multipolygon, box);
-	std::cout << "make_envelope..............: " << boost::geometry::dsv(box) << std::endl;
+	// << "make_envelope..............: " << boost::geometry::dsv(box) << std::endl;
 	std::ostringstream name;
 	name << "frame_" << std::setw(4) << std::setfill('0') << frameno++ << "_" << datasetName << ".svg";
 	std::ofstream svg(location + name.str());
@@ -259,8 +242,8 @@ namespace nfp_util
 			for (auto point : ring)
 			{
 				Point t((double)point.x_.val(), (double)point.y_.val());
-				double _x = t.get<0>();
-				double _y = t.get<1>();
+				double _x = (double)t.get<0>();
+				double _y = (double)t.get<1>();
 				polygon.outer().push_back(Point(_x, _y));
 			}
 			if (polygon.outer().size())
@@ -360,8 +343,23 @@ vector<Point> polygon_fit::getAllEdgeIntersectionPoints(MultiPolygon &allNfpIfr)
 /**
  * 
  */
+ void correction(Polygon &polygon)
+ {
+	 for(auto &point: polygon.outer())
+	 {
+		 double _x = point.get<0>();
+		 double _y = point.get<1>();
+		 long long __x = _x;
+		 long long __y = _y;
+		 if( (_x - __x * 1.0) < EPS ) _x = __x;
+		 if( (_y - __y * 1.0) < EPS ) _y = __y;
+		 point = Point(_x, _y);
+	 }
+ }
 Polygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, MultiPolygon cluster)
 {
+	correction(referencePolygon);
+	correction(cluster[0]);
 	Polygon noFitPolygon;
 	polygon_t polygon1, polygon2, polygon3;
 	polygon1 = nfp_util::convertPolygon2Polygon_t(referencePolygon);
@@ -369,15 +367,13 @@ Polygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, MultiPolygon clus
 	reverse(polygon1.outer().begin(), polygon1.outer().end());
 	reverse(polygon2.outer().begin(), polygon2.outer().end());
 	nfp_t nfp = generateNFP(polygon1, polygon2, true);
-
 	if( cluster.size() == 2 )
 	{
-
+		correction(cluster[1]);
 		polygon3 = nfp_util::convertPolygon2Polygon_t(cluster[1]);
 		reverse(polygon3.outer().begin(), polygon3.outer().end());
 		polygon_t polygon4 = nfp_util::convertNfp_t2Polygon_t(nfp);
 		boost_geo::correct(polygon4);
-		std::cout << boost_geo::wkt(polygon4) << "\n";
 		nfp = generateNFP(polygon4, polygon3);
 	}
 
@@ -433,7 +429,7 @@ Polygon cluster_util::convexHull(MultiPolygon multiPolygon)
 MultiPolygon cluster_util::findConvexHullVacancy(Polygon &concavePolygon)
 {
 	MultiPolygon vacancies;
-	if( geo_util::isConcave(concavePolygon) == false ) return vacancies;
+	if( geo_util::isAConcavePolygon(concavePolygon) == false ) return vacancies;
 	Polygon convexhull = cluster_util::convexHull({concavePolygon});
 	boost_geo::difference(convexhull, concavePolygon, vacancies);
 	return vacancies;
@@ -462,9 +458,9 @@ vector<tuple<Point, Point>> cluster_util::findOppositeSideOfVacancies(Polygon &c
 
 Point cluster_util::findDominantPoint(Polygon &concavePolygon)
 {
-	std::cout << " Aije dunia kisero lagia...\n";
+	// << " Aije dunia kisero lagia...\n";
 	geo_util::visualize({concavePolygon}, "../tests/results/", "find_dominant_point_input");
-	std::cout << boost_geo::is_convex(concavePolygon.outer()) << "\n";
+	// << boost_geo::is_convex(concavePolygon.outer()) << "\n";
 	Point dominant;
 	Polygon convexhull = cluster_util::convexHull({concavePolygon});
 
@@ -764,17 +760,14 @@ vector<vector<vector<vector<double>>>> cluster_util::getClusterValues(vector<Pol
 						geo_util::normalize(polygon_i);
 						geo_util::normalize(polygon_j);
 						MultiPolygon cluster({polygon_j});
-
-						std::cout << "calculating nfp for polygon " << i << ", " << j << " for rotation " << ALLOWABLE_ROTATIONS[k] << ", " << ALLOWABLE_ROTATIONS[l] << " ..." << std::endl;
-						Polygon nfp = polygon_fit::getNoFitPolygon(polygon_i, cluster);
-						// assert(nfp.size() == 1);
-						// std::cout << boost_geo::wkt(nfp[0]) << "\n";
-						// geo_util::visualize(nfp, "../tests/results/", "nfp");
-						if (geo_util::isConcave(nfp) == true)
+						Polygon __nfp = polygon_fit::getNoFitPolygon(polygon_i, cluster);
+						bool is_concave = geo_util::isAConcavePolygon(__nfp);
+						// std::cout << boost_geo::wkt(__nfp) << " " << is_concave << std::endl;
+						if ( is_concave > 0 )
 						{
-							std::cout << boost_geo::wkt(nfp) << "\n";
-							geo_util::visualize({nfp}, "../tests/results/", "isConcave");
-							Point point = cluster_util::findDominantPoint(nfp);
+							
+							// std::cout << " * " << boost_geo::wkt(__nfp) << "\n";
+							Point point = cluster_util::findDominantPoint(__nfp);
 							polygon_j = geo_util::translatePolygon(polygon_j, point);
 							clusterValues[i][j][k][l] = cluster_util::getClusterValue(polygon_i, polygon_j);
 						}
@@ -791,10 +784,10 @@ vector<vector<vector<vector<double>>>> cluster_util::getClusterValues(vector<Pol
  */
 MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygons, double width)
 {
-	std::cout << "generate initial solution running..." << std::endl;
+	// << "generate initial solution running..." << std::endl;
 	vector<vector<vector<vector<double>>>> clusterValues = cluster_util::getClusterValues(inputPolygons);
 
-	std::cout << "cluster pairs receiving..." << std::endl;
+	// << "cluster pairs receiving..." << std::endl;
 	vector<tuple<int, int, int, int>> clusterPairs = cluster_util::getPerfectClustering(clusterValues, std::min((int)inputPolygons.size(), 10));
 
 	vector<bool> taken((int)inputPolygons.size(), false);
@@ -813,7 +806,7 @@ MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygon
 
 		Polygon nfp = polygon_fit::getNoFitPolygon(polygon_i, tmpCluster);
 
-		if (geo_util::isConcave(nfp) == true)
+		if (geo_util::isAConcavePolygon(nfp) == true)
 		{
 			taken[i] = taken[j] = true;
 			Point point = cluster_util::findDominantPoint(nfp);
@@ -834,12 +827,19 @@ MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygon
 
 	cluster_util::sortByClusterValue(clusters);
 
+	// << "<------------------CLUSTERS--------------->\n";
 	for(auto p: clusters)
 	{
+		for(auto _p: p) correction(_p);
 		std::cout << boost_geo::wkt(p) << "\n";
 	}
 	double length = INITIAL_STOCK_LENGTH;
 	MultiPolygon initialSolution = cluster_util::bottomLeftFill(clusters, length, width);
+	for(auto poly: initialSolution)
+	{
+		std::cout << boost_geo::wkt(poly) << "\n";
+	}
+	geo_util::visualize(initialSolution, "../tests/results/", "initialSol");
 	return initialSolution;
 }
 
@@ -884,10 +884,10 @@ std::tuple<vector<Polygon>, double> bin_packing::readDataset(std::string dataset
 			}
 		}
 	}
-	std::cout << "Input polygons\n";
+	// << "Input polygons\n";
 	for (auto p : polygons)
 	{
-		std::cout << boost_geo::wkt(p) << '\n';
+		// << boost_geo::wkt(p) << '\n';
 	}
 	file.close();
 	return {polygons, width};

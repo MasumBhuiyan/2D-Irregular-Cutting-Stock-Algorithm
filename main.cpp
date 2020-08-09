@@ -14,11 +14,11 @@ void testDataset(std::string datasetName)
 
 int main(int argc, char const *argv[])
 {
-    // testDataset("sample");
+     testDataset("sample");
     // testDataset("albano");
     // testDataset("blaz");
     // testDataset("dagli");
-     testDataset("dighe1");
+    // testDataset("dighe1");
     // testDataset("jakobs1");
     // testDataset("jakobs2");
     // testDataset("marques");

@@ -50,7 +50,7 @@ static int frameno;
 namespace geo_util
 {
     int dblcmp(double, double eps = EPS);
-    bool isConcave(Polygon &);
+    bool isAConcavePolygon(Polygon &);
     double getLength(Polygon &);
     double getWidth(Polygon &);
     double crossProduct(Point, Point);

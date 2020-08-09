@@ -4,6 +4,7 @@
 void is_concave_test()
 {
     Polygon polygon1, polygon2, polygon3, polygon4, polygon5, polygon6, polygon7, polygon8, polygon9, polygon10;
+    Polygon polygon11;
     boost_geo::read_wkt("POLYGON((0 0, 4 0, 1 -4, 1 -1, 0 -3, 0 0))", polygon1);
     boost_geo::read_wkt("POLYGON((0 0, 2 5, 2 2, 4 5, 4 2, 5 5, 6 2, 0 0))", polygon2);
     boost_geo::read_wkt("POLYGON((0 0, 0 5, 2 2, 5 0, 0 0))", polygon3);
@@ -14,31 +15,34 @@ void is_concave_test()
     boost_geo::read_wkt("POLYGON((0 0, 0 5, 5 0, 0 0))", polygon8);
     boost_geo::read_wkt("POLYGON((0 0, -1 4, 2 0, 2 -4, 0 0))", polygon9);
     boost_geo::read_wkt("POLYGON((0 0, 2 3, 7 3, 5 0, 0 0))", polygon10);
+    boost_geo::read_wkt("POLYGON((0 -5,-5 -5,-5 0,-5 5,0 5,5 5,5 0,0 -5))", polygon11);
 
-    std::cout << "cluster_util::isConcave(): Is this a concave polygon?\n";
-    std::cout << "Test  1: expected yes, found " << (geo_util::isConcave( polygon1) ==  true ? "yes" : " no") << "\n";
-    std::cout << "Test  2: expected yes, found " << (geo_util::isConcave( polygon2) ==  true ? "yes" : " no") << "\n";
-    std::cout << "Test  3: expected yes, found " << (geo_util::isConcave( polygon3) ==  true ? "yes" : " no") << "\n";
-    std::cout << "Test  4: expected yes, found " << (geo_util::isConcave( polygon4) ==  true ? "yes" : " no") << "\n";
-    std::cout << "Test  8: expected yes, found " << (geo_util::isConcave( polygon5) ==  true ? "yes" : " no") << "\n";
-    std::cout << "Test  6: expected  no, found " << (geo_util::isConcave( polygon6) == false ? " no" : "yes") << "\n";
-    std::cout << "Test  7: expected  no, found " << (geo_util::isConcave( polygon7) == false ? " no" : "yes") << "\n";
-    std::cout << "Test  8: expected  no, found " << (geo_util::isConcave( polygon8) == false ? " no" : "yes") << "\n";
-    std::cout << "Test  9: expected  no, found " << (geo_util::isConcave( polygon9) == false ? " no" : "yes") << "\n";
-    std::cout << "Test 10: expected  no, found " << (geo_util::isConcave(polygon10) == false ? " no" : "yes") << "\n";
+    std::cout << "cluster_util::isAConcavePolygon(): Is this a concave polygon?\n";
+    std::cout << "Test  1: expected yes, found " << (geo_util::isAConcavePolygon( polygon1) ==  true ? "yes" : " no") << "\n";
+    std::cout << "Test  2: expected yes, found " << (geo_util::isAConcavePolygon( polygon2) ==  true ? "yes" : " no") << "\n";
+    std::cout << "Test  3: expected yes, found " << (geo_util::isAConcavePolygon( polygon3) ==  true ? "yes" : " no") << "\n";
+    std::cout << "Test  4: expected yes, found " << (geo_util::isAConcavePolygon( polygon4) ==  true ? "yes" : " no") << "\n";
+    std::cout << "Test  8: expected yes, found " << (geo_util::isAConcavePolygon( polygon5) ==  true ? "yes" : " no") << "\n";
+    std::cout << "Test  6: expected  no, found " << (geo_util::isAConcavePolygon( polygon6) == false ? " no" : "yes") << "\n";
+    std::cout << "Test  7: expected  no, found " << (geo_util::isAConcavePolygon( polygon7) == false ? " no" : "yes") << "\n";
+    std::cout << "Test  8: expected  no, found " << (geo_util::isAConcavePolygon( polygon8) == false ? " no" : "yes") << "\n";
+    std::cout << "Test  9: expected  no, found " << (geo_util::isAConcavePolygon( polygon9) == false ? " no" : "yes") << "\n";
+    std::cout << "Test 10: expected  no, found " << (geo_util::isAConcavePolygon(polygon10) == false ? " no" : "yes") << "\n";
+    std::cout << "Test 11: expected  no, found " << (geo_util::isAConcavePolygon(polygon11) == false ? " no" : "yes") << "\n";
 
     assert
     ( 
-        geo_util::isConcave(polygon1) ==  true &&
-        geo_util::isConcave(polygon2) ==  true &&
-        geo_util::isConcave(polygon3) ==  true &&
-        geo_util::isConcave(polygon4) ==  true &&
-        geo_util::isConcave(polygon5) ==  true &&
-        geo_util::isConcave(polygon6) ==  false &&
-        geo_util::isConcave(polygon7) ==  false &&
-        geo_util::isConcave(polygon8) ==  false &&
-        geo_util::isConcave(polygon9) ==  false &&
-        geo_util::isConcave(polygon10) ==  false
+        geo_util::isAConcavePolygon( polygon1) ==  true &&
+        geo_util::isAConcavePolygon( polygon2) ==  true &&
+        geo_util::isAConcavePolygon( polygon3) ==  true &&
+        geo_util::isAConcavePolygon( polygon4) ==  true &&
+        geo_util::isAConcavePolygon( polygon5) ==  true &&
+        geo_util::isAConcavePolygon( polygon6) ==  false &&
+        geo_util::isAConcavePolygon( polygon7) ==  false &&
+        geo_util::isAConcavePolygon( polygon8) ==  false &&
+        geo_util::isAConcavePolygon( polygon9) ==  false &&
+        geo_util::isAConcavePolygon(polygon10) ==  false &&
+        geo_util::isAConcavePolygon(polygon11) ==  false
     );
 }
 int main()

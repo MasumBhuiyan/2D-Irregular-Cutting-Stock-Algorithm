@@ -4,7 +4,7 @@
 void visualizer(Polygon polygon, std::string location, int testId)
 {
     std::cout << " Test " << testId << ": ";
-    if( geo_util::isConcave(polygon) == false )
+    if( geo_util::isAConcavePolygon(polygon) == false )
     {
         std::cout << "It is a convex polygon. So convex hull vacancy is null.\n";
     }
