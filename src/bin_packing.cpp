@@ -104,17 +104,15 @@ Polygon geo_util::rotatePolygon(Polygon polygon, Point reference, double degree)
 	return rotatedPolygon;
 }
 
-Polygon geo_util::translatePolygon(Polygon polygon, Point point)
+Polygon geo_util::translatePolygon(Polygon polygon, Point translationPoint)
 {
-	Polygon translatedPolygon;
-	Point reference = polygon.outer()[0];
+    Point reference = polygon.outer()[0];
 	for (auto &point : polygon.outer())
 	{
-		Point t(point.get<0>() - reference.get<0>(), point.get<1>() - reference.get<1>());
+		Point t(point.get<0>() - reference.get<0>() + translationPoint.get<0>(), point.get<1>() - reference.get<1>() + translationPoint.get<1>());
 		point = t;
 	}
-	boost_geo::transform(polygon, translatedPolygon, trans::translate_transformer<double, 2, 2>(point.get<0>(), point.get<1>()));
-	return translatedPolygon;
+	return polygon;
 }
 
 double geo_util::linePointDistance(Point a, Point b, Point p)
@@ -164,24 +162,16 @@ vector<Polygon> geo_util::rotatePolygons(vector<Polygon> &polygons, Point refere
 
 MultiPolygon geo_util::translatePolygons(MultiPolygon cluster, Point translationPoint)
 {
-	MultiPolygon translatedPolygons;
 	Point reference = cluster[0].outer()[0];
-
 	for (auto &polygon : cluster)
 	{
 		for (auto &point : polygon.outer())
 		{
-			Point t(point.get<0>() - reference.get<0>(), point.get<1>() - reference.get<1>());
+			Point t(point.get<0>() - reference.get<0>() + translationPoint.get<0>(), point.get<1>() - reference.get<1>() + translationPoint.get<1>());
 			point = t;
 		}
 	}
-	for (auto &polygon : cluster)
-	{
-		Polygon translatedPolygon;
-		boost_geo::transform(polygon, translatedPolygon, trans::translate_transformer<double, 2, 2>(translationPoint.get<0>(), translationPoint.get<1>()));
-		translatedPolygons.push_back(translatedPolygon);
-	}
-	return translatedPolygons;
+	return cluster;
 }
 
 bool geo_util::isItPossibleToPlacePolygon(MultiPolygon &packing, MultiPolygon clusterNextToBePlaced, Point point)
@@ -191,7 +181,7 @@ bool geo_util::isItPossibleToPlacePolygon(MultiPolygon &packing, MultiPolygon cl
 	{
 		for (auto polygonNextToBePlaced : clusterNextToBePlaced)
 		{
-			if (geo_util::polygonPolygonIntersectionArea(polygonNextToBePlaced, poly) > 0)
+			if ( geo_util::polygonPolygonIntersectionArea(polygonNextToBePlaced, poly) > 0)
 			{
 				return false;
 			}
@@ -438,6 +428,7 @@ Polygon cluster_util::convexHull(MultiPolygon multiPolygon)
 MultiPolygon cluster_util::findConvexHullVacancy(Polygon &concavePolygon)
 {
 	MultiPolygon vacancies;
+	if( geo_util::isConcave(concavePolygon) == false ) return vacancies;
 	Polygon convexhull = cluster_util::convexHull({concavePolygon});
 	boost_geo::difference(convexhull, concavePolygon, vacancies);
 	return vacancies;
@@ -448,19 +439,17 @@ MultiPolygon cluster_util::findConvexHullVacancy(Polygon &concavePolygon)
  */
 vector<tuple<Point, Point>> cluster_util::findOppositeSideOfVacancies(Polygon &concavePolygonConvexHull, MultiPolygon &convexHullVacancies)
 {
-
 	vector<tuple<Point, Point>> oppositeSideOfVacancies;
+	if( convexHullVacancies.size() == 0 ) 
+	{
+		return oppositeSideOfVacancies;
+	}
 	int i = 0;
 	for (auto &vacancy : convexHullVacancies)
 	{
 		vector<Point> line;
 		boost_geo::intersection(concavePolygonConvexHull, vacancy, line);
-		// geo_util::visualize({vacancy}, "", "chv" + std::to_string(i)); i++;
 		assert(line.size() == 2);
-		// for(auto point: line)
-		// {
-		// 	std::cout << boost_geo::wkt(point) << "\n";
-		// }
 		oppositeSideOfVacancies.push_back({line[0], line[1]});
 	}
 	return oppositeSideOfVacancies;
