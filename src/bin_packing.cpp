@@ -70,9 +70,24 @@ void geo_util::normalize(Polygon &polygon)
 		min_x = std::min(min_x, point.get<0>());
 		min_y = std::min(min_y, point.get<1>());
 	}
+	for (auto &innerPolygon : polygon.inners())
+	{
+		for(auto point: innerPolygon)
+		{
+			min_x = std::min(min_x, point.get<0>());
+			min_y = std::min(min_y, point.get<1>());
+		}
+	}
 	for (auto &point : polygon.outer())
 	{
 		point = Point(point.get<0>() - min_x, point.get<1>() - min_y);
+	}
+	for (auto &innerPolygon : polygon.inners())
+	{
+		for(auto point: innerPolygon)
+		{
+			point = Point(point.get<0>() - min_x, point.get<1>() - min_y);
+		}
 	}
 }
 
@@ -244,7 +259,9 @@ namespace nfp_util
 			for (auto point : ring)
 			{
 				Point t((double)point.x_.val(), (double)point.y_.val());
-				polygon.outer().push_back(t);
+				double _x = t.get<0>();
+				double _y = t.get<1>();
+				polygon.outer().push_back(Point(_x, _y));
 			}
 			if (polygon.outer().size())
 			{
@@ -262,11 +279,23 @@ namespace nfp_util
 		{
 			double _x = point.get<0>();
 			double _y = point.get<1>();
-			_x = std::max(_x, EPS);
-			_y = std::max(_y, EPS);
 			polygonT.outer().push_back(point_t(_x, _y));
 		}
 		return polygonT;
+	}
+	polygon_t convertNfp_t2Polygon_t(nfp_t nfp)
+	{
+		polygon_t nfppoly;
+		for (const auto& pt : nfp.front()) {
+			nfppoly.outer().push_back(pt);
+		}
+		for (size_t i = 1; i < nfp.size(); ++i) {
+			nfppoly.inners().push_back({});
+			for (const auto& pt : nfp[i]) {
+				nfppoly.inners().back().push_back(pt);
+			}
+		}
+		return nfppoly;
 	}
 }; // namespace nfp_util
 
@@ -331,65 +360,44 @@ vector<Point> polygon_fit::getAllEdgeIntersectionPoints(MultiPolygon &allNfpIfr)
 /**
  * 
  */
-MultiPolygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, MultiPolygon cluster)
+Polygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, MultiPolygon cluster)
 {
-	std::cout << "entry ...\n";
-	std::cout << boost_geo::wkt(referencePolygon) << std::endl;
-	std::cout << boost_geo::wkt(cluster) << std::endl;
-	MultiPolygon noFitPolygons;
-	nfp_t nfp;
-	if (cluster.size() == 1)
-	{
-		std::cout << "case 1...\n";
-		polygon_t polygon1 = nfp_util::convertPolygon2Polygon_t(referencePolygon);
-		polygon_t polygon2 = nfp_util::convertPolygon2Polygon_t(cluster[0]);
-		reverse(polygon1.outer().begin(), polygon1.outer().end());
-		reverse(polygon2.outer().begin(), polygon2.outer().end());
+	Polygon noFitPolygon;
+	polygon_t polygon1, polygon2, polygon3;
+	polygon1 = nfp_util::convertPolygon2Polygon_t(referencePolygon);
+	polygon2 = nfp_util::convertPolygon2Polygon_t(cluster[0]);
+	reverse(polygon1.outer().begin(), polygon1.outer().end());
+	reverse(polygon2.outer().begin(), polygon2.outer().end());
+	nfp_t nfp = generateNFP(polygon1, polygon2, true);
 
-		std::cout << "running generateNFP()...\n";
-		std::cout << boost_geo::wkt(polygon1) << std::endl;
-		std::cout << boost_geo::wkt(polygon2) << std::endl;
-		nfp = generateNFP(polygon1, polygon2, true);
-		// write_svg("../../tests/nfp3.svg", {polygon1, polygon2}, nfp);
-	}
-	else if (cluster.size() == 2)
+	if( cluster.size() == 2 )
 	{
-		std::cout << "case 2...\n";
-		std::cout << "ruuning conversions...\n";
-		polygon_t polygon1 = nfp_util::convertPolygon2Polygon_t(referencePolygon);
-		polygon_t polygon2 = nfp_util::convertPolygon2Polygon_t(cluster[0]);
-		polygon_t polygon3 = nfp_util::convertPolygon2Polygon_t(cluster[1]);
-		std::cout << "reversing...\n";
-		reverse(polygon1.outer().begin(), polygon1.outer().end());
-		reverse(polygon2.outer().begin(), polygon2.outer().end());
+
+		polygon3 = nfp_util::convertPolygon2Polygon_t(cluster[1]);
 		reverse(polygon3.outer().begin(), polygon3.outer().end());
-		std::cout << "running generateNFP()...\n";
-		std::cout << boost_geo::wkt(polygon1) << std::endl;
-		std::cout << boost_geo::wkt(polygon2) << std::endl;
-		std::cout << boost_geo::wkt(polygon3) << std::endl;
-		nfp = generateNFP(polygon1, polygon2, true);
-		polygon_t polygon4;
-		for (auto polygon : nfp)
-		{
-			for (auto point : polygon)
-			{
-				point_t t((double)point.x_.val(), (double)point.y_.val());
-				polygon4.outer().push_back(t);
-			}
-			if (polygon4.outer().size())
-			{
-				polygon4.outer().push_back(polygon4.outer()[0]);
-			}
-			break;
-		}
+		polygon_t polygon4 = nfp_util::convertNfp_t2Polygon_t(nfp);
 		boost_geo::correct(polygon4);
+		std::cout << boost_geo::wkt(polygon4) << "\n";
 		nfp = generateNFP(polygon4, polygon3);
-		// write_svg("../../tests/nfp2.svg", {polygon1, polygon2, polygon3}, nfp);
 	}
-	std::cout << "calling convertNfp_t2MultiPolygon()....\n";
-	noFitPolygons = nfp_util::convertNfp_t2MultiPolygon(nfp);
-	std::cout << "end....\n";
-	return noFitPolygons;
+
+	for(const auto& point: nfp.front())
+	{
+		Point t((double)point.x_.val(), (double)point.y_.val());
+		noFitPolygon.outer().push_back(t);
+	}
+	reverse(noFitPolygon.outer().begin(), noFitPolygon.outer().end());
+	for (size_t i = 1; i < nfp.size(); i += 1) 
+	{
+		noFitPolygon.inners().push_back({});
+		for (const auto& point: nfp[i]) 
+		{
+			Point t((double)point.x_.val(), (double)point.y_.val());
+			noFitPolygon.inners().back().push_back(t);
+		}
+		reverse(noFitPolygon.inners().back().begin(), noFitPolygon.inners().back().end());
+	}
+	return noFitPolygon;
 }
 
 /**
@@ -402,11 +410,8 @@ MultiPolygon polygon_fit::getAllNfpIfr(MultiPolygon &packing, MultiPolygon clust
 	allNfpIfr.push_back(ifr);
 	for (auto &polygon : packing)
 	{
-		MultiPolygon nfp; //= polygon_fit::getNoFitPolygon(polygon, cluster);
-		for (auto &nfp_i : nfp)
-		{
-			allNfpIfr.push_back(nfp_i);
-		}
+		Polygon nfp; //= polygon_fit::getNoFitPolygon(polygon, cluster);
+		allNfpIfr.push_back(nfp);
 	}
 	return allNfpIfr;
 }
@@ -761,15 +766,15 @@ vector<vector<vector<vector<double>>>> cluster_util::getClusterValues(vector<Pol
 						MultiPolygon cluster({polygon_j});
 
 						std::cout << "calculating nfp for polygon " << i << ", " << j << " for rotation " << ALLOWABLE_ROTATIONS[k] << ", " << ALLOWABLE_ROTATIONS[l] << " ..." << std::endl;
-						auto nfp = polygon_fit::getNoFitPolygon(polygon_i, cluster);
+						Polygon nfp = polygon_fit::getNoFitPolygon(polygon_i, cluster);
 						// assert(nfp.size() == 1);
 						// std::cout << boost_geo::wkt(nfp[0]) << "\n";
 						// geo_util::visualize(nfp, "../tests/results/", "nfp");
-						if (geo_util::isConcave(nfp[0]) == true)
+						if (geo_util::isConcave(nfp) == true)
 						{
-							std::cout << boost_geo::wkt(nfp[0]) << "\n";
-							geo_util::visualize({nfp[0]}, "../tests/results/", "isConcave");
-							Point point = cluster_util::findDominantPoint(nfp[0]);
+							std::cout << boost_geo::wkt(nfp) << "\n";
+							geo_util::visualize({nfp}, "../tests/results/", "isConcave");
+							Point point = cluster_util::findDominantPoint(nfp);
 							polygon_j = geo_util::translatePolygon(polygon_j, point);
 							clusterValues[i][j][k][l] = cluster_util::getClusterValue(polygon_i, polygon_j);
 						}
@@ -806,12 +811,12 @@ MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygon
 		geo_util::normalize(polygon_j);
 		MultiPolygon tmpCluster({polygon_j});
 
-		MultiPolygon nfp = polygon_fit::getNoFitPolygon(polygon_i, tmpCluster);
+		Polygon nfp = polygon_fit::getNoFitPolygon(polygon_i, tmpCluster);
 
-		if (geo_util::isConcave(nfp[0]) == true)
+		if (geo_util::isConcave(nfp) == true)
 		{
 			taken[i] = taken[j] = true;
-			Point point = cluster_util::findDominantPoint(nfp[0]);
+			Point point = cluster_util::findDominantPoint(nfp);
 			polygon_j = geo_util::translatePolygon(polygon_j, point);
 			cluster.push_back(polygon_i);
 			cluster.push_back(polygon_j);

@@ -1,0 +1,20 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="200mm" height="200mm" viewBox="-250 -250 800 800" version="1.1"
+xmlns="http://www.w3.org/2000/svg"
+xmlns:xlink="http://www.w3.org/1999/xlink">
+<g fill-rule="evenodd"><path d="M 75,225 L 100,187.5 L 93.75,187.5 L 75,187.5 L 0,187.5 L 37.5,131.25 L 112.5,75 L 206.25,75 L 300,75 L 262.5,131.25 L 168.75,225 z " style="fill-opacity:0.5;fill:rgb(204,153,0);stroke:rgb(204,153,0);stroke-width:2"/></g>
+<g fill-rule="evenodd"><path d="M 75,225 L 112.5,168.75 L 206.25,168.75 L 168.75,225 L 75,225 z " style="fill-opacity:0.5;fill:rgb(212, 0, 0);stroke:rgb(212,0,0);stroke-width:2"/></g>
+<g fill-rule="evenodd"><path d="M 100,187.5 L 137.5,131.25 L 231.25,131.25 L 193.75,187.5 L 100,187.5 z " style="fill-opacity:0.5;fill:rgb(212, 0, 0);stroke:rgb(212,0,0);stroke-width:2"/></g>
+<g fill-rule="evenodd"><path d="M 93.75,187.5 L 131.25,131.25 L 225,131.25 L 187.5,187.5 L 93.75,187.5 z " style="fill-opacity:0.5;fill:rgb(212, 0, 0);stroke:rgb(212,0,0);stroke-width:2"/></g>
+<g fill-rule="evenodd"><path d="M 75,187.5 L 112.5,131.25 L 206.25,131.25 L 168.75,187.5 L 75,187.5 z " style="fill-opacity:0.5;fill:rgb(212, 0, 0);stroke:rgb(212,0,0);stroke-width:2"/></g>
+<g fill-rule="evenodd"><path d="M 0,187.5 L 37.5,131.25 L 131.25,131.25 L 93.75,187.5 L 0,187.5 z " style="fill-opacity:0.5;fill:rgb(212, 0, 0);stroke:rgb(212,0,0);stroke-width:2"/></g>
+<g fill-rule="evenodd"><path d="M 37.5,131.25 L 75,75 L 168.75,75 L 131.25,131.25 L 37.5,131.25 z " style="fill-opacity:0.5;fill:rgb(212, 0, 0);stroke:rgb(212,0,0);stroke-width:2"/></g>
+<g fill-rule="evenodd"><path d="M 112.5,75 L 150,18.75 L 243.75,18.75 L 206.25,75 L 112.5,75 z " style="fill-opacity:0.5;fill:rgb(212, 0, 0);stroke:rgb(212,0,0);stroke-width:2"/></g>
+<g fill-rule="evenodd"><path d="M 206.25,75 L 243.75,18.75 L 337.5,18.75 L 300,75 L 206.25,75 z " style="fill-opacity:0.5;fill:rgb(212, 0, 0);stroke:rgb(212,0,0);stroke-width:2"/></g>
+<g fill-rule="evenodd"><path d="M 300,75 L 337.5,18.75 L 431.25,18.75 L 393.75,75 L 300,75 z " style="fill-opacity:0.5;fill:rgb(212, 0, 0);stroke:rgb(212,0,0);stroke-width:2"/></g>
+<g fill-rule="evenodd"><path d="M 262.5,131.25 L 300,75 L 393.75,75 L 356.25,131.25 L 262.5,131.25 z " style="fill-opacity:0.5;fill:rgb(212, 0, 0);stroke:rgb(212,0,0);stroke-width:2"/></g>
+<g fill-rule="evenodd"><path d="M 168.75,225 L 206.25,168.75 L 300,168.75 L 262.5,225 L 168.75,225 z " style="fill-opacity:0.5;fill:rgb(212, 0, 0);stroke:rgb(212,0,0);stroke-width:2"/></g>
+<g fill-rule="evenodd"><path d="M 206.25,168.75 L 243.75,112.5 L 206.25,112.5 L 206.25,131.25 L 131.25,131.25 L 206.25,75 L 300,75 L 206.25,168.75 z " style="fill-opacity:0.5;fill:rgb(153,204,0);stroke:rgb(153,204,0);stroke-width:2"/></g>
+</svg>

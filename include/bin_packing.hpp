@@ -74,7 +74,7 @@ namespace polygon_fit
 {
     Polygon getInnerFitRectangle(MultiPolygon cluster, double length, double width);
     vector<Point> getAllEdgeIntersectionPoints(MultiPolygon &allNfpIfr);
-    MultiPolygon getNoFitPolygon(Polygon referencePolygon, MultiPolygon cluster);
+    Polygon getNoFitPolygon(Polygon referencePolygon, MultiPolygon cluster);
     MultiPolygon getAllNfpIfr(MultiPolygon &packing, MultiPolygon cluster, double length, double width); // Nfp = No Fit Polygon, Ifr = Inner Fit Rectangle
 };                                                                                                       // namespace polygon_fit
 
