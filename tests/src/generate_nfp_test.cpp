@@ -37,7 +37,8 @@ void visualizer(Polygon polygon, MultiPolygon cluster, Polygon nfp, std::string 
 
 void generate_nfp_test()
 {
-    Polygon polygon1, polygon2, polygon3, polygon4, polygon5, polygon6, polygon7, polygon8, polygon9, polygon10, polygon11;
+    Polygon polygon1, polygon2, polygon3, polygon4, polygon5, polygon6, polygon7, polygon8, polygon9, polygon10;
+    Polygon polygon11, polygon12, polygon13;
     boost_geo::read_wkt("POLYGON((0 0, 4 0, 1 -4, 1 -1, 0 -3, 0 0))", polygon1);
     boost_geo::read_wkt("POLYGON((0 0, 2 5, 2 2, 4 5, 4 2, 5 5, 6 2, 0 0))", polygon2);
     boost_geo::read_wkt("POLYGON((0 0, 0 5, 2 2, 5 0, 0 0))", polygon3);
@@ -49,6 +50,8 @@ void generate_nfp_test()
     boost_geo::read_wkt("POLYGON((0 0, -1 4, 2 0, 2 -4, 0 0))", polygon9);
     boost_geo::read_wkt("POLYGON((0 0, 2 3, 7 3, 5 0, 0 0))", polygon10);
     boost_geo::read_wkt("POLYGON((5 0, 5 5, 10 0, 5 0))", polygon11);
+    boost_geo::read_wkt("POLYGON((24.4615 26.6154,35.4615 26.6154,36.4615 28.6154,35.4615 29.6154,35.4615 31.6154,34.4615 32.6154,30.4615 31.6154,27.4615 32.6154,24.4615 31.6154,23.4615 29.6154,24.4615 26.6154))", polygon12);
+    boost_geo::read_wkt("POLYGON((2 0,9 1,9 5,2 7,1 5,1 4,0 3,1 2,2 0))", polygon13);
 
     Polygon  nfp1 = polygon_fit::getNoFitPolygon(polygon1, { polygon2});
     Polygon  nfp2 = polygon_fit::getNoFitPolygon(polygon1, { polygon3});
@@ -60,12 +63,12 @@ void generate_nfp_test()
     Polygon  nfp8 = polygon_fit::getNoFitPolygon(polygon4, { polygon9});
     Polygon  nfp9 = polygon_fit::getNoFitPolygon(polygon5, { polygon7});
     Polygon nfp10 = polygon_fit::getNoFitPolygon(polygon5, {polygon10});
-
     Polygon nfp11 = polygon_fit::getNoFitPolygon(polygon1, {polygon7,polygon11});
     Polygon nfp12 = polygon_fit::getNoFitPolygon(polygon2, {polygon7,polygon11});
     Polygon nfp13 = polygon_fit::getNoFitPolygon(polygon3, {polygon7,polygon11});
     Polygon nfp14 = polygon_fit::getNoFitPolygon(polygon6, {polygon7,polygon11});
     Polygon nfp15 = polygon_fit::getNoFitPolygon(polygon8, {polygon7,polygon11});
+    Polygon nfp16 = polygon_fit::getNoFitPolygon(polygon12, {polygon13});
 
     std::cout << "cluster_util::getNoFitPolygon() visualization\n";
     visualizer(polygon1, { polygon2},  nfp1, "../../tests/results/generate_nfp_test/",  1);
@@ -84,6 +87,7 @@ void generate_nfp_test()
     visualizer(polygon3,  {polygon7,polygon11}, nfp13, "../../tests/results/generate_nfp_test/", 13);
     visualizer(polygon6,  {polygon7,polygon11}, nfp14, "../../tests/results/generate_nfp_test/", 14);
     visualizer(polygon8,  {polygon7,polygon11}, nfp15, "../../tests/results/generate_nfp_test/", 15);
+    visualizer(polygon12, {polygon13}, nfp16, "../../tests/results/generate_nfp_test/", 16);
 }
 
 int main()

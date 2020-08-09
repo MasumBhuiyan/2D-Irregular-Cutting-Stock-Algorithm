@@ -1,0 +1,14 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="200mm" height="200mm" viewBox="-250 -250 800 800" version="1.1"
+xmlns="http://www.w3.org/2000/svg"
+xmlns:xlink="http://www.w3.org/1999/xlink">
+<g fill-rule="evenodd"><path d="M 50,300 L 50,0 L 250,0 L 250,300 L 50,300 z " style="fill-opacity:0.5;fill:rgb(204,153,0);stroke:rgb(204,153,0);stroke-width:2"/></g>
+<g fill-rule="evenodd"><path d="M 50,300 L 50,35 L 200,35 L 200,300 L 50,300 z " style="fill-opacity:0.5;fill:rgb(212, 0, 0);stroke:rgb(212,0,0);stroke-width:2"/></g>
+<g fill-rule="evenodd"><path d="M 50,300 L 50,270 L 70,265 L 85,265 L 100,275 L 100,295 L 80,300 L 50,300 z " style="fill-opacity:0.5;fill:rgb(153,204,0);stroke:rgb(153,204,0);stroke-width:2"/></g>
+<g fill-rule="evenodd"><path d="M 50,35 L 50,5 L 70,0 L 85,0 L 100,10 L 100,30 L 80,35 L 50,35 z " style="fill-opacity:0.5;fill:rgb(153,204,0);stroke:rgb(153,204,0);stroke-width:2"/></g>
+<g fill-rule="evenodd"><path d="M 200,35 L 200,5 L 220,0 L 235,0 L 250,10 L 250,30 L 230,35 L 200,35 z " style="fill-opacity:0.5;fill:rgb(153,204,0);stroke:rgb(153,204,0);stroke-width:2"/></g>
+<g fill-rule="evenodd"><path d="M 200,300 L 200,270 L 220,265 L 235,265 L 250,275 L 250,295 L 230,300 L 200,300 z " style="fill-opacity:0.5;fill:rgb(153,204,0);stroke:rgb(153,204,0);stroke-width:2"/></g>
+<g fill-rule="evenodd"><path d="M 50,300 L 50,270 L 70,265 L 85,265 L 100,275 L 100,295 L 80,300 L 50,300 z " style="fill-opacity:0.5;fill:rgb(153,204,0);stroke:rgb(153,204,0);stroke-width:2"/></g>
+</svg>

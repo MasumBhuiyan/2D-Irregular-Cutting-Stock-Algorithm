@@ -1,5 +1,5 @@
-#ifndef LIBNFPORB_HPP
-#define LIBNFPORB_HPP
+#ifndef NFP_HPP_
+#define NFP_HPP_
 
 #include <iostream>
 #include <list>

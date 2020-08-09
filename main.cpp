@@ -9,12 +9,22 @@ void testDataset(std::string datasetName)
     double width;
     std::vector<Polygon> inputPolygons;
     std::tie(inputPolygons, width) = bin_packing::readDataset(datasetName);
-    bin_packing::binPacking(inputPolygons, width, "../tests/results/", datasetName, 5.0);
+
+    int i = 0;
+    for(auto p : inputPolygons)
+    {
+        if( boost_geo::is_valid(p) == false )
+        {
+            std::cout << datasetName << ": polygon " << i << " is invalid\n"; 
+        }
+        i += 1;
+    }
+    bin_packing::binPacking(inputPolygons, width, "../tests/results/blf/", datasetName, 5.0);
 }
 
 int main(int argc, char const *argv[])
 {
-     testDataset("sample");
+    // testDataset("sample");
     // testDataset("albano");
     // testDataset("blaz");
     // testDataset("dagli");
@@ -23,7 +33,7 @@ int main(int argc, char const *argv[])
     // testDataset("jakobs2");
     // testDataset("marques");
     // testDataset("poly1a");
-    // testDataset("shirts");
+    // testDataset("shirts"); // problem
     // testDataset("trousers");
     return 0;
 }
