@@ -15,7 +15,24 @@ int geo_util::dblcmp(double d, double eps)
 
 bool geo_util::isConcave(Polygon &polygon)
 {
-	return !(boost_geo::is_convex(polygon.outer()));
+	Polygon hull = cluster_util::convexHull({polygon});
+	double areaHull = std::fabs(boost_geo::area(hull)); 
+	double areaPolygon = std::fabs(boost_geo::area(polygon));
+	double areaDifference = areaHull - areaPolygon;
+	if( geo_util::dblcmp(areaDifference) > 0 )
+	{
+		// std::cout << "Is this polygon concave? Yes\n";
+		// std::cout << " =>" << boost_geo::wkt(polygon) << "\n"; 
+		// std::cout << " =>" << areaHull << " " << areaPolygon << " " << areaDifference << "\n";
+		return true;
+	} else 
+	{
+		// std::cout << "Is this polygon concave? No\n";
+		// std::cout << " =>" << boost_geo::wkt(polygon) << "\n"; 
+		// std::cout << " =>" << areaHull << " " << areaPolygon << " " << areaDifference << "\n";
+		// std::cout << " => Ans: \n";
+		return false;
+	}
 }
 
 double geo_util::getLength(Polygon &polygon)
@@ -395,7 +412,7 @@ MultiPolygon polygon_fit::getAllNfpIfr(MultiPolygon &packing, MultiPolygon clust
 	allNfpIfr.push_back(ifr);
 	for (auto &polygon : packing)
 	{
-		auto nfp = polygon_fit::getNoFitPolygon(polygon, cluster);
+		MultiPolygon nfp; //= polygon_fit::getNoFitPolygon(polygon, cluster);
 		for (auto &nfp_i : nfp)
 		{
 			allNfpIfr.push_back(nfp_i);
@@ -451,6 +468,9 @@ vector<tuple<Point, Point>> cluster_util::findOppositeSideOfVacancies(Polygon &c
 
 Point cluster_util::findDominantPoint(Polygon &concavePolygon)
 {
+	std::cout << " Aije dunia kisero lagia...\n";
+	geo_util::visualize({concavePolygon}, "../tests/results/", "find_dominant_point_input");
+	std::cout << boost_geo::is_convex(concavePolygon.outer()) << "\n";
 	Point dominant;
 	Polygon convexhull = cluster_util::convexHull({concavePolygon});
 
@@ -817,9 +837,15 @@ MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygon
 			clusters.push_back({inputPolygons[i]});
 		}
 	}
+
 	cluster_util::sortByClusterValue(clusters);
+
+	for(auto p: clusters)
+	{
+		std::cout << boost_geo::wkt(p) << "\n";
+	}
 	double length = INITIAL_STOCK_LENGTH;
-	MultiPolygon initialSolution; // = cluster_util::bottomLeftFill(clusters, length, width);
+	MultiPolygon initialSolution = cluster_util::bottomLeftFill(clusters, length, width);
 	return initialSolution;
 }
 
