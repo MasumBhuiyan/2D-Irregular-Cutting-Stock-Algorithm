@@ -15,9 +15,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+using std::string;
 using std::tuple;
 using std::vector;
-using std::string;
 
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/geometries.hpp>
@@ -83,7 +83,9 @@ namespace polygon_fit
     MultiPolygon getNoFitPolygon(Polygon referencePolygon, MultiPolygon cluster);
     MultiPolygon getNoFitPolygon(Polygon referencePolygon, Polygon polygonToPlace);
     MultiPolygon getAllNfpIfr(MultiPolygon &packing, MultiPolygon cluster, long double length, long double width); // Nfp = No Fit Polygon, Ifr = Inner Fit Rectangle
-};                                                                                                       // namespace polygon_fit
+    void generateAllPairNfpForInputPolygons(string datasetname, int numberOfPolygons, string outputLocation);
+
+}; // namespace polygon_fit
 
 namespace cluster_util
 {

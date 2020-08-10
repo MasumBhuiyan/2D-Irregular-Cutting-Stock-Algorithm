@@ -1,7 +1,52 @@
 #include <libnfporb.hpp>
 #include <bin_packing.hpp>
 
-/** namespace cluster_util */
+using namespace libnfporb;
+
+/** namespace polygon_fit */
+
+void polygon_fit::generateAllPairNfpForInputPolygons(string datasetname, int numberOfPolygons, string outputLocation)
+{
+	// read input polygons wkt files
+	vector<polygon_t> polygons(numberOfPolygons);
+	for (int i = 0; i < numberOfPolygons; i++)
+	{
+		std::ostringstream polygonWKTFileName;
+		polygonWKTFileName << "polygon_" << std::setw(3) << std::setfill('0') << i << ".wkt";
+		string polygonWKTFileNameStr = outputLocation + "/" + datasetname + "/input_polygons_wkt_files/" + polygonWKTFileName.str();
+		read_wkt_polygon(polygonWKTFileNameStr, polygons[i]);
+		boost_geo::correct(polygons[i]);
+	}
+
+	// create directory to store all pair nfp's
+	string nfpDirectoryName = outputLocation + "/" + datasetname + "/all_pair_nfp_wkt_files";
+	mkdir(nfpDirectoryName.c_str(), 0777);
+
+	int nfp_wkt_file_id = 0;
+	for (int i = 0; i < numberOfPolygons; i++)
+	{
+		polygon_t polygon_i = polygons[i];
+		for (int j = 0; j < numberOfPolygons; j++)
+		{
+			polygon_t polygon_j = polygons[j];
+			for (auto &rotationAngle_i : ALLOWABLE_ROTATIONS)
+			{
+				for (auto &rotationAngle_j : ALLOWABLE_ROTATIONS)
+				{
+					auto nfp = generateNFP(polygon_i, polygon_j);
+					std::reverse(nfp.begin(), nfp.end());
+					polygon_t nfpPolygon;
+					nfpPolygon.outer() = nfp.back();
+					nfp.pop_back();
+					nfpPolygon.inners() = nfp;
+					std::ofstream nfpWKTFile(nfpDirectoryName + "/nfp_wkt_" + std::to_string(nfp_wkt_file_id++) + ".wkt");
+					nfpWKTFile << boost_geo::wkt(nfp.front()) << std::endl;
+					nfpWKTFile.close();
+				}
+			}
+		}
+	}
+}
 
 /** namespace bin_packing */
 
@@ -63,6 +108,7 @@ void bin_packing::binPacking(
 	string outputDirectoryName = outputLocation + "/" + datasetName;
 	mkdir(outputDirectoryName.c_str(), 0777);
 
+	// start the clock
 	auto start = std::chrono::high_resolution_clock::now();
 
 	// create directory to store wkt files of input polygons
@@ -75,7 +121,7 @@ void bin_packing::binPacking(
 		Polygon polygon = polygons[i];
 		// write the wkt polygon file
 		std::ostringstream polygonWKTFileName;
-		polygonWKTFileName << "polygon_" << std::setw(2) << std::setfill('0') << i << ".wkt";
+		polygonWKTFileName << "polygon_" << std::setw(3) << std::setfill('0') << i << ".wkt";
 		std::ofstream polygonWKTFile(inputPolygonsWKTStorageLocation + "/" + polygonWKTFileName.str());
 		polygonWKTFile << boost_geo::wkt(polygon) << std::endl;
 		polygonWKTFile.close();
@@ -83,5 +129,7 @@ void bin_packing::binPacking(
 		totalAreaOfInputPolygons += std::fabs(boost_geo::area(polygon));
 	}
 
-	MultiPolygon initialPacking = cluster_util::generateInitialSolution(polygons, width);
+	polygon_fit::generateAllPairNfpForInputPolygons(datasetName, polygons.size(), outputLocation);
+
+	// MultiPolygon initialPacking = cluster_util::generateInitialSolution(polygons, width);
 }
