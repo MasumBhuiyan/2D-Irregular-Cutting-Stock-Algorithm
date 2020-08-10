@@ -3,23 +3,23 @@
 
 void testDataset(std::string datasetName)
 {
-    std::string outputDirectoryName = "../io/results/" + datasetName;
-    mkdir(outputDirectoryName.c_str(), 0777);
-
     double width;
     std::vector<Polygon> inputPolygons;
     std::tie(inputPolygons, width) = bin_packing::readDataset(datasetName);
-    bin_packing::binPacking(inputPolygons, width, "", datasetName, 5.0);
+    bin_packing::binPacking(inputPolygons, width, "../io/results", datasetName, 5.0);
 }
 
 int main(int argc, char const *argv[])
 {
-    testDataset("sample");
+    string outputLocation = "../io/results";
+    mkdir(outputLocation.c_str(), 0777);
+
+    // testDataset("sample");
     // testDataset("albano");
     // testDataset("blaz");
     // testDataset("dagli");
     // testDataset("dighe1");
-    // testDataset("jakobs1");
+    testDataset("jakobs1");
     // testDataset("jakobs2");
     // testDataset("marques");
     // testDataset("poly1a");
