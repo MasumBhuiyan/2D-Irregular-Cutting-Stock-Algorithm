@@ -25,21 +25,23 @@ void polygon_fit::generateAllPairNfpForInputPolygons(string datasetname, int num
 	int nfp_wkt_file_id = 0;
 	for (int i = 0; i < numberOfPolygons; i++)
 	{
-		polygon_t polygon_i = polygons[i];
 		for (int j = 0; j < numberOfPolygons; j++)
 		{
-			polygon_t polygon_j = polygons[j];
 			for (auto &rotationAngle_i : ALLOWABLE_ROTATIONS)
 			{
 				for (auto &rotationAngle_j : ALLOWABLE_ROTATIONS)
 				{
+					polygon_t polygon_i = polygons[i];
+					polygon_t polygon_j = polygons[j];
+					// std::cout << boost_geo::wkt(polygon_i) << "\n";
+					// std::cout << boost_geo::wkt(polygon_j) << "\n\n";
 					auto nfp = generateNFP(polygon_i, polygon_j);
 					std::reverse(nfp.begin(), nfp.end());
 					polygon_t nfpPolygon;
 					nfpPolygon.outer() = nfp.back();
 					nfp.pop_back();
 					nfpPolygon.inners() = nfp;
-					std::ofstream nfpWKTFile(nfpDirectoryName + "/nfp_wkt_" + std::to_string(nfp_wkt_file_id++) + ".wkt");
+					std::ofstream nfpWKTFile(nfpDirectoryName + "/nfp_" + std::to_string(nfp_wkt_file_id++) + ".wkt");
 					nfpWKTFile << boost_geo::wkt(nfp.front()) << std::endl;
 					nfpWKTFile.close();
 				}
