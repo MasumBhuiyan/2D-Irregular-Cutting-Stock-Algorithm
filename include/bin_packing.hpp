@@ -99,7 +99,7 @@ namespace cluster_util
     MultiPolygon bottomLeftFill(vector<MultiPolygon> &clusters, long double length, long double width);
     long double findBestPairWiseClusters(vector<vector<vector<vector<long double>>>> &clusterValues, vector<long double> &dp, int numberOfPairs, int mask);
     void printBestPairWiseClusters(vector<vector<vector<vector<long double>>>> &clusterValues, vector<long double> &dp, int numberOfPairs, int mask, vector<tuple<int, int, int, int>> &clusterPairs);
-    vector<tuple<int, int, int, int>> getPerfectClustering(vector<vector<vector<vector<long double>>>> &clusterValues, long double width);
+    vector<tuple<int, int, int, int>> getPerfectClustering(vector<vector<vector<vector<long double>>>> &clusterValues);
     vector<vector<vector<vector<long double>>>> getClusterValues(vector<Polygon> &inputPolygons);
     MultiPolygon generateInitialSolution(vector<Polygon> &inputPolygons, long double width);
 }; // namespace cluster_util

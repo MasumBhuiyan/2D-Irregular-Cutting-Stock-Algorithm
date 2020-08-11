@@ -187,7 +187,332 @@ void polygon_fit::generateAllPairNfpForInputPolygons(vector<Polygon> &polygons, 
 	}
 }
 
-/** namespace bin_packing */
+/** namespace polygon_util */
+vector<tuple<int, int, int, int>> cluster_util::getPerfectClustering(vector<vector<vector<vector<long double>>>> &clusterValues)
+{
+	int numberOfPolygons = clusterValues.size();
+	int numberOfPairs = std::min(10, numberOfPolygons / 2);
+	std::cout << numberOfPairs << "\n";
+	vector<tuple<int, int, int, int>> clusterPairs;
+	vector<long double> dp(1 << 22, -1.0);
+	long double bestClusterizationValue = cluster_util::findBestPairWiseClusters(clusterValues, dp, numberOfPairs, 0);
+	cluster_util::printBestPairWiseClusters(clusterValues, dp, numberOfPairs, 0, clusterPairs);
+	return clusterPairs;
+}
+void cluster_util::printBestPairWiseClusters(vector<vector<vector<vector<long double>>>> &clusterValues, vector<long double> &dp, int numberOfPairs, int mask, vector<tuple<int, int, int, int>> &clusterPairs)
+{
+	int taken = __builtin_popcount(mask);
+	if (taken == (numberOfPairs + numberOfPairs))
+	{
+		return;
+	}
+	long double &maxProfit = dp[mask];
+	int POLYGON_SIZE = std::min(20, (int)clusterValues.size());
+	for (int i = 0; i < POLYGON_SIZE; i += 1)
+	{
+		int bit1 = mask & (1 << i);
+		if (bit1 > 0)
+		{
+			continue;
+		}
+		for (int j = 0; j < POLYGON_SIZE; j += 1)
+		{
+			int bit2 = mask & (1 << j);
+			if (bit2 > 0 or i == j)
+			{
+				continue;
+			}
+			for (int k = 0; k < ALLOWABLE_ROTATIONS.size(); k += 1)
+			{
+				for (int l = 0; l < ALLOWABLE_ROTATIONS.size(); l += 1)
+				{
+					int bitOn12 = (1 << i) + (1 << j);
+					long double __maxProfit = cluster_util::findBestPairWiseClusters(clusterValues, dp, numberOfPairs, mask ^ bitOn12) + clusterValues[i][j][k][l];
+					if (maxProfit == __maxProfit)
+					{
+						clusterPairs.push_back({i, j, k, l});
+						cluster_util::printBestPairWiseClusters(clusterValues, dp, numberOfPairs, mask ^ bitOn12, clusterPairs);
+						return;
+					}
+				}
+			}
+		}
+	}
+}
+long double cluster_util::findBestPairWiseClusters(vector<vector<vector<vector<long double>>>> &clusterValues, vector<long double> &dp, int numberOfPairs, int mask)
+{
+	int taken = __builtin_popcount(mask);
+	if (taken == (numberOfPairs + numberOfPairs))
+	{
+		return 0.0;
+	}
+	long double &maxProfit = dp[mask];
+	if (maxProfit != -1.0)
+	{
+		return maxProfit;
+	}
+	maxProfit = -INF;
+
+	int POLYGON_SIZE = std::min(20,(int)clusterValues.size());
+	for (int i = 0; i < POLYGON_SIZE; i += 1)
+	{
+		int bit1 = mask & (1 << i);
+		if (bit1 > 0)
+		{
+			continue;
+		}
+		for (int j = 0; j < POLYGON_SIZE; j += 1)
+		{
+			int bit2 = mask & (1 << j);
+			if (bit2 > 0 or i == j)
+			{
+				continue;
+			}
+			for (int k = 0; k < ALLOWABLE_ROTATIONS.size(); k += 1)
+			{
+				for (int l = 0; l < ALLOWABLE_ROTATIONS.size(); l += 1)
+				{
+					int bitOn12 = (1 << i) + (1 << j);
+					long double __maxProfit = cluster_util::findBestPairWiseClusters(clusterValues, dp, numberOfPairs, mask ^ bitOn12) + clusterValues[i][j][k][l];
+					maxProfit = std::max(maxProfit, __maxProfit);
+				}
+			}
+		}
+	}
+	return maxProfit;
+}
+void cluster_util::sortByClusterValue(vector<MultiPolygon> &clusters)
+{
+	sort(clusters.begin(), clusters.end(), [](MultiPolygon cluster1, MultiPolygon cluster2) {
+		long double area1 = 0.0, area2 = 0.0;
+		for (auto polygon : cluster1)
+		{
+			area1 += std::fabs(boost_geo::area(polygon));
+		}
+		for (auto polygon : cluster2)
+		{
+			area2 += std::fabs(boost_geo::area(polygon));
+		}
+		return geo_util::dblcmp(area1 - area2, EPS) > 0;
+	});
+}
+Polygon cluster_util::convexHull(MultiPolygon multiPolygon)
+{
+	Polygon convexhull;
+	boost_geo::convex_hull(multiPolygon, convexhull);
+	return convexhull;
+}
+MultiPolygon cluster_util::findConvexHullVacancy(Polygon &concavePolygon)
+{
+	MultiPolygon vacancies;
+	if( boost_geo::is_convex(concavePolygon.outer()) == true ) return vacancies;
+	Polygon convexhull = cluster_util::convexHull({concavePolygon});
+	boost_geo::difference(convexhull, concavePolygon, vacancies);
+	return vacancies;
+}
+vector<tuple<Point, Point>> cluster_util::findOppositeSideOfVacancies(Polygon &concavePolygonConvexHull, MultiPolygon &convexHullVacancies)
+{
+	vector<tuple<Point, Point>> oppositeSideOfVacancies;
+	if( convexHullVacancies.size() == 0 ) 
+	{
+		return oppositeSideOfVacancies;
+	}
+	int i = 0;
+	for (auto &vacancy : convexHullVacancies)
+	{
+		vector<Point> line;
+		boost_geo::intersection(concavePolygonConvexHull, vacancy, line);
+		assert(line.size() == 2);
+		oppositeSideOfVacancies.push_back({line[0], line[1]});
+	}
+	return oppositeSideOfVacancies;
+}
+Point cluster_util::findDominantPoint(Polygon &concavePolygon)
+{
+	Point dominant;
+	Polygon convexhull = cluster_util::convexHull({concavePolygon});
+	MultiPolygon vacancies = cluster_util::findConvexHullVacancy(concavePolygon);
+	vector<tuple<Point, Point>> oppositeSideOfVacancies = cluster_util::findOppositeSideOfVacancies(convexhull, vacancies);
+	int n = oppositeSideOfVacancies.size();
+	double maxDistance = 0.0;
+
+	for (int i = 0; i < n; i += 1)
+	{
+		for (Point point : vacancies[i].outer())
+		{
+			Point p, q;
+			std::tie(p, q) = oppositeSideOfVacancies[i];
+			long double distance = geo_util::linePointDistance(p, q, point);
+			if (distance > maxDistance)
+			{
+				maxDistance = distance;
+				dominant = point;
+			}
+		}
+	}
+	return dominant;
+}
+long double cluster_util::getClusteringCriteria1(Polygon &polygon1, Polygon &polygon2)
+{
+	long double value = 0.0, value1 = 0.0, value2 = 0.0;
+	long double areaIntersection1 = 0.0, totalVacancy1 = 0.0;
+	long double areaIntersection2 = 0.0, totalVacancy2 = 0.0;
+
+	vector<Polygon> V1 = cluster_util::findConvexHullVacancy(polygon1);
+	vector<Polygon> V2 = cluster_util::findConvexHullVacancy(polygon2);
+
+	for (auto &vacancy : V2)
+	{
+		long double area = geo_util::polygonPolygonIntersectionArea(polygon1, vacancy);
+		if (area > 0)
+		{
+			areaIntersection1 += area;
+			totalVacancy1 += std::fabs(boost_geo::area(vacancy));
+		}
+	}
+	for (auto &vacancy : V1)
+	{
+		long double area = geo_util::polygonPolygonIntersectionArea(polygon2, vacancy);
+		if (area > 0)
+		{
+			areaIntersection2 += area;
+			totalVacancy2 += std::fabs(boost_geo::area(vacancy));
+		}
+	}
+	if (totalVacancy1 > 0)
+	{
+		value1 = areaIntersection1 / totalVacancy1;
+	}
+	if (totalVacancy2 > 0)
+	{
+		value2 = areaIntersection2 / totalVacancy2;
+	}
+	value = std::max(value1, value2);
+	return value;
+}
+
+long double cluster_util::getClusteringCriteria2(Polygon &polygon1, Polygon &polygon2)
+{
+	MultiPolygon multiPolygon;
+	multiPolygon.push_back(polygon1);
+	multiPolygon.push_back(polygon2);
+	Polygon convexhull = cluster_util::convexHull(multiPolygon);
+
+	long double area1 = std::fabs(boost_geo::area(polygon1));
+	long double area2 = std::fabs(boost_geo::area(polygon2));
+	long double area3 = std::fabs(boost_geo::area(convexhull));
+	assert(area3 > 0);
+	long double value = (area1 + area2) / area3;
+	return value;
+}
+
+long double cluster_util::getClusterValue(Polygon &polygon1, Polygon &polygon2)
+{
+	long double value = cluster_util::getClusteringCriteria1(polygon1, polygon2) + cluster_util::getClusteringCriteria2(polygon1, polygon2);
+	return value;
+}
+vector<vector<vector<vector<long double>>>> cluster_util::getClusterValues(vector<Polygon> &inputPolygons)
+{
+	int numberOfPolygons = inputPolygons.size();
+	vector<vector<vector<vector<long double>>>> clusterValues;
+	clusterValues.resize(numberOfPolygons, vector<vector<vector<long double>>>(numberOfPolygons, vector<vector<long double>>(ALLOWABLE_ROTATIONS.size(), vector<long double>(ALLOWABLE_ROTATIONS.size(), 0.0))));
+	for (int i = 0; i < numberOfPolygons; i++)
+	{
+		for (int j = 0; j < numberOfPolygons; j++)
+		{
+			if( i == j ) continue;
+			for (int k = 0; k < ALLOWABLE_ROTATIONS.size(); k += 1)
+			{
+				for (int l = 0; l < ALLOWABLE_ROTATIONS.size();  l += 1)
+				{
+					Polygon polygon_i = inputPolygons[i];
+					Polygon polygon_j = inputPolygons[j];
+
+					long double rotationAngle_i = ALLOWABLE_ROTATIONS[k];
+					long double rotationAngle_j = ALLOWABLE_ROTATIONS[l];
+
+					polygon_i = geo_util::poly_util::rotateCW(polygon_i, rotationAngle_i, polygon_i.outer()[0]);
+					Point newOrigin_i = polygon_i.outer().front();
+					boost_geo::multiply_value(newOrigin_i, -1);
+					polygon_i = geo_util::poly_util::translate(polygon_i, newOrigin_i);
+
+					polygon_j = geo_util::poly_util::rotateCW(polygon_j, rotationAngle_j, polygon_j.outer()[0]);
+					Point newOrigin_j = polygon_j.outer().front();
+					boost_geo::multiply_value(newOrigin_j, -1);
+					polygon_j = geo_util::poly_util::translate(polygon_j, newOrigin_j);
+
+					Polygon nfp = polygon_fit::getNoFitPolygon(polygon_i, polygon_j);
+					
+					if( boost_geo::is_convex(nfp.outer()) == false )
+					{
+						Point dominantPoint = cluster_util::findDominantPoint(nfp);
+						polygon_j = geo_util::poly_util::translate(polygon_j, dominantPoint);
+						clusterValues[i][j][k][l] = cluster_util::getClusterValue(polygon_i, polygon_j);
+					} 
+				}
+			}
+		}
+	}
+	return clusterValues;
+}
+MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygons, long double width)
+{
+	vector<vector<vector<vector<long double>>>> clusterValues = cluster_util::getClusterValues(inputPolygons);
+	vector<tuple<int, int, int, int>> clusterPairs = cluster_util::getPerfectClustering(clusterValues);
+	
+	vector<bool> taken((int)inputPolygons.size(), false);
+	vector<MultiPolygon> clusters;
+	int n = inputPolygons.size();
+	
+	for (auto &clusterId : clusterPairs)
+	{
+		int i, j, k, l;
+		std::tie(i, j, k, l) = clusterId;
+		MultiPolygon cluster;
+
+		
+		Polygon polygon_i = inputPolygons[i];
+		Polygon polygon_j = inputPolygons[j];
+
+		long double rotationAngle_i = ALLOWABLE_ROTATIONS[k];
+		long double rotationAngle_j = ALLOWABLE_ROTATIONS[l];
+
+		polygon_i = geo_util::poly_util::rotateCW(polygon_i, rotationAngle_i, polygon_i.outer()[0]);
+		Point newOrigin_i = polygon_i.outer().front();
+		boost_geo::multiply_value(newOrigin_i, -1);
+		polygon_i = geo_util::poly_util::translate(polygon_i, newOrigin_i);
+
+		polygon_j = geo_util::poly_util::rotateCW(polygon_j, rotationAngle_j, polygon_j.outer()[0]);
+		Point newOrigin_j = polygon_j.outer().front();
+		boost_geo::multiply_value(newOrigin_j, -1);
+		polygon_j = geo_util::poly_util::translate(polygon_j, newOrigin_j);
+
+		Polygon nfp = polygon_fit::getNoFitPolygon(polygon_i, polygon_j); //
+
+
+		if ( boost_geo::is_convex(nfp.outer()) == false)
+		{
+			taken[i] = taken[j] = true;
+			Point dominantPoint = cluster_util::findDominantPoint(nfp);
+			polygon_j = geo_util::poly_util::translate(polygon_j, dominantPoint);
+			cluster.push_back(polygon_i);
+			cluster.push_back(polygon_j);
+			clusters.push_back(cluster);
+		}
+	}
+
+	for (int i = 0; i < inputPolygons.size(); i++)
+	{
+		if (taken[i] == false)
+		{
+			clusters.push_back({inputPolygons[i]});
+		}
+	}
+	cluster_util::sortByClusterValue(clusters);
+	long double length = INITIAL_STOCK_LENGTH;
+	MultiPolygon initialSolution;// = cluster_util::bottomLeftFill(clusters, length, width);
+	return initialSolution;
+}
 
 /** namespace bin_packing */
 /** 
