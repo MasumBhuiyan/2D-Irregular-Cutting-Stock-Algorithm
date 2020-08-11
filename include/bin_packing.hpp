@@ -51,23 +51,22 @@ namespace geo_util
 {
     int dblcmp(long double, long double eps = EPS);
     long double dblround(long double, long double eps = EPS);
-    bool isConcave(Polygon &);
-    long double getLength(Polygon &);
-    long double getWidth(Polygon &);
     long double crossProduct(Point, Point);
     int orientation(Point, Point, Point);
     long double linePointDistance(Point, Point, Point);
-    long double polygonPolygonIntersectionArea(Polygon &, Polygon &);
     Point segmentSegmentIntersectionPoint(Point, Point, Point, Point);
-    bool isItPossibleToPlacePolygon(MultiPolygon &packing, MultiPolygon clusterNextToBePlaced, Point translationPoint);
     bool pointInRectangle(Point, Point, Point);
-    long double getPackingLength(MultiPolygon &);
+
     namespace poly_util
     {
         void polygonRound(Polygon &polygon);
         Polygon normalize(Polygon &polygon);
         Polygon translate(Polygon &polygon, Point translationPoint);
         Polygon rotateCW(Polygon &polygon, long double rotationAngleInDegree, Point referencePoint = Point(0, 0));
+        long double polygonPolygonIntersectionArea(Polygon &, Polygon &);
+        bool isItPossibleToPlacePolygon(MultiPolygon &packing, MultiPolygon clusterNextToBePlaced, Point translationPoint);
+        long double getWidth(MultiPolygon &multiPolygon);
+        long double getLength(MultiPolygon &multiPolygon);
     }; // namespace poly_util
     void visualize(MultiPolygon, string, string);
 
@@ -80,7 +79,6 @@ namespace polygon_fit
     Polygon getNoFitPolygon(Polygon &referencePolygon, MultiPolygon &cluster);
     Polygon getNoFitPolygon(Polygon &referencePolygon, Polygon &polygonToPlace);
     MultiPolygon getAllNfpIfr(MultiPolygon &packing, MultiPolygon cluster, long double length, long double width); // Nfp = No Fit Polygon, Ifr = Inner Fit Rectangle
-    void generateAllPairNfpForInputPolygons(vector<Polygon> &polygons, string datasetname, string outputLocation);
 
 }; // namespace polygon_fit
 
