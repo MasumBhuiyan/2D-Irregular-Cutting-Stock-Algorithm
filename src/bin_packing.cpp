@@ -32,6 +32,24 @@ namespace poly_t_util
 	Polygon convertToPolygon(polygon_t &polygon)
 	{
 		Polygon convertedPolygon;
+		for (auto &point : polygon.outer())
+		{
+			long double __x = geo_util::dblround(point.x_.val());
+			long double __y = geo_util::dblround(point.y_.val());
+			convertedPolygon.outer().push_back(Point(__x, __y));
+		}
+		for (auto &inner : polygon.inners())
+		{
+			vector<Point> innerNew;
+			for (auto &point : inner)
+			{
+				long double __x = geo_util::dblround(point.x_.val());
+				long double __y = geo_util::dblround(point.y_.val());
+				innerNew.push_back(Point(__x, __y));
+			}
+			convertedPolygon.inners().push_back({innerNew.begin(), innerNew.end()});
+		}
+		boost_geo::correct(convertedPolygon);
 		return convertedPolygon;
 	}
 }; // namespace poly_t_util
@@ -90,13 +108,13 @@ Polygon geo_util::poly_util::rotateCW(Polygon &polygon, long double rotationAngl
 
 Polygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, MultiPolygon cluster)
 {
-	Polygon nfp; 
+	Polygon nfp;
 	return nfp;
 }
 
 Polygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, Polygon polygonToPlace)
 {
-	Polygon nfp; 
+	Polygon nfp;
 	return nfp;
 }
 
