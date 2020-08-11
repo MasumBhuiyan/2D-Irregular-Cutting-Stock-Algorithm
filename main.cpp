@@ -10,6 +10,8 @@ void testDataset(std::string datasetName)
     std::vector<Polygon> inputPolygons;
     std::tie(inputPolygons, width) = bin_packing::readDataset(datasetName);
 
+    
+
     int i = 0;
     for(auto p : inputPolygons)
     {
@@ -19,7 +21,7 @@ void testDataset(std::string datasetName)
         }
         i += 1;
     }
-    bin_packing::binPacking(inputPolygons, width, "../tests/results/blf/", datasetName, 5.0);
+   bin_packing::binPacking(inputPolygons, width, "../tests/results/blf/", datasetName, 5.0);
 }
 
 int main(int argc, char const *argv[])
@@ -29,7 +31,7 @@ int main(int argc, char const *argv[])
     // testDataset("blaz");
     // testDataset("dagli");
     // testDataset("dighe1");
-    // testDataset("jakobs1");
+     testDataset("jakobs1");
     // testDataset("jakobs2");
     // testDataset("marques");
     // testDataset("poly1a");

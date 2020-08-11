@@ -6,6 +6,7 @@ add_executable(is_concave_test src/is_concave_test.cpp)
 add_executable(find_convex_hull_vacancies_test src/find_convex_hull_vacancies_test.cpp)
 add_executable(find_opposite_sides_of_vacancies_test src/find_opposite_sides_of_vacancies_test.cpp)
 add_executable(get_ifr_test src/get_ifr_test.cpp)
+add_executable(get_cluster_values src/get_cluster_values.cpp)
 
 ## link libraries
 target_link_libraries(generate_nfp_test PRIVATE libnfporb bin_packing)
@@ -13,6 +14,7 @@ target_link_libraries(is_concave_test PRIVATE libnfporb bin_packing)
 target_link_libraries(find_convex_hull_vacancies_test PRIVATE libnfporb bin_packing)
 target_link_libraries(find_opposite_sides_of_vacancies_test PRIVATE libnfporb bin_packing)
 target_link_libraries(get_ifr_test PRIVATE libnfporb bin_packing)
+target_link_libraries(get_cluster_values PRIVATE libnfporb bin_packing)
 
 # add test
 add_test(generate_nfp_test generate_nfp_test)
@@ -20,3 +22,4 @@ add_test(is_concave_test is_concave_test)
 add_test(find_convex_hull_vacancies_test find_convex_hull_vacancies_test)
 add_test(find_opposite_sides_of_vacancies_test find_opposite_sides_of_vacancies_test)
 add_test(get_ifr_test get_ifr_test)
+add_test(get_cluster_values get_cluster_values)

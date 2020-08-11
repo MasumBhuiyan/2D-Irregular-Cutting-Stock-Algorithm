@@ -94,7 +94,7 @@ namespace cluster_util
     double findBestPairWiseClusters(vector<vector<vector<vector<double>>>> &clusterValues, vector<double> &dp, int numberOfPairs, int mask);
     void printBestPairWiseClusters(vector<vector<vector<vector<double>>>> &clusterValues, vector<double> &dp, int numberOfPairs, int mask, vector<tuple<int, int, int, int>> &clusterPairs);
     vector<tuple<int, int, int, int>> getPerfectClustering(vector<vector<vector<vector<double>>>> &clusterValues, double width);
-    vector<vector<vector<vector<double>>>> getClusterValues(vector<Polygon> &inputPolygons);
+    vector<vector<vector<vector<double>>>> getClusterValues(vector<Polygon> &inputPolygons, std::string wktDatasetName="NULL");
     MultiPolygon generateInitialSolution(vector<Polygon> &inputPolygons, double width);
 }; // namespace cluster_util
 
