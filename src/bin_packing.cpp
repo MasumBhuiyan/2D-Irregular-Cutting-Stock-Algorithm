@@ -121,9 +121,13 @@ Polygon geo_util::poly_util::rotateCW(Polygon &polygon, long double rotationAngl
 
 /** namespace polygon_fit */
 
-Polygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, MultiPolygon cluster)
+Polygon polygon_fit::getNoFitPolygon(Polygon &referencePolygon, MultiPolygon &cluster)
 {
-	Polygon nfp;
+	Polygon nfp = polygon_fit::getNoFitPolygon(referencePolygon, cluster[0]);;
+	if( cluster.size() == 2 )
+	{
+		nfp = polygon_fit::getNoFitPolygon(nfp, cluster[1]);
+	}
 	return nfp;
 }
 
