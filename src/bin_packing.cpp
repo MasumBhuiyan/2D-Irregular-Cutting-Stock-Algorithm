@@ -363,6 +363,80 @@ long double cluster_util::findBestPairWiseClusters(vector<vector<vector<vector<l
 	}
 	return maxProfit;
 }
+vector<Point> cluster_util::getCandidatePlacementPositions(MultiPolygon &packing, MultiPolygon &cluster, long double length, long double width)
+{
+	vector<Point> candidatePlacementPositions;
+	MultiPolygon allNfpIfr = polygon_fit::getAllNfpIfr(packing, cluster, length, width);
+	vector<Point> allEdgeIntersectionPoints = polygon_fit::getAllEdgeIntersectionPoints(allNfpIfr);
+	for (auto polygon : allNfpIfr)
+	{
+		for (auto point : polygon.outer())
+		{
+			double _x = point.get<0>();
+			double _y = point.get<1>();
+			double l = geo_util::poly_util::getLength(cluster);
+			double w = geo_util::poly_util::getWidth(cluster);
+			if( _x < 0 or _y < 0 or _x + w > width or _y + l > length ) continue;
+			candidatePlacementPositions.push_back(point);
+		}
+		for(auto inner: polygon.inners())
+		{
+			for(auto point: inner)
+			{
+				double _x = point.get<0>();
+				double _y = point.get<1>();
+				double l = geo_util::poly_util::getLength(cluster);
+				double w = geo_util::poly_util::getWidth(cluster);
+				if( _x < 0 or _y < 0 or _x + w > width or _y + l > length ) continue;
+				candidatePlacementPositions.push_back(point);
+			}
+		}
+	}
+	for (auto point : allEdgeIntersectionPoints)
+	{
+		double _x = point.get<0>();
+		double _y = point.get<1>();
+		double l = geo_util::poly_util::getLength(cluster);
+		double w = geo_util::poly_util::getWidth(cluster);
+		if( _x < 0 or _y < 0 or _x + w > width or _y + l > length ) continue;
+		candidatePlacementPositions.push_back(point);
+	}
+	return candidatePlacementPositions;
+}
+Point cluster_util::findBLFPoint(MultiPolygon &packing, MultiPolygon &cluster, long double length, long double width)
+{
+	Point blfPoint(INF, INF);
+	vector<Point> candidatePlacementPositions = cluster_util::getCandidatePlacementPositions(packing, cluster, length, width);
+	for (auto point : candidatePlacementPositions)
+	{
+		if (geo_util::poly_util::isItPossibleToPlacePolygon(packing, cluster, point) == true )
+		{
+			if (point.get<1>() < blfPoint.get<1>())
+			{
+				blfPoint = point;
+			}
+			else if ((point.get<1>() == blfPoint.get<1>()) and (point.get<0>() < blfPoint.get<0>()))
+			{
+				blfPoint = point;
+			}
+		}
+	}
+	return blfPoint;
+}
+MultiPolygon cluster_util::bottomLeftFill(vector<MultiPolygon> &clusters, long double length, long double width)
+{
+	MultiPolygon packing;
+	for (auto cluster : clusters)
+	{
+		Point blfPoint = cluster_util::findBLFPoint(packing, cluster, length, width);
+		// cluster = geo_util::poly_util::translate(cluster, blfPoint);
+		for (auto polygon : cluster)
+		{
+			packing.push_back(polygon);
+		}
+	}
+	return packing;
+}
 
 void cluster_util::sortByClusterValue(vector<MultiPolygon> &clusters)
 {
