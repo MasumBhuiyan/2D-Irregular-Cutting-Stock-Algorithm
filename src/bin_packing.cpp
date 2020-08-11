@@ -28,6 +28,12 @@ namespace poly_t_util
 		boost_geo::correct(convertedPolygon);
 		return convertedPolygon;
 	}
+
+	Polygon convertToPolygon(polygon_t &polygon)
+	{
+		Polygon convertedPolygon;
+		return convertedPolygon;
+	}
 }; // namespace poly_t_util
 
 /** namespace geo_util */
@@ -40,6 +46,10 @@ long double geo_util::dblround(long double x, long double eps)
 		return intPart;
 	}
 	return x;
+}
+
+void geo_util::poly_util::polygonRound(Polygon &polygon)
+{
 }
 
 Polygon geo_util::poly_util::normalize(Polygon &polygon)
@@ -77,6 +87,18 @@ Polygon geo_util::poly_util::rotateCW(Polygon &polygon, long double rotationAngl
 }
 
 /** namespace polygon_fit */
+
+Polygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, MultiPolygon cluster)
+{
+	Polygon nfp; 
+	return nfp;
+}
+
+Polygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, Polygon polygonToPlace)
+{
+	Polygon nfp; 
+	return nfp;
+}
 
 void polygon_fit::generateAllPairNfpForInputPolygons(vector<Polygon> &polygons, string datasetname, string outputLocation)
 {

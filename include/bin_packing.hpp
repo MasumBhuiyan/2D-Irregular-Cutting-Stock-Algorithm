@@ -55,21 +55,16 @@ namespace geo_util
     long double getLength(Polygon &);
     long double getWidth(Polygon &);
     long double crossProduct(Point, Point);
-    void normalize(Polygon &);
     int orientation(Point, Point, Point);
-    Polygon rotatePolygon(Polygon, Point, long double);
-    Polygon translatePolygon(Polygon, Point);
     long double linePointDistance(Point, Point, Point);
     long double polygonPolygonIntersectionArea(Polygon &, Polygon &);
     Point segmentSegmentIntersectionPoint(Point, Point, Point, Point);
-    vector<Polygon> rotatePolygons(vector<Polygon> &, Point, long double);
-    MultiPolygon translatePolygons(MultiPolygon cluster, Point translationPoint);
     bool isItPossibleToPlacePolygon(MultiPolygon &packing, MultiPolygon clusterNextToBePlaced, Point translationPoint);
     bool pointInRectangle(Point, Point, Point);
     long double getPackingLength(MultiPolygon &);
-    Polygon makePolygon(Polygon, Point, long double);
     namespace poly_util
     {
+        void polygonRound(Polygon &polygon);
         Polygon normalize(Polygon &polygon);
         Polygon translate(Polygon &polygon, Point translationPoint);
         Polygon rotateCW(Polygon &polygon, long double rotationAngleInDegree, Point referencePoint = Point(0, 0));
@@ -82,8 +77,8 @@ namespace polygon_fit
 {
     Polygon getInnerFitRectangle(MultiPolygon cluster, long double length, long double width);
     vector<Point> getAllEdgeIntersectionPoints(MultiPolygon &allNfpIfr);
-    MultiPolygon getNoFitPolygon(Polygon referencePolygon, MultiPolygon cluster);
-    MultiPolygon getNoFitPolygon(Polygon referencePolygon, Polygon polygonToPlace);
+    Polygon getNoFitPolygon(Polygon referencePolygon, MultiPolygon cluster);
+    Polygon getNoFitPolygon(Polygon referencePolygon, Polygon polygonToPlace);
     MultiPolygon getAllNfpIfr(MultiPolygon &packing, MultiPolygon cluster, long double length, long double width); // Nfp = No Fit Polygon, Ifr = Inner Fit Rectangle
     void generateAllPairNfpForInputPolygons(vector<Polygon> &polygons, string datasetname, string outputLocation);
 
