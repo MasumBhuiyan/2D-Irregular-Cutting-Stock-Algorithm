@@ -202,11 +202,11 @@ long double geo_util::poly_util::polygonPolygonIntersectionArea(Polygon &polygon
 
 bool geo_util::poly_util::isItPossibleToPlacePolygon(MultiPolygon &packing, MultiPolygon clusterNextToBePlaced, Point point)
 {
-	Point referecenPoint = clusterNextToBePlaced.front().outer().front();
-	boost_geo::multiply_value(referecenPoint, -1);
+	Point referecePoint = clusterNextToBePlaced.front().outer().front();
+	boost_geo::multiply_value(referecePoint, -1);
 	for (auto &polygon : clusterNextToBePlaced)
 	{
-		polygon = geo_util::poly_util::translate(polygon, referecenPoint);
+		polygon = geo_util::poly_util::translate(polygon, referecePoint);
 		polygon = geo_util::poly_util::translate(polygon, point);
 	}
 	for (auto poly : packing)
@@ -509,7 +509,10 @@ MultiPolygon cluster_util::bottomLeftFill(vector<MultiPolygon> &clusters, long d
 	for (auto cluster : clusters)
 	{
 		Point blfPoint = cluster_util::findBLFPoint(packing, cluster, length, width);
-		// cluster = geo_util::poly_util::translate(cluster, blfPoint);
+		Point referencePoint = cluster.front().outer().front();
+		boost_geo::multiply_value(referencePoint, -1);
+		cluster = geo_util::poly_util::translate(cluster, referencePoint);
+		cluster = geo_util::poly_util::translate(cluster, blfPoint);
 		for (auto polygon : cluster)
 		{
 			packing.push_back(polygon);
@@ -753,7 +756,7 @@ MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygon
 	}
 	cluster_util::sortByClusterValue(clusters);
 	long double length = INITIAL_STOCK_LENGTH;
-	MultiPolygon initialSolution; // = cluster_util::bottomLeftFill(clusters, length, width);
+	MultiPolygon initialSolution = cluster_util::bottomLeftFill(clusters, length, width);
 	return initialSolution;
 }
 
