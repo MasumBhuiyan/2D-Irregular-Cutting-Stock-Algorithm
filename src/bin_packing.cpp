@@ -252,6 +252,61 @@ long double geo_util::poly_util::getLength(MultiPolygon &multiPolygon)
 
 /** namespace polygon_fit */
 
+Polygon polygon_fit::getInnerFitRectangle(MultiPolygon cluster, long double length, long double width)
+{
+	Polygon innerFitRectangle;
+	Point reference = cluster[0].outer()[0];
+
+	long double max_x = -INF, min_x = INF, max_y = -INF, min_y = INF;
+	for (Polygon &polygon : cluster)
+	{
+		for (Point &point : polygon.outer())
+		{
+			point = Point(point.get<0>() - reference.get<0>(), point.get<1>() - reference.get<1>());
+			max_x = std::max(max_x, point.get<0>());
+			min_x = std::min(min_x, point.get<0>());
+			max_y = std::max(max_y, point.get<1>());
+			min_y = std::min(min_y, point.get<1>());
+		}
+	}
+	innerFitRectangle.outer().push_back(Point(std::abs(min_x), std::abs(min_y)));
+	innerFitRectangle.outer().push_back(Point(std::abs(min_x), length - max_y));
+	innerFitRectangle.outer().push_back(Point(width - max_x, length - max_y));
+	innerFitRectangle.outer().push_back(Point(width - max_x, std::abs(min_y)));
+	innerFitRectangle.outer().push_back(Point(std::abs(min_x), std::abs(min_y)));
+	return innerFitRectangle;
+}
+
+vector<Point> polygon_fit::getAllEdgeIntersectionPoints(MultiPolygon &allNfpIfr)
+{
+	vector<tuple<Point, Point>> edges;
+	vector<Point> allEdgeIntersectionPoints;
+
+	for (auto &polygon : allNfpIfr)
+	{
+		for (int i = 0; i + 1 < polygon.outer().size(); i += 1)
+		{
+			edges.push_back({polygon.outer()[i], polygon.outer()[i + 1]});
+		}
+	}
+	for (int i = 0; i < edges.size(); i += 1)
+	{
+		for (int j = i + 1; j < edges.size(); j += 1)
+		{
+			Point point1, point2, point3, point4;
+			std::tie(point1, point2) = edges[i];
+			std::tie(point3, point4) = edges[j];
+			Point inetersectionPoint = geo_util::segmentSegmentIntersectionPoint(point1, point2, point3, point4);
+			if (inetersectionPoint.get<0>() == INF and inetersectionPoint.get<1>() == INF)
+			{
+				continue;
+			}
+			allEdgeIntersectionPoints.push_back(inetersectionPoint);
+		}
+	}
+	return allEdgeIntersectionPoints;
+}
+
 Polygon polygon_fit::getNoFitPolygon(Polygon &referencePolygon, MultiPolygon &cluster)
 {
 	Polygon nfp = polygon_fit::getNoFitPolygon(referencePolygon, cluster[0]);
@@ -277,6 +332,19 @@ Polygon polygon_fit::getNoFitPolygon(Polygon &referencePolygon, Polygon &polygon
 	geo_util::poly_util::polygonRound(nfpPolygon);
 	boost_geo::correct(nfpPolygon);
 	return nfpPolygon;
+}
+
+MultiPolygon polygon_fit::getAllNfpIfr(MultiPolygon &packing, MultiPolygon cluster, long double length, long double width)
+{
+	MultiPolygon allNfpIfr;
+	Polygon ifr = polygon_fit::getInnerFitRectangle(cluster, length, width);
+	allNfpIfr.push_back(ifr);
+	for (auto &polygon : packing)
+	{
+		Polygon nfp = polygon_fit::getNoFitPolygon(polygon, cluster);
+		allNfpIfr.push_back(nfp);
+	}
+	return allNfpIfr;
 }
 
 /** namespace polygon_util */
