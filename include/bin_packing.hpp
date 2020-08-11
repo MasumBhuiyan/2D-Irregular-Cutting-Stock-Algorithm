@@ -62,6 +62,7 @@ namespace geo_util
         void polygonRound(Polygon &polygon);
         Polygon normalize(Polygon &polygon);
         Polygon translate(Polygon &polygon, Point translationPoint);
+        MultiPolygon translate(MultiPolygon &polygons, Point translationPoint);
         Polygon rotateCW(Polygon &polygon, long double rotationAngleInDegree, Point referencePoint = Point(0, 0));
         long double polygonPolygonIntersectionArea(Polygon &, Polygon &);
         bool isItPossibleToPlacePolygon(MultiPolygon &packing, MultiPolygon clusterNextToBePlaced, Point translationPoint);

@@ -123,6 +123,8 @@ bool geo_util::pointInRectangle(Point a, Point b, Point c)
 	return (p && q);
 }
 
+/** namespace geo_uti::poly_util */
+
 void geo_util::poly_util::polygonRound(Polygon &polygon)
 {
 	for (auto &point : polygon.outer())
@@ -166,6 +168,16 @@ Polygon geo_util::poly_util::translate(Polygon &polygon, Point translationPoint)
 	Polygon translatedPolygon;
 	boost_geo::transform(polygon, translatedPolygon, trans::translate_transformer<long double, 2, 2>(translationPoint.get<0>(), translationPoint.get<1>()));
 	return translatedPolygon;
+}
+
+MultiPolygon geo_util::poly_util::translate(MultiPolygon &polygons, Point translationPoint)
+{
+	MultiPolygon translatedPolygons = polygons;
+	for (auto &polygon : translatedPolygons)
+	{
+		polygon = geo_util::poly_util::translate(polygon, translationPoint);
+	}
+	return translatedPolygons;
 }
 
 Polygon geo_util::poly_util::rotateCW(Polygon &polygon, long double rotationAngleInDegree, Point referencePoint)
@@ -532,6 +544,7 @@ vector<vector<vector<vector<long double>>>> cluster_util::getClusterValues(vecto
 					polygon_j = geo_util::poly_util::translate(polygon_j, newOrigin_j);
 
 					Polygon nfp = polygon_fit::getNoFitPolygon(polygon_i, polygon_j);
+					std::cout << boost_geo::wkt(nfp) << std::endl;
 
 					if (boost_geo::is_convex(nfp.outer()) == false)
 					{
