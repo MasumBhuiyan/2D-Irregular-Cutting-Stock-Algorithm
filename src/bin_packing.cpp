@@ -50,6 +50,21 @@ long double geo_util::dblround(long double x, long double eps)
 
 void geo_util::poly_util::polygonRound(Polygon &polygon)
 {
+	for(auto &point: polygon.outer())
+	{
+		double _x = geo_util::dblround(point.get<0>());
+		double _y = geo_util::dblround(point.get<1>());
+		point = Point(_x, _y);
+	}
+	for(auto &inner: polygon.inners())
+	{
+		for(auto &point: inner)
+		{
+			double _x = geo_util::dblround(point.get<0>());
+			double _y = geo_util::dblround(point.get<1>());
+			point = Point(_x, _y);
+		}
+	}
 }
 
 Polygon geo_util::poly_util::normalize(Polygon &polygon)
