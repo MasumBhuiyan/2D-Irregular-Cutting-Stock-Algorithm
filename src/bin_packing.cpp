@@ -68,15 +68,15 @@ long double geo_util::dblround(long double x, long double eps)
 
 void geo_util::poly_util::polygonRound(Polygon &polygon)
 {
-	for(auto &point: polygon.outer())
+	for (auto &point : polygon.outer())
 	{
 		double _x = geo_util::dblround(point.get<0>());
 		double _y = geo_util::dblround(point.get<1>());
 		point = Point(_x, _y);
 	}
-	for(auto &inner: polygon.inners())
+	for (auto &inner : polygon.inners())
 	{
-		for(auto &point: inner)
+		for (auto &point : inner)
 		{
 			double _x = geo_util::dblround(point.get<0>());
 			double _y = geo_util::dblround(point.get<1>());
@@ -127,10 +127,20 @@ Polygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, MultiPolygon clus
 	return nfp;
 }
 
-Polygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, Polygon polygonToPlace)
+Polygon polygon_fit::getNoFitPolygon(Polygon &referencePolygon, Polygon &polygonToPlace)
 {
-	Polygon nfp;
-	return nfp;
+	referencePolygon = geo_util::poly_util::translate(referencePolygon, Point(10000, 10000));
+	polygonToPlace = geo_util::poly_util::translate(polygonToPlace, Point(10000, 10000));
+	polygon_t polygonT_i = poly_t_util::convertToPolygon_t(referencePolygon);
+	polygon_t polygonT_j = poly_t_util::convertToPolygon_t(polygonToPlace);
+
+	nfp_t nfp = generateNFP(polygonT_i, polygonT_j);
+	polygon_t nfpPolygonT = nfpRingsToNfpPoly(nfp);
+	Polygon nfpPolygon = poly_t_util::convertToPolygon(nfpPolygonT);
+	nfpPolygon = geo_util::poly_util::translate(nfpPolygon, Point(-10000, -10000));
+	geo_util::poly_util::polygonRound(nfpPolygon);
+	boost_geo::correct(nfpPolygon);
+	return nfpPolygon;
 }
 
 void polygon_fit::generateAllPairNfpForInputPolygons(vector<Polygon> &polygons, string datasetname, string outputLocation)
@@ -157,21 +167,15 @@ void polygon_fit::generateAllPairNfpForInputPolygons(vector<Polygon> &polygons, 
 					Point newOrigin_i = polygon_i.outer().front();
 					boost_geo::multiply_value(newOrigin_i, -1);
 					polygon_i = geo_util::poly_util::translate(polygon_i, newOrigin_i);
-					polygon_i = geo_util::poly_util::translate(polygon_i, Point(10000, 10000));
 
 					polygon_j = geo_util::poly_util::rotateCW(polygon_j, rotationAngle_j, polygon_j.outer()[0]);
 					Point newOrigin_j = polygon_j.outer().front();
 					boost_geo::multiply_value(newOrigin_j, -1);
 					polygon_j = geo_util::poly_util::translate(polygon_j, newOrigin_j);
-					polygon_j = geo_util::poly_util::translate(polygon_j, Point(10000, 10000));
 
-					polygon_t polygonT_i = poly_t_util::convertToPolygon_t(polygon_i);
-					polygon_t polygonT_j = poly_t_util::convertToPolygon_t(polygon_j);
-
-					nfp_t nfp = generateNFP(polygonT_i, polygonT_j);
-					polygon_t nfpPolygon = nfpRingsToNfpPoly(nfp);
+					Polygon nfp = polygon_fit::getNoFitPolygon(polygon_i, polygon_j);
 					std::ofstream nfpWKTFile(nfpDirectoryName + "/nfp_" + std::to_string(nfp_wkt_file_id++) + ".wkt");
-					nfpWKTFile << boost_geo::wkt(nfp.front()) << std::endl;
+					nfpWKTFile << boost_geo::wkt(nfp) << std::endl;
 					nfpWKTFile.close();
 				}
 			}
