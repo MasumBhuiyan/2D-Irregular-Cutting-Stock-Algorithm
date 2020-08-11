@@ -250,6 +250,20 @@ long double geo_util::poly_util::getLength(MultiPolygon &multiPolygon)
 	return max_y - min_y;
 }
 
+void geo_util::visualize(MultiPolygon multiPolygon, string outputLocation, string datasetName)
+{
+	Box box;
+	boost::geometry::envelope(multiPolygon, box);
+	std::cout << "make_envelope..............: " << boost::geometry::dsv(box) << std::endl;
+	std::ostringstream name;
+	name << "frame_" << std::setw(4) << std::setfill('0') << frameno++ << "_" << datasetName << ".svg";
+	std::ofstream svg(outputLocation + "/" + name.str());
+	boost_geo::svg_mapper<Point> mapper(svg, 300, 300, "width=\"200mm\" height=\"200mm\" viewBox=\"-250 -250 800 800\"");
+	mapper.add(multiPolygon);
+	mapper.map(multiPolygon, "fill-opacity:0.5;fill:rgb(204,153,0);stroke:rgb(204,153,0);stroke-width:1");
+	mapper.map(box, "opacity:0.8;fill:none;stroke:rgb(212,0,0);stroke-width:4;stroke-dasharray:1,7;stroke-linecap:round");
+}
+
 /** namespace polygon_fit */
 
 Polygon polygon_fit::getInnerFitRectangle(MultiPolygon cluster, long double length, long double width)
@@ -689,7 +703,6 @@ vector<vector<vector<vector<long double>>>> cluster_util::getClusterValues(vecto
 					polygon_j = geo_util::poly_util::translate(polygon_j, newOrigin_j);
 
 					Polygon nfp = polygon_fit::getNoFitPolygon(polygon_i, polygon_j);
-					std::cout << boost_geo::wkt(nfp) << std::endl;
 
 					if (boost_geo::is_convex(nfp.outer()) == false)
 					{
@@ -843,4 +856,5 @@ void bin_packing::binPacking(
 
 	MultiPolygon initialPacking = cluster_util::generateInitialSolution(polygons, width);
 	std::cout << boost_geo::wkt(initialPacking) << "\n";
+	geo_util::visualize(initialPacking, outputDirectoryName, datasetName);
 }

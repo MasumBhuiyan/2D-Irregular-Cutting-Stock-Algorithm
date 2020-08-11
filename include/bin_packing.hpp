@@ -69,7 +69,7 @@ namespace geo_util
         long double getWidth(MultiPolygon &multiPolygon);
         long double getLength(MultiPolygon &multiPolygon);
     }; // namespace poly_util
-    void visualize(MultiPolygon, string, string);
+    void visualize(MultiPolygon multiPolygon, string outputLocation, string datasetName);
 
 }; // namespace geo_util
 
