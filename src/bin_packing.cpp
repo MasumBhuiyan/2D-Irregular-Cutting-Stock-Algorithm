@@ -1,22 +1,86 @@
-#include <libnfporb.hpp>
 #include <bin_packing.hpp>
+#include <libnfporb.hpp>
 
 using namespace libnfporb;
 
+namespace poly_t_util
+{
+	polygon_t convertToPolygon_t(Polygon &polygon)
+	{
+		polygon_t convertedPolygon;
+		for (auto &point : polygon.outer())
+		{
+			long double __x = geo_util::dblround(point.get<0>());
+			long double __y = geo_util::dblround(point.get<1>());
+			convertedPolygon.outer().push_back(point_t(__x, __y));
+		}
+		for (auto &inner : polygon.inners())
+		{
+			vector<point_t> innerNew;
+			for (auto &point : inner)
+			{
+				long double __x = geo_util::dblround(point.get<0>());
+				long double __y = geo_util::dblround(point.get<1>());
+				innerNew.push_back(point_t(__x, __y));
+			}
+			convertedPolygon.inners().push_back({innerNew.begin(), innerNew.end()});
+		}
+		boost_geo::correct(convertedPolygon);
+		return convertedPolygon;
+	}
+}; // namespace poly_t_util
+
+/** namespace geo_util */
+long double geo_util::dblround(long double x, long double eps)
+{
+	long double intPart = (long long)x;
+	long double frcPart = x - intPart;
+	if (std::fabs(frcPart) < eps)
+	{
+		return intPart;
+	}
+	return x;
+}
+
+Polygon geo_util::poly_util::normalize(Polygon &polygon)
+{
+	long double min_x = INF, min_y = INF;
+	for (auto point : polygon.outer())
+	{
+		min_x = std::min(min_x, point.get<0>());
+		min_y = std::min(min_y, point.get<1>());
+	}
+	for (auto inner : polygon.inners())
+	{
+		for (auto point : inner)
+		{
+			min_x = std::min(min_x, point.get<0>());
+			min_y = std::min(min_y, point.get<1>());
+		}
+	}
+	return geo_util::poly_util::translate(polygon, Point(-min_x, -min_y));
+}
+
+Polygon geo_util::poly_util::translate(Polygon &polygon, Point translationPoint)
+{
+	Polygon translatedPolygon;
+	boost_geo::transform(polygon, translatedPolygon, trans::translate_transformer<long double, 2, 2>(translationPoint.get<0>(), translationPoint.get<1>()));
+	return translatedPolygon;
+}
+
+Polygon geo_util::poly_util::rotateCW(Polygon &polygon, long double rotationAngleInDegree, Point referencePoint)
+{
+	boost_geo::multiply_value(referencePoint, -1);
+	Polygon translatedPolygon = geo_util::poly_util::translate(polygon, referencePoint), rotatedPolygon;
+	boost_geo::transform(translatedPolygon, rotatedPolygon, trans::rotate_transformer<boost_geo::degree, long double, 2, 2>(rotationAngleInDegree));
+	return rotatedPolygon;
+}
+
 /** namespace polygon_fit */
 
-void polygon_fit::generateAllPairNfpForInputPolygons(string datasetname, int numberOfPolygons, string outputLocation)
+void polygon_fit::generateAllPairNfpForInputPolygons(vector<Polygon> &polygons, string datasetname, string outputLocation)
 {
-	// read input polygons wkt files
-	vector<polygon_t> polygons(numberOfPolygons);
-	for (int i = 0; i < numberOfPolygons; i++)
-	{
-		std::ostringstream polygonWKTFileName;
-		polygonWKTFileName << "polygon_" << std::setw(3) << std::setfill('0') << i << ".wkt";
-		string polygonWKTFileNameStr = outputLocation + "/" + datasetname + "/input_polygons_wkt_files/" + polygonWKTFileName.str();
-		read_wkt_polygon(polygonWKTFileNameStr, polygons[i]);
-		boost_geo::correct(polygons[i]);
-	}
+	int numberOfPolygons = polygons.size();
 
 	// create directory to store all pair nfp's
 	string nfpDirectoryName = outputLocation + "/" + datasetname + "/all_pair_nfp_wkt_files";
@@ -31,16 +95,26 @@ void polygon_fit::generateAllPairNfpForInputPolygons(string datasetname, int num
 			{
 				for (auto &rotationAngle_j : ALLOWABLE_ROTATIONS)
 				{
-					polygon_t polygon_i = polygons[i];
-					polygon_t polygon_j = polygons[j];
-					// std::cout << boost_geo::wkt(polygon_i) << "\n";
-					// std::cout << boost_geo::wkt(polygon_j) << "\n\n";
-					auto nfp = generateNFP(polygon_i, polygon_j);
-					std::reverse(nfp.begin(), nfp.end());
-					polygon_t nfpPolygon;
-					nfpPolygon.outer() = nfp.back();
-					nfp.pop_back();
-					nfpPolygon.inners() = nfp;
+					Polygon polygon_i = polygons[i];
+					Polygon polygon_j = polygons[j];
+
+					polygon_i = geo_util::poly_util::rotateCW(polygon_i, rotationAngle_i, polygon_i.outer()[0]);
+					Point newOrigin_i = polygon_i.outer().front();
+					boost_geo::multiply_value(newOrigin_i, -1);
+					polygon_i = geo_util::poly_util::translate(polygon_i, newOrigin_i);
+					polygon_i = geo_util::poly_util::translate(polygon_i, Point(10000, 10000));
+
+					polygon_j = geo_util::poly_util::rotateCW(polygon_j, rotationAngle_j, polygon_j.outer()[0]);
+					Point newOrigin_j = polygon_j.outer().front();
+					boost_geo::multiply_value(newOrigin_j, -1);
+					polygon_j = geo_util::poly_util::translate(polygon_j, newOrigin_j);
+					polygon_j = geo_util::poly_util::translate(polygon_j, Point(10000, 10000));
+
+					polygon_t polygonT_i = poly_t_util::convertToPolygon_t(polygon_i);
+					polygon_t polygonT_j = poly_t_util::convertToPolygon_t(polygon_j);
+
+					nfp_t nfp = generateNFP(polygonT_i, polygonT_j);
+					polygon_t nfpPolygon = nfpRingsToNfpPoly(nfp);
 					std::ofstream nfpWKTFile(nfpDirectoryName + "/nfp_" + std::to_string(nfp_wkt_file_id++) + ".wkt");
 					nfpWKTFile << boost_geo::wkt(nfp.front()) << std::endl;
 					nfpWKTFile.close();
@@ -131,7 +205,7 @@ void bin_packing::binPacking(
 		totalAreaOfInputPolygons += std::fabs(boost_geo::area(polygon));
 	}
 
-	polygon_fit::generateAllPairNfpForInputPolygons(datasetName, polygons.size(), outputLocation);
+	polygon_fit::generateAllPairNfpForInputPolygons(polygons, datasetName, outputLocation);
 
 	// MultiPolygon initialPacking = cluster_util::generateInitialSolution(polygons, width);
 }

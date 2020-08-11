@@ -14,12 +14,12 @@ int main(int argc, char const *argv[])
     string outputLocation = "../io/results";
     mkdir(outputLocation.c_str(), 0777);
 
-    testDataset("sample");
+    // testDataset("sample");
     // testDataset("albano");
     // testDataset("blaz");
     // testDataset("dagli");
-    // testDataset("dighe1");
-    // testDataset("jakobs1");
+    testDataset("dighe1");
+    //  testDataset("jakobs1");
     // testDataset("jakobs2");
     // testDataset("marques");
     // testDataset("poly1a");

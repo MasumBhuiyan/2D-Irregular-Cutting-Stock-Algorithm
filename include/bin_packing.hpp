@@ -40,6 +40,7 @@ const long double RUN_TIME_DURATION = 20;
 const long double FEASIBILTY = 1e-2;
 const int MAXIMUM_GENERATION = 20;
 const int NUMBER_OF_HOST_NESTS = 20;
+const long double NFP_TRANSLATOR_COF = 1e4;
 const long double INITIAL_STOCK_LENGTH = 100000;
 const int MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA = 40;
 const vector<long double> ALLOWABLE_ROTATIONS = {0, 90, 180, 270};
@@ -49,6 +50,7 @@ static int frameno;
 namespace geo_util
 {
     int dblcmp(long double, long double eps = EPS);
+    long double dblround(long double, long double eps = EPS);
     bool isConcave(Polygon &);
     long double getLength(Polygon &);
     long double getWidth(Polygon &);
@@ -83,7 +85,7 @@ namespace polygon_fit
     MultiPolygon getNoFitPolygon(Polygon referencePolygon, MultiPolygon cluster);
     MultiPolygon getNoFitPolygon(Polygon referencePolygon, Polygon polygonToPlace);
     MultiPolygon getAllNfpIfr(MultiPolygon &packing, MultiPolygon cluster, long double length, long double width); // Nfp = No Fit Polygon, Ifr = Inner Fit Rectangle
-    void generateAllPairNfpForInputPolygons(string datasetname, int numberOfPolygons, string outputLocation);
+    void generateAllPairNfpForInputPolygons(vector<Polygon> &polygons, string datasetname, string outputLocation);
 
 }; // namespace polygon_fit
 
