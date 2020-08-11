@@ -321,10 +321,9 @@ vector<Point> polygon_fit::getAllEdgeIntersectionPoints(MultiPolygon &allNfpIfr)
 	return allEdgeIntersectionPoints;
 }
 
-Polygon polygon_fit::getNoFitPolygon(Polygon &referencePolygon, MultiPolygon &cluster)
+Polygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, MultiPolygon cluster)
 {
 	Polygon nfp = polygon_fit::getNoFitPolygon(referencePolygon, cluster[0]);
-	;
 	if (cluster.size() == 2)
 	{
 		nfp = polygon_fit::getNoFitPolygon(nfp, cluster[1]);
@@ -332,7 +331,7 @@ Polygon polygon_fit::getNoFitPolygon(Polygon &referencePolygon, MultiPolygon &cl
 	return nfp;
 }
 
-Polygon polygon_fit::getNoFitPolygon(Polygon &referencePolygon, Polygon &polygonToPlace)
+Polygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, Polygon polygonToPlace)
 {
 	referencePolygon = geo_util::poly_util::translate(referencePolygon, Point(10000, 10000));
 	polygonToPlace = geo_util::poly_util::translate(polygonToPlace, Point(10000, 10000));
@@ -361,12 +360,12 @@ MultiPolygon polygon_fit::getAllNfpIfr(MultiPolygon &packing, MultiPolygon clust
 	return allNfpIfr;
 }
 
-/** namespace polygon_util */
+/** namespace cluster_util */
 vector<tuple<int, int, int, int>> cluster_util::getPerfectClustering(vector<vector<vector<vector<long double>>>> &clusterValues)
 {
 	int numberOfPolygons = clusterValues.size();
 	int numberOfPairs = std::min(10, numberOfPolygons / 2);
-	std::cout << numberOfPairs << "\n";
+	std::cout << "number of pairs: " << numberOfPairs << std::endl;
 	vector<tuple<int, int, int, int>> clusterPairs;
 	vector<long double> dp(1 << 22, -1.0);
 	long double bestClusterizationValue = cluster_util::findBestPairWiseClusters(clusterValues, dp, numberOfPairs, 0);
@@ -457,6 +456,7 @@ long double cluster_util::findBestPairWiseClusters(vector<vector<vector<vector<l
 	}
 	return maxProfit;
 }
+
 vector<Point> cluster_util::getCandidatePlacementPositions(MultiPolygon &packing, MultiPolygon &cluster, long double length, long double width)
 {
 	vector<Point> candidatePlacementPositions;
@@ -470,18 +470,20 @@ vector<Point> cluster_util::getCandidatePlacementPositions(MultiPolygon &packing
 			double _y = point.get<1>();
 			double l = geo_util::poly_util::getLength(cluster);
 			double w = geo_util::poly_util::getWidth(cluster);
-			if( _x < 0 or _y < 0 or _x + w > width or _y + l > length ) continue;
+			if (_x < 0 or _y < 0 or _x + w > width or _y + l > length)
+				continue;
 			candidatePlacementPositions.push_back(point);
 		}
-		for(auto inner: polygon.inners())
+		for (auto inner : polygon.inners())
 		{
-			for(auto point: inner)
+			for (auto point : inner)
 			{
 				double _x = point.get<0>();
 				double _y = point.get<1>();
 				double l = geo_util::poly_util::getLength(cluster);
 				double w = geo_util::poly_util::getWidth(cluster);
-				if( _x < 0 or _y < 0 or _x + w > width or _y + l > length ) continue;
+				if (_x < 0 or _y < 0 or _x + w > width or _y + l > length)
+					continue;
 				candidatePlacementPositions.push_back(point);
 			}
 		}
@@ -492,18 +494,20 @@ vector<Point> cluster_util::getCandidatePlacementPositions(MultiPolygon &packing
 		double _y = point.get<1>();
 		double l = geo_util::poly_util::getLength(cluster);
 		double w = geo_util::poly_util::getWidth(cluster);
-		if( _x < 0 or _y < 0 or _x + w > width or _y + l > length ) continue;
+		if (_x < 0 or _y < 0 or _x + w > width or _y + l > length)
+			continue;
 		candidatePlacementPositions.push_back(point);
 	}
 	return candidatePlacementPositions;
 }
+
 Point cluster_util::findBLFPoint(MultiPolygon &packing, MultiPolygon &cluster, long double length, long double width)
 {
 	Point blfPoint(INF, INF);
 	vector<Point> candidatePlacementPositions = cluster_util::getCandidatePlacementPositions(packing, cluster, length, width);
 	for (auto point : candidatePlacementPositions)
 	{
-		if (geo_util::poly_util::isItPossibleToPlacePolygon(packing, cluster, point) == true )
+		if (geo_util::poly_util::isItPossibleToPlacePolygon(packing, cluster, point) == true)
 		{
 			if (point.get<1>() < blfPoint.get<1>())
 			{
@@ -517,6 +521,7 @@ Point cluster_util::findBLFPoint(MultiPolygon &packing, MultiPolygon &cluster, l
 	}
 	return blfPoint;
 }
+
 MultiPolygon cluster_util::bottomLeftFill(vector<MultiPolygon> &clusters, long double length, long double width)
 {
 	MultiPolygon packing;
@@ -550,6 +555,7 @@ void cluster_util::sortByClusterValue(vector<MultiPolygon> &clusters)
 		return geo_util::dblcmp(area1 - area2, EPS) > 0;
 	});
 }
+
 Polygon cluster_util::convexHull(MultiPolygon multiPolygon)
 {
 	Polygon convexhull;
@@ -681,7 +687,9 @@ vector<vector<vector<vector<long double>>>> cluster_util::getClusterValues(vecto
 		for (int j = 0; j < numberOfPolygons; j++)
 		{
 			if (i == j)
+			{
 				continue;
+			}
 			for (int k = 0; k < ALLOWABLE_ROTATIONS.size(); k += 1)
 			{
 				for (int l = 0; l < ALLOWABLE_ROTATIONS.size(); l += 1)
@@ -716,6 +724,7 @@ vector<vector<vector<vector<long double>>>> cluster_util::getClusterValues(vecto
 	}
 	return clusterValues;
 }
+
 MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygons, long double width)
 {
 	vector<vector<vector<vector<long double>>>> clusterValues = cluster_util::getClusterValues(inputPolygons);
@@ -747,12 +756,13 @@ MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygon
 		boost_geo::multiply_value(newOrigin_j, -1);
 		polygon_j = geo_util::poly_util::translate(polygon_j, newOrigin_j);
 
-		Polygon nfp = polygon_fit::getNoFitPolygon(polygon_i, polygon_j); //
+		Polygon nfp = polygon_fit::getNoFitPolygon(polygon_i, polygon_j);
 
 		if (boost_geo::is_convex(nfp.outer()) == false)
 		{
 			taken[i] = taken[j] = true;
 			Point dominantPoint = cluster_util::findDominantPoint(nfp);
+
 			polygon_j = geo_util::poly_util::translate(polygon_j, dominantPoint);
 			cluster.push_back(polygon_i);
 			cluster.push_back(polygon_j);
@@ -814,11 +824,6 @@ std::tuple<vector<Polygon>, long double> bin_packing::readDataset(std::string da
 			}
 		}
 	}
-	std::cout << "Input polygons\n";
-	for (auto p : polygons)
-	{
-		std::cout << boost_geo::wkt(p) << '\n';
-	}
 	file.close();
 	return {polygons, width};
 }
@@ -852,9 +857,14 @@ void bin_packing::binPacking(
 		totalAreaOfInputPolygons += std::fabs(boost_geo::area(polygon));
 	}
 
-	// polygon_fit::generateAllPairNfpForInputPolygons(polygons, datasetName, outputLocation);
-
 	MultiPolygon initialPacking = cluster_util::generateInitialSolution(polygons, width);
-	std::cout << boost_geo::wkt(initialPacking) << "\n";
-	geo_util::visualize(initialPacking, outputDirectoryName, datasetName);
+
+	// create a directory for initial solution and store the initial solution
+	string initialSolutionDirectory = outputDirectoryName + "/initial_solution";
+	mkdir(initialSolutionDirectory.c_str(), 0777);
+
+	std::ofstream initialPackingWKTFile(initialSolutionDirectory + "/initial_packing.wkt");
+	initialPackingWKTFile << boost_geo::wkt(initialPacking) << std::endl;
+	initialPackingWKTFile.close();
+	geo_util::visualize(initialPacking, initialSolutionDirectory, datasetName);
 }

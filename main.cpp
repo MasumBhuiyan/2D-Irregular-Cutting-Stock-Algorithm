@@ -18,8 +18,8 @@ int main(int argc, char const *argv[])
     // testDataset("albano");
     // testDataset("blaz");
     // testDataset("dagli");
-    testDataset("dighe1");
-    //  testDataset("jakobs1");
+    // testDataset("dighe1");
+     testDataset("jakobs1");
     // testDataset("jakobs2");
     // testDataset("marques");
     // testDataset("poly1a");

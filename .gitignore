@@ -4,4 +4,4 @@
 build/
 **.o
 **.exe
-**/results/
+
