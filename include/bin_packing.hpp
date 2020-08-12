@@ -65,13 +65,15 @@ namespace geo_util
         Polygon translate(Polygon &polygon, Point translationPoint);
         MultiPolygon translate(MultiPolygon &polygons, Point translationPoint);
         Polygon rotateCW(Polygon &polygon, long double rotationAngleInDegree, Point referencePoint = Point(0, 0));
+        MultiPolygon rotateCW(MultiPolygon multiPolygon, long double rotationAngleInDegree, Point referencePoint);
         long double polygonPolygonIntersectionArea(Polygon &, Polygon &);
         bool isItPossibleToPlacePolygon(MultiPolygon &packing, MultiPolygon clusterNextToBePlaced, Point translationPoint);
         long double getWidth(MultiPolygon &multiPolygon);
         long double getLength(MultiPolygon &multiPolygon);
     }; // namespace poly_util
-    void visualize(MultiPolygon multiPolygon, string outputLocation, string datasetName);
 
+    void visualize(MultiPolygon multiPolygon, string outputLocation, string datasetName);
+    void visualizeCluster(Polygon polygon, MultiPolygon cluster, Polygon nfp, std::string location, int testId);
 }; // namespace geo_util
 
 namespace polygon_fit
@@ -101,7 +103,7 @@ namespace cluster_util
     void printBestPairWiseClusters(vector<vector<vector<vector<long double>>>> &clusterValues, vector<long double> &dp, int numberOfPairs, int mask, vector<tuple<int, int, int, int>> &clusterPairs);
     vector<tuple<int, int, int, int>> getPerfectClustering(vector<vector<vector<vector<long double>>>> &clusterValues);
     vector<vector<vector<vector<long double>>>> getClusterValues(vector<Polygon> &inputPolygons, string nfpWktFilesLocation);
-    MultiPolygon generateInitialSolution(vector<Polygon> &inputPolygons, long double width, string nfpWktFilesLocation);
+    MultiPolygon generateInitialSolution(vector<Polygon> &inputPolygons, long double width, string outputLocation);
 }; // namespace cluster_util
 
 namespace bin_packing
