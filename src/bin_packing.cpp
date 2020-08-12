@@ -123,7 +123,24 @@ bool geo_util::pointInRectangle(Point a, Point b, Point c)
 	return (p && q);
 }
 
-/** namespace geo_uti::poly_util */
+/** namespace geo_util::poly_util */
+
+void geo_util::poly_util::readWKTPolygon(Polygon &polygon, string filename)
+{
+	std::ifstream polygonWKTFile(filename);
+	assert(polygonWKTFile.is_open());
+
+	string wktStr;
+	polygonWKTFile.seekg(0, std::ios::end);
+	wktStr.reserve(polygonWKTFile.tellg());
+	polygonWKTFile.seekg(0, std::ios::beg);
+	wktStr.assign((std::istreambuf_iterator<char>(polygonWKTFile)), std::istreambuf_iterator<char>());
+	wktStr.pop_back();
+	boost_geo::read_wkt(wktStr, polygon);
+	boost_geo::correct(polygon);
+
+	polygonWKTFile.close();
+}
 
 void geo_util::poly_util::polygonRound(Polygon &polygon)
 {
@@ -358,6 +375,45 @@ MultiPolygon polygon_fit::getAllNfpIfr(MultiPolygon &packing, MultiPolygon clust
 		allNfpIfr.push_back(nfp);
 	}
 	return allNfpIfr;
+}
+
+void polygon_fit::generateAllPairNfpForInputPolygons(vector<Polygon> &polygons, string datasetname, string outputLocation)
+{
+	int numberOfPolygons = polygons.size();
+	int totalNumberOfNFPs = numberOfPolygons * numberOfPolygons * ALLOWABLE_ROTATIONS.size() * ALLOWABLE_ROTATIONS.size();
+	// create directory to store all pair nfp's
+	string nfpDirectoryName = outputLocation + "/" + datasetname + "/all_pair_nfp_wkt_files";
+	mkdir(nfpDirectoryName.c_str(), 0777);
+	int nfp_wkt_file_id = 0;
+	for (int i = 0; i < numberOfPolygons; i++)
+	{
+		for (int j = 0; j < numberOfPolygons; j++)
+		{
+			for (auto &rotationAngle_i : ALLOWABLE_ROTATIONS)
+			{
+				for (auto &rotationAngle_j : ALLOWABLE_ROTATIONS)
+				{
+					Polygon polygon_i = polygons[i];
+					Polygon polygon_j = polygons[j];
+					polygon_i = geo_util::poly_util::rotateCW(polygon_i, rotationAngle_i, polygon_i.outer()[0]);
+					Point newOrigin_i = polygon_i.outer().front();
+					boost_geo::multiply_value(newOrigin_i, -1);
+					polygon_i = geo_util::poly_util::translate(polygon_i, newOrigin_i);
+
+					polygon_j = geo_util::poly_util::rotateCW(polygon_j, rotationAngle_j, polygon_j.outer()[0]);
+					Point newOrigin_j = polygon_j.outer().front();
+					boost_geo::multiply_value(newOrigin_j, -1);
+					polygon_j = geo_util::poly_util::translate(polygon_j, newOrigin_j);
+
+					Polygon nfp = polygon_fit::getNoFitPolygon(polygon_i, polygon_j);
+					std::ofstream nfpWKTFile(nfpDirectoryName + "/nfp_" + std::to_string(nfp_wkt_file_id++) + ".wkt");
+					nfpWKTFile << boost_geo::wkt(nfp) << std::endl;
+					nfpWKTFile.close();
+				}
+			}
+		}
+		std::cout << "[" << std::setw(3) << (int)((nfp_wkt_file_id / (1.0 * totalNumberOfNFPs)) * 100) << "%] done..." << std::endl;
+	}
 }
 
 /** namespace cluster_util */
@@ -677,7 +733,7 @@ long double cluster_util::getClusterValue(Polygon &polygon1, Polygon &polygon2)
 	return value;
 }
 
-vector<vector<vector<vector<long double>>>> cluster_util::getClusterValues(vector<Polygon> &inputPolygons)
+vector<vector<vector<vector<long double>>>> cluster_util::getClusterValues(vector<Polygon> &inputPolygons, string nfpWktFilesLocation)
 {
 	int numberOfPolygons = inputPolygons.size();
 	vector<vector<vector<vector<long double>>>> clusterValues;
@@ -710,7 +766,10 @@ vector<vector<vector<vector<long double>>>> cluster_util::getClusterValues(vecto
 					boost_geo::multiply_value(newOrigin_j, -1);
 					polygon_j = geo_util::poly_util::translate(polygon_j, newOrigin_j);
 
-					Polygon nfp = polygon_fit::getNoFitPolygon(polygon_i, polygon_j);
+					int a_n = ALLOWABLE_ROTATIONS.size();
+					int nfp_id = l + k * a_n + j * a_n * a_n + i * a_n * a_n * numberOfPolygons;
+					Polygon nfp;
+					geo_util::poly_util::readWKTPolygon(nfp, nfpWktFilesLocation + "/nfp_" + std::to_string(nfp_id) + ".wkt");
 
 					if (boost_geo::is_convex(nfp.outer()) == false)
 					{
@@ -725,9 +784,9 @@ vector<vector<vector<vector<long double>>>> cluster_util::getClusterValues(vecto
 	return clusterValues;
 }
 
-MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygons, long double width)
+MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygons, long double width, string nfpWktFilesLocation)
 {
-	vector<vector<vector<vector<long double>>>> clusterValues = cluster_util::getClusterValues(inputPolygons);
+	vector<vector<vector<vector<long double>>>> clusterValues = cluster_util::getClusterValues(inputPolygons, nfpWktFilesLocation);
 	vector<tuple<int, int, int, int>> clusterPairs = cluster_util::getPerfectClustering(clusterValues);
 
 	vector<bool> taken((int)inputPolygons.size(), false);
@@ -836,6 +895,7 @@ void bin_packing::binPacking(
 	string outputDirectoryName = outputLocation + "/" + datasetName;
 	mkdir(outputDirectoryName.c_str(), 0777);
 
+	std::cout << "running dataset..............................: " << datasetName << std::endl;
 	// start the clock
 	auto start = std::chrono::high_resolution_clock::now();
 
@@ -857,11 +917,15 @@ void bin_packing::binPacking(
 		totalAreaOfInputPolygons += std::fabs(boost_geo::area(polygon));
 	}
 
-	MultiPolygon initialPacking = cluster_util::generateInitialSolution(polygons, width);
+	std::cout << "generating all pair nfp's....................: " << std::endl;
+	polygon_fit::generateAllPairNfpForInputPolygons(polygons, datasetName, outputLocation);
 
 	// create a directory for initial solution and store the initial solution
 	string initialSolutionDirectory = outputDirectoryName + "/initial_solution";
 	mkdir(initialSolutionDirectory.c_str(), 0777);
+
+	std::cout << "generating initial solution..................: " << std::endl;
+	MultiPolygon initialPacking = cluster_util::generateInitialSolution(polygons, width, outputDirectoryName + "/all_pair_nfp_wkt_files");
 
 	std::ofstream initialPackingWKTFile(initialSolutionDirectory + "/initial_packing.wkt");
 	initialPackingWKTFile << boost_geo::wkt(initialPacking) << std::endl;

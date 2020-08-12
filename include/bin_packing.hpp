@@ -59,6 +59,7 @@ namespace geo_util
 
     namespace poly_util
     {
+        void readWKTPolygon(Polygon &polygon, string filename);
         void polygonRound(Polygon &polygon);
         Polygon normalize(Polygon &polygon);
         Polygon translate(Polygon &polygon, Point translationPoint);
@@ -80,7 +81,7 @@ namespace polygon_fit
     Polygon getNoFitPolygon(Polygon referencePolygon, MultiPolygon cluster);
     Polygon getNoFitPolygon(Polygon referencePolygon, Polygon polygonToPlace);
     MultiPolygon getAllNfpIfr(MultiPolygon &packing, MultiPolygon cluster, long double length, long double width); // Nfp = No Fit Polygon, Ifr = Inner Fit Rectangle
-
+    void generateAllPairNfpForInputPolygons(vector<Polygon> &polygons, string datasetname, string outputLocation);
 }; // namespace polygon_fit
 
 namespace cluster_util
@@ -99,8 +100,8 @@ namespace cluster_util
     long double findBestPairWiseClusters(vector<vector<vector<vector<long double>>>> &clusterValues, vector<long double> &dp, int numberOfPairs, int mask);
     void printBestPairWiseClusters(vector<vector<vector<vector<long double>>>> &clusterValues, vector<long double> &dp, int numberOfPairs, int mask, vector<tuple<int, int, int, int>> &clusterPairs);
     vector<tuple<int, int, int, int>> getPerfectClustering(vector<vector<vector<vector<long double>>>> &clusterValues);
-    vector<vector<vector<vector<long double>>>> getClusterValues(vector<Polygon> &inputPolygons);
-    MultiPolygon generateInitialSolution(vector<Polygon> &inputPolygons, long double width);
+    vector<vector<vector<vector<long double>>>> getClusterValues(vector<Polygon> &inputPolygons, string nfpWktFilesLocation);
+    MultiPolygon generateInitialSolution(vector<Polygon> &inputPolygons, long double width, string nfpWktFilesLocation);
 }; // namespace cluster_util
 
 namespace bin_packing

@@ -1,6 +1,5 @@
 #include <bin_packing.hpp>
 
-
 void testDataset(std::string datasetName)
 {
     double width;
@@ -19,7 +18,7 @@ int main(int argc, char const *argv[])
     // testDataset("blaz");
     // testDataset("dagli");
     // testDataset("dighe1");
-     testDataset("jakobs1");
+    testDataset("jakobs1");
     // testDataset("jakobs2");
     // testDataset("marques");
     // testDataset("poly1a");
