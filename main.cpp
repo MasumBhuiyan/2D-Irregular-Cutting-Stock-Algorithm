@@ -14,16 +14,16 @@ int main(int argc, char const *argv[])
     string outputLocation = "../io/results";
     mkdir(outputLocation.c_str(), 0777);
 
-    // testDataset("sample");
-    // testDataset("albano");
-    // testDataset("blaz");
-    // testDataset("dagli");
-    // testDataset("dighe1");
-     testDataset("jakobs1");
-    // testDataset("jakobs2");
-    // testDataset("marques");
-    // testDataset("poly1a");
-    // testDataset("shirts");
-    // testDataset("trousers");
+    // testDataset("sample");  // 100%
+    // testDataset("albano");  // topological dimension error comming from libnfporb library after calling blf
+    // testDataset("blaz");    // unable to compute nfp outer loop ....when call blf
+    // testDataset("dagli");   // unable to compute nfp outer loop ....when call blf
+    // testDataset("dighe1");  // 71.41%
+    // testDataset("jakobs1"); // 68.93%
+    // testDataset("jakobs2"); // 57.69%
+    // testDataset("marques"); // unable complete outer loop 
+    // testDataset("poly1a"); // all pair nfp not computed
+    // testDataset("shirts"); // all pair nfp not computed
+    // testDataset("trousers"); // topological dimension error comming from libnfporb library after calling blf
     return 0;
 }
