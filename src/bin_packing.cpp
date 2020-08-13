@@ -1061,3 +1061,244 @@ void bin_packing::binPacking(
     std::cout << "\033[1;36mstock area.................: " << stockArea << "\033[0m" << std::endl;
     std::cout << "\033[1;32mpacking density............: " << (totalAreaOfInputPolygons / stockArea) * 100 << " %\033[0m" << std::endl;
 }
+
+/**
+ * checks feasibilty of a packing
+ * compares with FEASIBILTY limit
+ */
+bool bin_packing::isFeasible(MultiPolygon &packing, long double totalAreaOfInputPolygons)
+{
+	long double overlappingArea = 0.0;
+	long double feasibilityRatio = 0.0;
+	int n = packing.size();
+	for (int i = 0; i < n; i += 1)
+	{
+		for (int j = i + 1; j < n; j += 1)
+		{
+			overlappingArea += geo_util::poly_util::polygonPolygonIntersectionArea(packing[i], packing[j]);
+		}
+	}
+	feasibilityRatio = overlappingArea / totalAreaOfInputPolygons;
+	return geo_util::dblcmp(feasibilityRatio - FEASIBILTY, EPS) <= 0 ? true : false;
+}
+/**
+ * naive implementation
+ * may be changed in future
+ */
+long double bin_packing::getPenetrationDepth(Polygon polygonA, Polygon polygonB)
+{
+	MultiPolygon intersections;
+	boost_geo::intersection(polygonA, polygonB, intersections);
+	return std::fabs(boost_geo::area(intersections));
+}
+/**
+ * returns total penitration depth of a pcking
+ */
+long double bin_packing::getTotalPenetrationDepth(MultiPolygon &packing)
+{
+	long double totalPenetrationDepth = 0.0;
+	int n = packing.size();
+	for (int i = 0; i < n; i += 1)
+	{
+		for (int j = i + 1; j < n; j += 1)
+		{
+			totalPenetrationDepth += bin_packing::getPenetrationDepth(packing[i], packing[j]);
+		}
+	}
+	return totalPenetrationDepth;
+}
+
+/**
+ * 
+ */
+long double bin_packing::getOverlapPenalty(MultiPolygon &packing, std::vector<std::vector<long double>> &penalty, int id, long double rotationAngle, Point translationPoint)
+{
+	int n = packing.size();
+	Polygon polygon = packing[id];
+
+	// rotating
+	polygon = geo_util::poly_util::rotateCW(polygon, rotationAngle, polygon.outer()[0]);
+
+	// translating 
+	Point referencePoint = polygon.outer()[0];
+	boost_geo::multiply(referencePoint, -1);
+	polygon = geo_util::translate(polygon, referencePoint);
+	polygon = geo_util::translate(polygon, translationPoint);
+
+	long double overlapPenalty = 0;
+	for (int j = 0; j < n; j++)
+	{
+		if( j != id ) 
+		{
+			overlapPenalty += (penalty[id][j] * bin_packing::getPenetrationDepth(polygon, packing[j]));
+		}
+	}
+	return overlapPenalty;
+}
+
+void bin_packing::increasePenalty(MultiPolygon &packing, std::vector<std::vector<long double>> &penalty)
+{
+	int n = penalty.size();
+	long double maximumPenetrationDepth = -INF;
+	std::vector<std::vector<long double>> penetrationDepths(n, std::vector<long double>(n, 0));
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			if( i == j ) 
+			{ 
+				continue;
+			}
+			penetrationDepths[i][j] = bin_packing::getPenetrationDepth(packing[i], packing[j]);
+			if (i < j)
+			{
+				maximumPenetrationDepth = std::max(maximumPenetrationDepth, penetrationDepths[i][j]);
+			}
+		}
+	}
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			penalty[i][j] += (penetrationDepths[i][j] / maximumPenetrationDepth);
+		}
+	}
+}
+
+Point bin_packing::cuckooSearch(MultiPolygon &packing, std::vector<std::vector<long double>> &penalty, int id, long double rotationAngle, long double width, long double length)
+{
+	Polygon polygon = packing[id];
+	polygon = geo_util::poly_util::rotateCW(polygon, rotationAngle, polygon.outer()[0]);
+	Polygon innerFitRectangle = polygon_fit::getInnerFitRectangle({polygon}, length, width);
+
+	long double max_x = -INF, min_x = INF, max_y = -INF, min_y = INF;
+	for (Point &point : polygon.outer())
+	{
+		max_x = std::max(max_x, point.get<0>());
+		min_x = std::min(min_x, point.get<0>());
+		max_y = std::max(max_y, point.get<1>());
+		min_y = std::min(min_y, point.get<1>());
+	}
+
+	std::vector<Point> hostNests(NUMBER_OF_HOST_NESTS);
+	for (int i = 0; i < NUMBER_OF_HOST_NESTS; i++)
+	{
+		srand(time(NULL));
+		hostNests[i] = {std::rand() % (int)(max_x - min_x + 1) + min_x, std::rand() % (int)(max_y - min_y + 1) + min_y};
+	}
+	// Begin cuckoo search
+	Point bestPosition = packing[id].outer()[0];
+	for (int t = 0; t < MAXIMUM_GENERATION; t++)
+	{
+		srand(time(NULL));
+		int i = std::rand() % NUMBER_OF_HOST_NESTS;
+		long double overlapPenalty_i = bin_packing::getOverlapPenalty(packing, penalty, id, rotationAngle, hostNests[i]);
+
+		srand(time(NULL));
+		int j = std::rand() % NUMBER_OF_HOST_NESTS;
+		long double overlapPenalty_j = bin_packing::getOverlapPenalty(packing, penalty, id, rotationAngle, hostNests[j]);
+
+		if (overlapPenalty_i < overlapPenalty_j)
+		{
+			hostNests[j] = hostNests[i];
+			bestPosition = hostNests[j];
+		}
+		// Abandon a fraction (Pa) of worse nests and build new ones
+		// at new locations
+		// Keep the best solutions (or nests with quality solutions)
+		// Rank the solutions and find the current best
+	}
+	return bestPosition;
+}
+
+MultiPolygon bin_packing::minimizeOverlap(MultiPolygon packing, std::vector<long double> allowableRoatations, long double width, long double length)
+{
+	int n = packing.size();
+	std::vector<std::vector<long double>> penalty(n, std::vector<long double>(n, 1.0));
+	int it = 0;
+	long double fitness = INF;
+	std::vector<int> Q(n);
+	for (int i = 0; i < n; i++)
+	{
+		Q[i] = i;
+	}
+	while (it < MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA)
+	{
+		std::random_shuffle(Q.begin(), Q.end());
+		for (int i = 0; i < n; i++)
+		{
+			long double overlapPenalty = bin_packing::getOverlapPenalty(packing, penalty, Q[i], 0, packing[Q[i]].outer()[0]);
+			Point bestLocation(INF, INF);
+			long double bestRotationAngle = 0.0;
+
+			for (long double rotationAngle : allowableRoatations)
+			{
+				Point translationPoint = bin_packing::cuckooSearch(packing, penalty, Q[i], rotationAngle, width, length);
+				long double currentOverlapPenalty = bin_packing::getOverlapPenalty(packing, penalty, Q[i], rotationAngle, translationPoint);
+				if (currentOverlapPenalty < overlapPenalty)
+				{
+					overlapPenalty = currentOverlapPenalty;
+					bestLocation = translationPoint;
+					bestRotationAngle = rotationAngle;
+				}
+			}
+			packing[Q[i]] = geo_util::rotatePolygon(packing[Q[i]], packing[Q[i]].outer()[0], bestRotationAngle);
+			packing[Q[i]] = geo_util::translatePolygon(packing[Q[i]], bestLocation);
+		}
+		long double totalPenetrationDepth = bin_packing::getTotalPenetrationDepth(packing);
+		if (geo_util::dblcmp(totalPenetrationDepth) == 0)
+		{
+			return packing;
+		}
+		else if (totalPenetrationDepth < fitness)
+		{
+			fitness = totalPenetrationDepth;
+			it = 0;
+		}
+
+		bin_packing::increasePenalty(packing, penalty); // increase penalty
+		it += 1;
+	}
+	return packing;
+}
+void bin_packing::cuckooPacking(MultiPolygon initialPacking, long double runTimeDuration)
+{
+	auto start = std::chrono::high_resolution_clock::now();
+
+	long double totalAreaOfInputPolygons = 0;
+	for (Polygon &polygon : initialPacking)
+	{
+		totalAreaOfInputPolygons += std::fabs(boost_geo::area(polygon));
+	}
+
+	// MultiPolygon initialPacking = cluster_util::generateInitialSolution(polygons, width);
+	MultiPolygon bestPacking = initialPacking;
+	MultiPolygon currentPacking = initialPacking;
+
+	long double bestLenght = geo_util::poly_util::getLength(initialPacking);
+	long double decreasingRate = 0.10;
+	long double increasingRate = 0.05;
+	long double currentLength = (1.0 - decreasingRate) * bestLenght;
+
+	while (true)
+	{
+		auto stop = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::minutes>(stop - start);
+		if (duration.count() >= runTimeDuration)
+		{
+			break;
+		}
+		currentPacking = bin_packing::minimizeOverlap(currentPacking, ALLOWABLE_ROTATIONS, width, currentLength);
+		if (bin_packing::isFeasible(currentPacking, totalAreaOfInputPolygons))
+		{
+			bestPacking = currentPacking;
+			bestLenght = currentLength;
+			currentLength = (1.0 - decreasingRate) * bestLenght;
+		}
+		else
+		{
+			currentLength = (1.0 + increasingRate) * bestLenght;
+		}
+	}
+	geo_util::visualize(bestPacking, datasetName);
+}
