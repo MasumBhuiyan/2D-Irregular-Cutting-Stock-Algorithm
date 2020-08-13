@@ -1,18 +1,16 @@
 #include <bin_packing.hpp>
 
-
 void testDataset(std::string datasetName, bool flag = true)
 {
     double width;
     std::vector<Polygon> inputPolygons;
     std::tie(inputPolygons, width) = bin_packing::readDataset(datasetName);
-    if(flg)
+    if (flg)
     {
         bin_packing::binPacking(inputPolygons, width, "../io/results", datasetName, 5.0);
     }
     else
     {
-        std::cout << "okk\n";
     }
 }
 
@@ -29,6 +27,6 @@ int main(int argc, char const *argv[])
     // testDataset("jakobs1", argc == 0); //  68.92% // no cluster: 72.37% //
     // testDataset("jakobs2", argc == 0); //  57.69% // no cluster: 69.01% //
     // testDataset("trousers", argc == 0);//  63.87% // no cluster: 82.50% //
-    // testDataset("poly1a", argc == 0);  //  55.92% // no cluster: 57.86% // 
+    // testDataset("poly1a", argc == 0);  //  55.92% // no cluster: 57.86% //
     return 0;
 }
