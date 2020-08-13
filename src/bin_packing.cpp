@@ -297,6 +297,7 @@ void geo_util::visualize(MultiPolygon multiPolygon, string outputLocation, strin
 	mapper.map(multiPolygon, "fill-opacity:0.5;fill:rgb(169,169,169);stroke:rgb(169,169,169);stroke-width:1");
 	mapper.map(box, "opacity:0.8;fill:none;stroke:rgb(0,0,0);stroke-width:1;stroke-linecap:round");
 }
+
 void geo_util::visualizeCluster(Polygon polygon, MultiPolygon cluster, Polygon nfp, std::string location, int testId)
 {
     Box box;
@@ -996,72 +997,6 @@ std::tuple<vector<Polygon>, long double> bin_packing::readDataset(std::string da
 	return {polygons, width};
 }
 
-/** bin packing */
-void bin_packing::binPacking(
-	vector<Polygon> &polygons, long double width, string outputLocation, string datasetName, long double runTimeDuration)
-{
-	std::cout << "Calling binPacking..." << "...\n";
-	// create directory for the dataset
-	string outputDirectoryName = outputLocation + "/" + datasetName;
-	mkdir(outputDirectoryName.c_str(), 0777);
-
-	// start the clock
-	auto start = std::chrono::high_resolution_clock::now();
-
-	// create directory to store wkt files of input polygons
-	string inputPolygonsWKTStorageLocation = outputDirectoryName + "/input_polygons_wkt_files";
-	mkdir(inputPolygonsWKTStorageLocation.c_str(), 0777);
-
-	double totalAreaOfInputPolygons = 0;
-	for (int i = 0; i < polygons.size(); i++)
-	{
-		Polygon polygon = polygons[i];
-		// write the wkt polygon file
-		std::ostringstream polygonWKTFileName;
-		polygonWKTFileName << "polygon_" << std::setw(3) << std::setfill('0') << i << ".wkt";
-		std::ofstream polygonWKTFile(inputPolygonsWKTStorageLocation + "/" + polygonWKTFileName.str());
-		polygonWKTFile << boost_geo::wkt(polygon) << std::endl;
-		polygonWKTFile.close();
-		// add polygon area to totalAreaOfInputPolygons
-		totalAreaOfInputPolygons += std::fabs(boost_geo::area(polygon));
-	}
-
-	std::cout << "Calling generateInitialSolution..." << "...\n";
-	MultiPolygon initialPacking = cluster_util::generateInitialSolution(polygons, width);
-	MultiPolygon bestPacking = initialPacking;
-	std::cout << "generateInitialSolution completed..." << "...\n";
-
-	// create a directory for initial solution and store the initial solution
-	string initialSolutionDirectory = outputDirectoryName + "/initial_solution";
-	mkdir(initialSolutionDirectory.c_str(), 0777);
-
-	std::ofstream initialPackingWKTFile(initialSolutionDirectory + "/initial_packing.wkt");
-	initialPackingWKTFile << boost_geo::wkt(initialPacking) << std::endl;
-	initialPackingWKTFile.close();
-	geo_util::visualize(initialPacking, initialSolutionDirectory, datasetName);
-	std::cout << "Done..." << "...\n";
-
-
-
-	double bestPackingArea = boost_geo::area(bestPacking);
-	double bestLength = geo_util::poly_util::getLength(bestPacking);
-    Box stock;
-    boost_geo::envelope(bestPacking, stock);
-    double stockArea = boost_geo::area(stock);
-    Point stockDimension = stock.max_corner();
-    boost_geo::subtract_point(stockDimension, stock.min_corner());
-
-    std::cout << "\033[1;36mDataset....................: " << datasetName << "\n";
-	std::cout << "\033[1;36mwidth......................: " << width << "\033[0m" << std::endl;
-	std::cout << "\033[1;36mlength.....................: " << bestLength << "\033[0m" << std::endl;
-    std::cout << "\033[1;36mtotal area of items........: " << totalAreaOfInputPolygons << "\033[0m" << std::endl;
-    std::cout << "\033[1;36mresult polygon set area....: " << bestPackingArea << "\033[0m" << std::endl;
-    std::cout << "\033[1;36mstock dimension [l * w]....: "
-              << "[" << std::fabs(stockDimension.get<0>()) << ", " << std::fabs(stockDimension.get<1>()) << "]" << "\033[0m" << std::endl;
-    std::cout << "\033[1;36mstock area.................: " << stockArea << "\033[0m" << std::endl;
-    std::cout << "\033[1;32mpacking density............: " << (totalAreaOfInputPolygons / stockArea) * 100 << " %\033[0m" << std::endl;
-}
-
 /**
  * checks feasibilty of a packing
  * compares with FEASIBILTY limit
@@ -1301,4 +1236,67 @@ void bin_packing::cuckooPacking(MultiPolygon initialPacking, long double runTime
 		}
 	}
 	geo_util::visualize(bestPacking, datasetName);
+}
+
+/** bin packing */
+void bin_packing::binPacking(vector<Polygon> &polygons, long double width, string outputLocation, string datasetName, long double runTimeDuration)
+{
+	std::cout << "Calling binPacking..." << "...\n";
+	// create directory for the dataset
+	string outputDirectoryName = outputLocation + "/" + datasetName;
+	mkdir(outputDirectoryName.c_str(), 0777);
+
+	// start the clock
+	auto start = std::chrono::high_resolution_clock::now();
+
+	// create directory to store wkt files of input polygons
+	string inputPolygonsWKTStorageLocation = outputDirectoryName + "/input_polygons_wkt_files";
+	mkdir(inputPolygonsWKTStorageLocation.c_str(), 0777);
+
+	double totalAreaOfInputPolygons = 0;
+	for (int i = 0; i < polygons.size(); i++)
+	{
+		Polygon polygon = polygons[i];
+		// write the wkt polygon file
+		std::ostringstream polygonWKTFileName;
+		polygonWKTFileName << "polygon_" << std::setw(3) << std::setfill('0') << i << ".wkt";
+		std::ofstream polygonWKTFile(inputPolygonsWKTStorageLocation + "/" + polygonWKTFileName.str());
+		polygonWKTFile << boost_geo::wkt(polygon) << std::endl;
+		polygonWKTFile.close();
+		// add polygon area to totalAreaOfInputPolygons
+		totalAreaOfInputPolygons += std::fabs(boost_geo::area(polygon));
+	}
+
+	std::cout << "Calling generateInitialSolution..." << "...\n";
+	MultiPolygon initialPacking = cluster_util::generateInitialSolution(polygons, width);
+	MultiPolygon bestPacking = initialPacking;
+	std::cout << "generateInitialSolution completed..." << "...\n";
+
+	// create a directory for initial solution and store the initial solution
+	string initialSolutionDirectory = outputDirectoryName + "/initial_solution";
+	mkdir(initialSolutionDirectory.c_str(), 0777);
+	std::ofstream initialPackingWKTFile(initialSolutionDirectory + "/initial_packing.wkt");
+	initialPackingWKTFile << boost_geo::wkt(initialPacking) << std::endl;
+	initialPackingWKTFile.close();
+	geo_util::visualize(initialPacking, initialSolutionDirectory, datasetName);
+	std::cout << "Done..." << "...\n";
+
+
+	double bestPackingArea = boost_geo::area(bestPacking);
+	double bestLength = geo_util::poly_util::getLength(bestPacking);
+    Box stock;
+    boost_geo::envelope(bestPacking, stock);
+    double stockArea = boost_geo::area(stock);
+    Point stockDimension = stock.max_corner();
+    boost_geo::subtract_point(stockDimension, stock.min_corner());
+
+    std::cout << "\033[1;36mDataset....................: " << datasetName << "\n";
+	std::cout << "\033[1;36mwidth......................: " << width << "\033[0m" << std::endl;
+	std::cout << "\033[1;36mlength.....................: " << bestLength << "\033[0m" << std::endl;
+    std::cout << "\033[1;36mtotal area of items........: " << totalAreaOfInputPolygons << "\033[0m" << std::endl;
+    std::cout << "\033[1;36mresult polygon set area....: " << bestPackingArea << "\033[0m" << std::endl;
+    std::cout << "\033[1;36mstock dimension [l * w]....: "
+              << "[" << std::fabs(stockDimension.get<0>()) << ", " << std::fabs(stockDimension.get<1>()) << "]" << "\033[0m" << std::endl;
+    std::cout << "\033[1;36mstock area.................: " << stockArea << "\033[0m" << std::endl;
+    std::cout << "\033[1;32mpacking density............: " << (totalAreaOfInputPolygons / stockArea) * 100 << " %\033[0m" << std::endl;
 }

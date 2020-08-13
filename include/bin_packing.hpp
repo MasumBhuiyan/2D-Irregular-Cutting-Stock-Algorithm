@@ -116,8 +116,8 @@ namespace bin_packing
     void increasePenalty(MultiPolygon &, vector<vector<long double>> &);
     Point cuckooSearch(MultiPolygon &, vector<vector<long double>> &, int, long double, long double, long double);
     MultiPolygon minimizeOverlap(MultiPolygon, vector<long double>, long double, long double);
-    void binPacking(vector<Polygon> &polygons, long double width, string outputLocation, string datasetName, long double runTimeDuration = RUN_TIME_DURATION);
     void cuckooPacking(MultiPolygon initialPacking, long double runTimeDuration = RUN_TIME_DURATION);
+    void binPacking(vector<Polygon> &polygons, long double width, string outputLocation, string datasetName, long double runTimeDuration = RUN_TIME_DURATION);
 }; // namespace bin_packing
 
 #endif
