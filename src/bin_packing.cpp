@@ -146,6 +146,23 @@ bool geo_util::pointInRectangle(Point a, Point b, Point c)
 
 /** namespace geo_uti::poly_util */
 
+void geo_util::poly_util::readWKTPolygon(Polygon &polygon, string filename)
+{
+	std::ifstream polygonWKTFile(filename);
+	assert(polygonWKTFile.is_open());
+
+	string wktStr;
+	polygonWKTFile.seekg(0, std::ios::end);
+	wktStr.reserve(polygonWKTFile.tellg());
+	polygonWKTFile.seekg(0, std::ios::beg);
+	wktStr.assign((std::istreambuf_iterator<char>(polygonWKTFile)), std::istreambuf_iterator<char>());
+	wktStr.pop_back();
+	boost_geo::read_wkt(wktStr, polygon);
+	boost_geo::correct(polygon);
+
+	polygonWKTFile.close();
+}
+
 void geo_util::poly_util::polygonRound(Polygon &polygon)
 {
 	for (auto &point : polygon.outer())
@@ -1196,7 +1213,7 @@ MultiPolygon bin_packing::minimizeOverlap(MultiPolygon packing, std::vector<long
 	}
 	return packing;
 }
-void bin_packing::cuckooPacking(MultiPolygon initialPacking, long double runTimeDuration)
+void bin_packing::cuckooPacking(MultiPolygon &initialPacking, long double runTimeDuration)
 {
 	auto start = std::chrono::high_resolution_clock::now();
 
