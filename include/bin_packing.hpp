@@ -43,7 +43,7 @@ const int MAXIMUM_GENERATION = 20;
 const int NUMBER_OF_HOST_NESTS = 20;
 const long double NFP_TRANSLATOR_COF = 1e4;
 const long double INITIAL_STOCK_LENGTH = 100000000;
-const int MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA = 40;
+const int MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA = 20;
 const vector<long double> ALLOWABLE_ROTATIONS = {0, 90, 180, 270};
 
 static int frameno;
@@ -61,6 +61,7 @@ namespace geo_util
     namespace poly_util
     {
         void readWKTPolygon(Polygon &polygon, string filename);
+        void readWKTMultiPolygon(MultiPolygon &multiPolygon, string filename);
         void polygonRound(Polygon &polygon);
         Polygon normalize(Polygon &polygon);
         Polygon translate(Polygon &polygon, Point translationPoint);
@@ -111,13 +112,13 @@ namespace bin_packing
 {
     tuple<vector<Polygon>, long double> readDataset(string datasetName);
     bool isFeasible(MultiPolygon &, long double);
-    long double getPenetrationDepth(Polygon, Polygon);
-    long double getTotalPenetrationDepth(MultiPolygon &);
-    long double getOverlapPenalty(MultiPolygon &, vector<vector<long double>> &, int, long double, Point);
-    void increasePenalty(MultiPolygon &, vector<vector<long double>> &);
-    Point cuckooSearch(MultiPolygon &, vector<vector<long double>> &, int, long double, long double, long double);
-    MultiPolygon minimizeOverlap(MultiPolygon, vector<long double>, long double, long double);
-    void cuckooPacking(MultiPolygon &initialPacking, long double runTimeDuration = RUN_TIME_DURATION);
+    long double getPenetrationDepth(Polygon polygonA, Polygon polygonB);
+    long double getTotalPenetrationDepth(MultiPolygon &packing);
+    long double getOverlapPenalty(MultiPolygon &packing, vector<vector<long double>> &penalty, int polygon_id, long double rotationAngle, Point translationPoint);
+    void increasePenalty(MultiPolygon &packing, vector<vector<long double>> &penalty);
+    Point cuckooSearch(MultiPolygon &packing, vector<vector<long double>> &penalty, int polygon_id, long double rotationAngle, long double width, long double length);
+    MultiPolygon minimizeOverlap(MultiPolygon packing, vector<long double> allowableRoatations, long double width, long double length);
+    void cuckooPacking(string datasetname, string outputLocation, long double width, long double runTimeDuration = RUN_TIME_DURATION);
     void binPacking(vector<Polygon> &polygons, long double width, string outputLocation, string datasetName, long double runTimeDuration = RUN_TIME_DURATION);
 }; // namespace bin_packing
 
