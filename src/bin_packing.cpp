@@ -1137,51 +1137,79 @@ void bin_packing::increasePenalty(MultiPolygon &packing, vector<vector<long doub
 		}
 	}
 }
-
+double getAccuracy(MultiPolygon &packing, double length, double width)
+{
+    double areaOfPolygon = 0.0;
+    for(auto polygon: packing)
+    {
+        areaOfPolygon += std::fabs(boost_geo::area(polygon));
+    }
+    return areaOfPolygon / (width * length);
+}
+void bin_packing::pushDown(MultiPolygon &packing, double length)
+{
+    for(auto &polygon : packing)
+    {
+        double pushDownBy = 0;
+        for(auto &point: polygon.outer())
+        {
+            double dif = point.get<1>() - length;
+            if( geo_util::dblcmp(dif, EPS) > 0)
+            {
+                pushDownBy = std::max(pushDownBy, dif);
+            }
+        }
+        for(auto &point: polygon.outer())
+        {
+            point = Point(point.get<0>(), point.get<1>()-pushDownBy);
+        }
+        for(auto &inner: polygon.inners())
+        {
+            for(auto &point: inner)
+            {
+                point = Point(point.get<0>(), point.get<1>() - pushDownBy);
+            }
+        }
+    }
+}
 Point bin_packing::cuckooSearch(MultiPolygon &packing, vector<vector<long double>> &penalty, int polygon_id, long double rotationAngle, long double width, long double length)
 {
-	Polygon polygon = packing[polygon_id];
-	polygon = geo_util::poly_util::rotateCW(polygon, rotationAngle, polygon.outer().front());
-	Polygon innerFitRectangle = polygon_fit::getInnerFitRectangle({polygon}, length, width);
+    std::cout << "Initiating cuckoo search...\n";
+	// boundary of inner fit rectangle
+    Polygon polygon = packing[polygon_id];
+    polygon = geo_util::poly_util::rotateCW(polygon, rotationAngle, polygon.outer()[0]);
+    Polygon innerFitRectangle = polygon_fit::getInnerFitRectangle({polygon}, length, width);
 
-	long double max_x = -INF, min_x = INF, max_y = -INF, min_y = INF;
-	for (Point &point : polygon.outer())
-	{
-		max_x = std::max(max_x, point.get<0>());
-		min_x = std::min(min_x, point.get<0>());
-		max_y = std::max(max_y, point.get<1>());
-		min_y = std::min(min_y, point.get<1>());
-	}
+    long double max_x = -INF, min_x = INF, max_y = -INF, min_y = INF;
+    for (Point &point : polygon.outer())
+    {
+        max_x = std::max(max_x, point.get<0>());
+        min_x = std::min(min_x, point.get<0>());
+        max_y = std::max(max_y, point.get<1>());
+        min_y = std::min(min_y, point.get<1>());
+    }
 
-	std::vector<Point> hostNests(NUMBER_OF_HOST_NESTS);
-	for (int i = 0; i < NUMBER_OF_HOST_NESTS; i++)
-	{
-		srand(time(NULL));
-		hostNests[i] = {std::rand() % (int)(max_x - min_x + 1) + min_x, std::rand() % (int)(max_y - min_y + 1) + min_y};
-	}
-	// Begin cuckoo search
-	Point bestPosition = packing[polygon_id].outer().front();
-	for (int t = 0; t < MAXIMUM_GENERATION; t++)
-	{
-		srand(time(NULL));
-		int i = std::rand() % NUMBER_OF_HOST_NESTS;
-		long double overlapPenalty_i = bin_packing::getOverlapPenalty(packing, penalty, polygon_id, rotationAngle, hostNests[i]);
+    // host nests
+    long double step_x = (max_x - min_x) / 50.0;
+    long double step_y = (max_y - min_y) / 50.0;
 
-		srand(time(NULL));
-		int j = std::rand() % NUMBER_OF_HOST_NESTS;
-		long double overlapPenalty_j = bin_packing::getOverlapPenalty(packing, penalty, polygon_id, rotationAngle, hostNests[j]);
+    Point bestPosition = packing[polygon_id].outer()[0];
+    double bestOverlapPenalty = bin_packing::getOverlapPenalty(packing, penalty, polygon_id, rotationAngle, bestPosition);
+    for(double _x = min_x; _x <= max_x;  _x += step_x)
+    {
+        for(int _y = min_y; _y <= max_y; _y += step_y)
+        {
+            long double overlapPenalty = bin_packing::getOverlapPenalty(packing, penalty, polygon_id, rotationAngle, Point(_x, _y));
+            if( geo_util::dblcmp(overlapPenalty - bestOverlapPenalty, EPS) < 0 )
+            {
+                bestOverlapPenalty = overlapPenalty;
+                bestPosition = Point(_x, _y);
+            }
 
-		if (overlapPenalty_i < overlapPenalty_j)
-		{
-			hostNests[j] = hostNests[i];
-			bestPosition = hostNests[j];
-		}
-		// Abandon a fraction (Pa) of worse nests and build new ones
-		// at new locations
-		// Keep the best solutions (or nests with quality solutions)
-		// Rank the solutions and find the current best
-	}
-	return bestPosition;
+        }
+    }
+    std::cout << "terminating cuckoo search.." << boost_geo::wkt(bestPosition) << " : " << bestOverlapPenalty << "\n";
+    return bestPosition;
 }
 
 MultiPolygon bin_packing::minimizeOverlap(MultiPolygon packing, vector<long double> allowableRoatations, long double width, long double length)
@@ -1279,6 +1307,7 @@ void bin_packing::cuckooPacking(string datasetname, string outputLocation, long 
 		{
 			break;
 		}
+        pushDown(currentPacking, currentLength);
 		std::cout << "running minimizeOverlap()................: " << std::endl;
 		currentPacking = bin_packing::minimizeOverlap(currentPacking, ALLOWABLE_ROTATIONS, width, currentLength);
 		geo_util::visualize(currentPacking, cuckooPackingDirectoryName, "minimized_overlap");

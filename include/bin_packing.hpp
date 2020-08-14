@@ -117,6 +117,7 @@ namespace bin_packing
     long double getOverlapPenalty(MultiPolygon &packing, vector<vector<long double>> &penalty, int polygon_id, long double rotationAngle, Point translationPoint);
     void increasePenalty(MultiPolygon &packing, vector<vector<long double>> &penalty);
     Point cuckooSearch(MultiPolygon &packing, vector<vector<long double>> &penalty, int polygon_id, long double rotationAngle, long double width, long double length);
+    void pushDown(MultiPolygon &packing, double length);
     MultiPolygon minimizeOverlap(MultiPolygon packing, vector<long double> allowableRoatations, long double width, long double length);
     void cuckooPacking(string datasetname, string outputLocation, long double width, long double runTimeDuration = RUN_TIME_DURATION);
     void binPacking(vector<Polygon> &polygons, long double width, string outputLocation, string datasetName, long double runTimeDuration = RUN_TIME_DURATION);
