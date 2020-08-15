@@ -1,0 +1,2 @@
+/usr/bin/ar qc libbin_packing.a CMakeFiles/bin_packing.dir/bin_packing.cpp.o
+/usr/bin/ranlib libbin_packing.a

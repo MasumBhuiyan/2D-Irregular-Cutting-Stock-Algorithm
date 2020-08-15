@@ -1,0 +1,50 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/bin_packing.hpp
+iostream
+-
+fstream
+-
+cassert
+-
+vector
+-
+deque
+-
+iomanip
+-
+cmath
+-
+string
+-
+cstring
+-
+chrono
+-
+ctime
+-
+stdlib.h
+-
+sys/stat.h
+-
+sys/types.h
+-
+boost/geometry.hpp
+-
+boost/geometry/geometries/geometries.hpp
+-
+boost/geometry/algorithms/is_convex.hpp
+-
+
+/home/bhuiyans/Desktop/My Projects/zero-waste-apparels/2D-Irregular-Cutting-Stock-Algorithm/tests/src/is_concave_test.cpp
+bin_packing.hpp
+-
+cassert
+-
+

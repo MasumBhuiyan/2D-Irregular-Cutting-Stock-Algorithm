@@ -1,0 +1,54 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/libnfporb.hpp
+iostream
+-
+list
+-
+string
+-
+fstream
+-
+streambuf
+-
+vector
+-
+set
+-
+exception
+-
+random
+-
+limits
+-
+boost/multiprecision/gmp.hpp
+-
+boost/multiprecision/number.hpp
+-
+boost/geometry.hpp
+-
+boost/geometry/util/math.hpp
+-
+boost/geometry/geometries/point_xy.hpp
+-
+boost/geometry/geometries/polygon.hpp
+-
+boost/geometry/geometries/linestring.hpp
+-
+boost/geometry/io/svg/svg_mapper.hpp
+-
+boost/geometry/algorithms/intersects.hpp
+-
+boost/geometry/geometries/register/point.hpp
+-
+
+/home/bhuiyans/Desktop/My Projects/zero-waste-apparels/2D-Irregular-Cutting-Stock-Algorithm/src/libnfporb.cpp
+libnfporb.hpp
+-
+

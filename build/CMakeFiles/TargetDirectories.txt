@@ -1,0 +1,14 @@
+/home/bhuiyans/Desktop/My Projects/zero-waste-apparels/2D-Irregular-Cutting-Stock-Algorithm/build/CMakeFiles/rebuild_cache.dir
+/home/bhuiyans/Desktop/My Projects/zero-waste-apparels/2D-Irregular-Cutting-Stock-Algorithm/build/CMakeFiles/edit_cache.dir
+/home/bhuiyans/Desktop/My Projects/zero-waste-apparels/2D-Irregular-Cutting-Stock-Algorithm/build/CMakeFiles/run.dir
+/home/bhuiyans/Desktop/My Projects/zero-waste-apparels/2D-Irregular-Cutting-Stock-Algorithm/build/CMakeFiles/test.dir
+/home/bhuiyans/Desktop/My Projects/zero-waste-apparels/2D-Irregular-Cutting-Stock-Algorithm/build/src/CMakeFiles/rebuild_cache.dir
+/home/bhuiyans/Desktop/My Projects/zero-waste-apparels/2D-Irregular-Cutting-Stock-Algorithm/build/src/CMakeFiles/edit_cache.dir
+/home/bhuiyans/Desktop/My Projects/zero-waste-apparels/2D-Irregular-Cutting-Stock-Algorithm/build/src/CMakeFiles/test.dir
+/home/bhuiyans/Desktop/My Projects/zero-waste-apparels/2D-Irregular-Cutting-Stock-Algorithm/build/src/CMakeFiles/nfp.dir
+/home/bhuiyans/Desktop/My Projects/zero-waste-apparels/2D-Irregular-Cutting-Stock-Algorithm/build/src/CMakeFiles/bin_packing.dir
+/home/bhuiyans/Desktop/My Projects/zero-waste-apparels/2D-Irregular-Cutting-Stock-Algorithm/build/tests/CMakeFiles/rebuild_cache.dir
+/home/bhuiyans/Desktop/My Projects/zero-waste-apparels/2D-Irregular-Cutting-Stock-Algorithm/build/tests/CMakeFiles/edit_cache.dir
+/home/bhuiyans/Desktop/My Projects/zero-waste-apparels/2D-Irregular-Cutting-Stock-Algorithm/build/tests/CMakeFiles/test.dir
+/home/bhuiyans/Desktop/My Projects/zero-waste-apparels/2D-Irregular-Cutting-Stock-Algorithm/build/tests/CMakeFiles/generate_nfp_test.dir
+/home/bhuiyans/Desktop/My Projects/zero-waste-apparels/2D-Irregular-Cutting-Stock-Algorithm/build/tests/CMakeFiles/is_concave_test.dir

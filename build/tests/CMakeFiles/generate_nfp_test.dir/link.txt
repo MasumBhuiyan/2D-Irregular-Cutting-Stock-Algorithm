@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/generate_nfp_test.dir/src/generate_nfp_test.cpp.o -o generate_nfp_test  ../src/libbin_packing.a ../src/libnfp.a 

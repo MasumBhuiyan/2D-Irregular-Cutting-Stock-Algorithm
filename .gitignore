@@ -1,7 +1,5 @@
 ### VS Code ###
 .vscode/
-
-build/
 **.o
 **.exe
 **/nfpfiles

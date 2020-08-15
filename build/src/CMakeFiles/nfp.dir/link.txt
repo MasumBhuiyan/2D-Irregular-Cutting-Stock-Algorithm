@@ -1,0 +1,2 @@
+/usr/bin/ar qc libnfp.a CMakeFiles/nfp.dir/libnfporb.cpp.o
+/usr/bin/ranlib libnfp.a

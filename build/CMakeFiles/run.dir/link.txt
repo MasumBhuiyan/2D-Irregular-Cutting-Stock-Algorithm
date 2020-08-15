@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/run.dir/main.cpp.o -o run  src/libbin_packing.a src/libnfp.a 
