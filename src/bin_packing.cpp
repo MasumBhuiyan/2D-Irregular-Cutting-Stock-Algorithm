@@ -888,22 +888,23 @@ vector<vector<vector<vector<long double>>>> cluster_util::getClusterValues(vecto
 					boost_geo::multiply_value(newOrigin_j, -1);
 					polygon_j = geo_util::poly_util::translate(polygon_j, newOrigin_j);
 
-					int nfp_file_no = (l + k * ALLOWABLE_ROTATIONS.size() + j * ALLOWABLE_ROTATIONS.size() * ALLOWABLE_ROTATIONS.size() + i * ALLOWABLE_ROTATIONS.size() * ALLOWABLE_ROTATIONS.size() * numberOfPolygons);
-					//polygon_t nfpt;
-					//std::string filename = "../io/nfpfiles/trousers/" + std::to_string(nfp_file_no) + ".wkt";
+					// int nfp_file_no = (l + k * ALLOWABLE_ROTATIONS.size() + j * ALLOWABLE_ROTATIONS.size() * ALLOWABLE_ROTATIONS.size() + i * ALLOWABLE_ROTATIONS.size() * ALLOWABLE_ROTATIONS.size() * numberOfPolygons);
+					// polygon_t nfpt;
+					// std::string filename = "../io/nfpfiles/trousers/" + std::to_string(nfp_file_no) + ".wkt";
 					// std::cout << nfp_file_no << "\n";
-					//read_wkt_polygon(filename, nfpt);
+					// read_wkt_polygon(filename, nfpt);
 
 					//Polygon nfp = poly_t_util::convertToPolygon(nfpt);
 
-					polygon_i = geo_util::poly_util::translate(polygon_i, Point(10000, 10000));
-					polygon_j = geo_util::poly_util::translate(polygon_j, Point(10000, 10000));
-					std::cout << boost_geo::wkt(polygon_i) << "\n";
-					std::cout << boost_geo::wkt(polygon_j) << "\n";
-					Polygon nfp = polygon_fit::getNoFitPolygon(polygon_i, polygon_j);
-					polygon_i = geo_util::poly_util::translate(polygon_i, Point(-10000, -10000));
-					polygon_j = geo_util::poly_util::translate(polygon_j, Point(-10000, -10000));
+					// polygon_i = geo_util::poly_util::translate(polygon_i, Point(10000, 10000));
+					// polygon_j = geo_util::poly_util::translate(polygon_j, Point(10000, 10000));
+					// std::cout << boost_geo::wkt(polygon_i) << "\n";
+					// std::cout << boost_geo::wkt(polygon_j) << "\n";
+					// Polygon nfp = polygon_fit::getNoFitPolygon(polygon_i, polygon_j);
+					// polygon_i = geo_util::poly_util::translate(polygon_i, Point(-10000, -10000));
+					// polygon_j = geo_util::poly_util::translate(polygon_j, Point(-10000, -10000));
 
+                    Polygon nfp = polygon_fit::getNoFitPolygon(polygon_i, polygon_j);
 					if (boost_geo::is_convex(nfp.outer()) == false)
 					{
 						Point dominantPoint = cluster_util::findDominantPoint(nfp);
@@ -1138,14 +1139,17 @@ void bin_packing::increasePenalty(MultiPolygon &packing, vector<vector<long doub
 	}
 }
 
-double getAccuracy(MultiPolygon &packing, double length, double width)
+long double getAccuracy(MultiPolygon &packing)
 {
-	double areaOfPolygon = 0.0;
+	long double areaOfPolygon = 0.0;
 	for (auto polygon : packing)
 	{
 		areaOfPolygon += std::fabs(boost_geo::area(polygon));
 	}
-	return areaOfPolygon / (width * length);
+    Box stock;
+    boost_geo::envelope(packing, stock);
+    long double stockArea = boost_geo::area(stock);
+	return (areaOfPolygon / stockArea) * 100.0;
 }
 
 void bin_packing::pushDown(MultiPolygon &packing, double length)
@@ -1232,7 +1236,7 @@ MultiPolygon bin_packing::minimizeOverlap(MultiPolygon packing, vector<long doub
 	{
 		std::cout << "iteration no.............................: " << it << " " << std::endl;
 		std::random_shuffle(Q.begin(), Q.end());
-		geo_util::visualize(packing, "../io/results/dighe1/cuckoo_packing", "before");
+		geo_util::visualize(packing, "../io/results/jakobs1/cuckoo_packing", "before");
 		for (int i = 0; i < numberOfPolygons; i++)
 		{
 			long double overlapPenalty = bin_packing::getOverlapPenalty(packing, penalty, Q[i], 0, packing[Q[i]].outer().front());
@@ -1270,7 +1274,7 @@ MultiPolygon bin_packing::minimizeOverlap(MultiPolygon packing, vector<long doub
 				return bestPacking;
 			}
 		}
-		geo_util::visualize(packing, "../io/results/dighe1/cuckoo_packing", "after");
+		geo_util::visualize(packing, "../io/results/jakobs1/cuckoo_packing", "after");
 		long double totalPenetrationDepth = bin_packing::getTotalPenetrationDepth(packing);
 		if (geo_util::dblcmp(totalPenetrationDepth) == 0)
 		{
@@ -1279,12 +1283,12 @@ MultiPolygon bin_packing::minimizeOverlap(MultiPolygon packing, vector<long doub
 		else if (totalPenetrationDepth < fitness)
 		{
 			fitness = totalPenetrationDepth;
-			// it = 0;
+			it = 0;
 		}
-		// bin_packing::increasePenalty(packing, penalty); // increase penalty
+		bin_packing::increasePenalty(packing, penalty); // increase penalty
 		it += 1;
 	}
-	geo_util::visualize(bestPacking, "../io/results/dighe1/cuckoo_packing", "minimizeOverlap");
+	geo_util::visualize(bestPacking, "../io/results/jakobs1/cuckoo_packing", "minimizeOverlap");
 	return bestPacking;
 }
 
@@ -1331,22 +1335,32 @@ void bin_packing::cuckooPacking(string datasetname, string outputLocation, long 
 		if (bin_packing::isFeasible(currentPacking, totalAreaOfInitialPackingPolygons))
 		{
 			std::cout << std::fixed << std::setprecision(3);
-			std::cout << "current accuracy: " << getAccuracy(currentPacking, currentLength, width) << std::endl;
-			bestPacking = currentPacking;
-			bestLenght = currentLength;
-			currentLength = (1.0 - decreasingRate) * bestLenght;
+			std::cout << "current accuracy: " << getAccuracy(currentPacking) << std::endl;
+		  geo_util::visualize(currentPacking, cuckooPackingDirectoryName, "feasible");
+            Box stock;
+            boost_geo::envelope(currentPacking, stock);
+            long double stockArea = boost_geo::area(stock);
+            Point stockDimension = stock.max_corner();
+            currentLength = stockDimension.get<1>();
+
+            if(  geo_util::dblcmp(getAccuracy(bestPacking) - getAccuracy(currentPacking)) <= 0 ) 
+            {
+                bestPacking = currentPacking;
+			    bestLenght = currentLength;
+            }
+			currentLength = (1.0 - decreasingRate) * currentLength;
 			pushDown(currentPacking, currentLength);
 		}
 		else
 		{
-			currentLength = (1.0 + increasingRate) * bestLenght;
+			currentLength = (1.0 + increasingRate) * currentLength;
 		}
 		std::cout << "running minimizeOverlap()................: " << std::endl;
 		currentPacking = bin_packing::minimizeOverlap(currentPacking, ALLOWABLE_ROTATIONS, width, currentLength, totalAreaOfInitialPackingPolygons);
-		geo_util::visualize(currentPacking, cuckooPackingDirectoryName, "minimized_overlap");
+		//geo_util::visualize(currentPacking, cuckooPackingDirectoryName, "minimized_overlap");
 	}
-	// geo_util::visualize(bestPacking, cuckooPackingDirectoryName, "final_packing");
-	// geo_util::visualize(bestPacking, datasetName);
+	geo_util::visualize(bestPacking, cuckooPackingDirectoryName, "final_packing");
+	//geo_util::visualize(bestPacking, datasetName);
 }
 
 /** bin packing */
@@ -1361,57 +1375,57 @@ void bin_packing::binPacking(vector<Polygon> &polygons, long double width, strin
 	// start the clock
 	auto start = std::chrono::high_resolution_clock::now();
 
-	// create directory to store wkt files of input polygons
-	string inputPolygonsWKTStorageLocation = outputDirectoryName + "/input_polygons_wkt_files";
-	mkdir(inputPolygonsWKTStorageLocation.c_str(), 0777);
+	// // create directory to store wkt files of input polygons
+	// string inputPolygonsWKTStorageLocation = outputDirectoryName + "/input_polygons_wkt_files";
+	// mkdir(inputPolygonsWKTStorageLocation.c_str(), 0777);
 
-	double totalAreaOfInputPolygons = 0;
-	for (int i = 0; i < polygons.size(); i++)
-	{
-		Polygon polygon = polygons[i];
-		// write the wkt polygon file
-		std::ostringstream polygonWKTFileName;
-		polygonWKTFileName << "polygon_" << std::setw(3) << std::setfill('0') << i << ".wkt";
-		std::ofstream polygonWKTFile(inputPolygonsWKTStorageLocation + "/" + polygonWKTFileName.str());
-		polygonWKTFile << boost_geo::wkt(polygon) << std::endl;
-		polygonWKTFile.close();
-		// add polygon area to totalAreaOfInputPolygons
-		totalAreaOfInputPolygons += std::fabs(boost_geo::area(polygon));
-	}
+	// double totalAreaOfInputPolygons = 0;
+	// for (int i = 0; i < polygons.size(); i++)
+	// {
+	// 	Polygon polygon = polygons[i];
+	// 	// write the wkt polygon file
+	// 	std::ostringstream polygonWKTFileName;
+	// 	polygonWKTFileName << "polygon_" << std::setw(3) << std::setfill('0') << i << ".wkt";
+	// 	std::ofstream polygonWKTFile(inputPolygonsWKTStorageLocation + "/" + polygonWKTFileName.str());
+	// 	polygonWKTFile << boost_geo::wkt(polygon) << std::endl;
+	// 	polygonWKTFile.close();
+	// 	// add polygon area to totalAreaOfInputPolygons
+	// 	totalAreaOfInputPolygons += std::fabs(boost_geo::area(polygon));
+	// }
 
 	std::cout << "Calling generateInitialSolution..."
 			  << "...\n";
 	MultiPolygon initialPacking = cluster_util::generateInitialSolution(polygons, width);
 	MultiPolygon bestPacking = initialPacking;
-	std::cout << "generateInitialSolution completed..."
-			  << "...\n";
+	// std::cout << "generateInitialSolution completed..."
+	// 		  << "...\n";
 
-	// create a directory for initial solution and store the initial solution
+	// // create a directory for initial solution and store the initial solution
 	string initialSolutionDirectory = outputDirectoryName + "/initial_solution";
 	mkdir(initialSolutionDirectory.c_str(), 0777);
 	std::ofstream initialPackingWKTFile(initialSolutionDirectory + "/initial_packing.wkt");
 	initialPackingWKTFile << boost_geo::wkt(initialPacking) << std::endl;
 	initialPackingWKTFile.close();
-	geo_util::visualize(initialPacking, initialSolutionDirectory, datasetName);
+	//geo_util::visualize(initialPacking, initialSolutionDirectory, datasetName);
 	std::cout << "Done..."
 			  << "...\n";
 
-	double bestPackingArea = boost_geo::area(bestPacking);
-	double bestLength = geo_util::poly_util::getLength(bestPacking);
-	Box stock;
-	boost_geo::envelope(bestPacking, stock);
-	double stockArea = boost_geo::area(stock);
-	Point stockDimension = stock.max_corner();
-	boost_geo::subtract_point(stockDimension, stock.min_corner());
+	// double bestPackingArea = boost_geo::area(bestPacking);
+	// double bestLength = geo_util::poly_util::getLength(bestPacking);
+	// Box stock;
+	// boost_geo::envelope(bestPacking, stock);
+	// double stockArea = boost_geo::area(stock);
+	// Point stockDimension = stock.max_corner();
+	// boost_geo::subtract_point(stockDimension, stock.min_corner());
 
-	std::cout << "\033[1;36mDataset....................: " << datasetName << "\n";
-	std::cout << "\033[1;36mwidth......................: " << width << "\033[0m" << std::endl;
-	std::cout << "\033[1;36mlength.....................: " << bestLength << "\033[0m" << std::endl;
-	std::cout << "\033[1;36mtotal area of items........: " << totalAreaOfInputPolygons << "\033[0m" << std::endl;
-	std::cout << "\033[1;36mresult polygon set area....: " << bestPackingArea << "\033[0m" << std::endl;
-	std::cout << "\033[1;36mstock dimension [l * w]....: "
-			  << "[" << std::fabs(stockDimension.get<0>()) << ", " << std::fabs(stockDimension.get<1>()) << "]"
-			  << "\033[0m" << std::endl;
-	std::cout << "\033[1;36mstock area.................: " << stockArea << "\033[0m" << std::endl;
-	std::cout << "\033[1;32mpacking density............: " << (totalAreaOfInputPolygons / stockArea) * 100 << " %\033[0m" << std::endl;
+	// std::cout << "\033[1;36mDataset....................: " << datasetName << "\n";
+	// std::cout << "\033[1;36mwidth......................: " << width << "\033[0m" << std::endl;
+	// std::cout << "\033[1;36mlength.....................: " << bestLength << "\033[0m" << std::endl;
+	// std::cout << "\033[1;36mtotal area of items........: " << totalAreaOfInputPolygons << "\033[0m" << std::endl;
+	// std::cout << "\033[1;36mresult polygon set area....: " << bestPackingArea << "\033[0m" << std::endl;
+	// std::cout << "\033[1;36mstock dimension [l * w]....: "
+	// 		  << "[" << std::fabs(stockDimension.get<0>()) << ", " << std::fabs(stockDimension.get<1>()) << "]"
+	// 		  << "\033[0m" << std::endl;
+	// std::cout << "\033[1;36mstock area.................: " << stockArea << "\033[0m" << std::endl;
+	// std::cout << "\033[1;32mpacking density............: " << (totalAreaOfInputPolygons / stockArea) * 100 << " %\033[0m" << std::endl;
 }

@@ -43,7 +43,7 @@ const int MAXIMUM_GENERATION = 20;
 const int NUMBER_OF_HOST_NESTS = 20;
 const long double NFP_TRANSLATOR_COF = 1e4;
 const long double INITIAL_STOCK_LENGTH = 100000000;
-const int MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA = 20;
+const int MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA = 3;
 const vector<long double> ALLOWABLE_ROTATIONS = {0, 90, 180, 270};
 
 static int frameno;
