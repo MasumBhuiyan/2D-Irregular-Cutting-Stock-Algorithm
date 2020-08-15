@@ -1279,9 +1279,9 @@ MultiPolygon bin_packing::minimizeOverlap(MultiPolygon packing, vector<long doub
 		else if (totalPenetrationDepth < fitness)
 		{
 			fitness = totalPenetrationDepth;
-			// it = 0;
+			it = 0;
 		}
-		// bin_packing::increasePenalty(packing, penalty); // increase penalty
+		bin_packing::increasePenalty(packing, penalty); // increase penalty
 		it += 1;
 	}
 	geo_util::visualize(bestPacking, "../io/results/dighe1/cuckoo_packing", "minimizeOverlap");
@@ -1315,8 +1315,8 @@ void bin_packing::cuckooPacking(string datasetname, string outputLocation, long 
 	MultiPolygon currentPacking = initialPacking;
 
 	long double bestLenght = geo_util::poly_util::getLength(initialPacking);
-	long double decreasingRate = 0.05;
-	long double increasingRate = 0.025;
+	long double decreasingRate = LENGTH_DECREASING_RATE;
+	long double increasingRate = LENGTH_INCREASING_RATE;
 	long double currentLength = bestLenght;
 
 	while (true)
