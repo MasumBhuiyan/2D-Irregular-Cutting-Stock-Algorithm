@@ -105,6 +105,21 @@ void bin_packing::runDataset(std::string locationName, std::string datasetName, 
     double width;
     std::vector<int> quantity;
     std::vector<PolygonInput> items = readDataset(locationName + datasetName + ".txt", quantity, width);
+
+    if( datasetName == "albano" )
+    {
+        width /= 100.0;
+        length /= 100.0;
+
+        for(auto &item : items)
+        {
+            for(auto& point : item)
+            {
+                point.first /= 100.0;
+                point.second /= 100.0;
+            }
+        }   
+    }
     bin_packing::binPacking(items, length, width, datasetName);
 }
 
