@@ -321,7 +321,7 @@ void geo_util::visualize(MultiPolygon multiPolygon, string outputLocation, strin
 {
 	Box box;
 	boost::geometry::envelope(multiPolygon, box);
-	std::cout << "make_envelope..............: " << boost::geometry::dsv(box) << std::endl;
+	// std::cout << "make_envelope..............: " << boost::geometry::dsv(box) << std::endl;
 	std::ostringstream name;
 	name << "frame_" << std::setw(4) << std::setfill('0') << frameno++ << "_" << datasetName << ".svg";
 	std::ofstream svg(outputLocation + "/" + name.str());
@@ -1198,23 +1198,30 @@ Point bin_packing::cuckooSearch(
 	}
 
 	// host nests
-	long double step_x = (max_x - min_x) / 50.0;
-	long double step_y = (max_y - min_y) / 50.0;
-
+	vector<Point> hostNests(NUMBER_OF_HOST_NESTS);
+	for (int i = 0; i < NUMBER_OF_HOST_NESTS; i++)
+	{
+		srand(time(NULL));
+		hostNests[i] = {std::rand() % (int)(max_x - min_x + 1) + min_x,
+						std::rand() % (int)(max_y - min_y + 1) + min_y};
+	}
+	// Begin cuckoo search
 	Point bestPosition = packing[polygon_id].outer()[0];
 	double bestOverlapPenalty = INF;
-	for (long double _x = min_x; _x <= max_x; _x += step_x)
+	for (int i = 0; i < NUMBER_OF_HOST_NESTS; i++)
 	{
-		for (long double _y = min_y; _y <= max_y; _y += step_y)
+		double overlapPenalty = 
+			bin_packing::getOverlapPenalty(packing, penalty, polygon_id, rotationAngle, hostNests[i]);
+
+		if (geo_util::dblcmp(overlapPenalty - bestOverlapPenalty, EPS) <= 0)
 		{
-			long double overlapPenalty =
-				bin_packing::getOverlapPenalty(packing, penalty, polygon_id, rotationAngle, Point(_x, _y));
-			if (geo_util::dblcmp(overlapPenalty - bestOverlapPenalty, EPS) <= 0)
-			{
-				bestOverlapPenalty = overlapPenalty;
-				bestPosition = Point(_x, _y);
-			}
+			bestOverlapPenalty = overlapPenalty;
+			bestPosition = hostNests[i];
 		}
+		// Abandon a fraction (Pa) of worse nests and build new ones
+		// at new locations
+		// Keep the best solutions (or nests with quality solutions)
+		// Rank the solutions and find the current best
 	}
 	assert(bestOverlapPenalty != INF);
 	return bestPosition;
