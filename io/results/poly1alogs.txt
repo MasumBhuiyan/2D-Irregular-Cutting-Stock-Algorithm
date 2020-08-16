@@ -1,0 +1,6 @@
+total area of items........: 410
+result polygon set area....: 410
+stock dimension [l * w]....: [40, 17.7143]
+stock area.................: 708.571
+packing density............: 57.8629 %
+Time taken by function.....: 9.66581 seconds
