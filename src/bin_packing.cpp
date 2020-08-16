@@ -1038,6 +1038,16 @@ std::tuple<vector<Polygon>, long double> bin_packing::readDataset(std::string da
 	return {polygons, width};
 }
 
+long double bin_packing::getPackingDensity(MultiPolygon &packing)
+{
+	Box stock;
+	boost_geo::envelope(packing, stock);
+	long double stockArea = std::fabs(boost_geo::area(stock));
+	long double polygonsArea = std::fabs(boost_geo::area(packing));
+	long double packingDensity = polygonsArea / stockArea;
+	return packingDensity * 100.0;
+}
+
 /**
  * checks feasibilty of a packing
  * compares with FEASIBILTY limit
@@ -1142,16 +1152,6 @@ void bin_packing::increasePenalty(MultiPolygon &packing, vector<vector<long doub
 	}
 }
 
-double getAccuracy(MultiPolygon &packing, double length, double width)
-{
-	double areaOfPolygon = 0.0;
-	for (auto polygon : packing)
-	{
-		areaOfPolygon += std::fabs(boost_geo::area(polygon));
-	}
-	return areaOfPolygon / (width * length);
-}
-
 void bin_packing::pushDown(MultiPolygon &packing, double length)
 {
 	for (auto &polygon : packing)
@@ -1183,7 +1183,6 @@ Point bin_packing::cuckooSearch(
 	MultiPolygon &packing, vector<vector<long double>> &penalty, int polygon_id,
 	long double rotationAngle, long double width, long double length)
 {
-	// std::cout << "initiating cuckoo search...\n";
 	// boundary of inner fit rectangle
 	Polygon polygon = packing[polygon_id];
 	polygon = geo_util::poly_util::rotateCW(polygon, rotationAngle, polygon.outer()[0]);
@@ -1317,7 +1316,7 @@ MultiPolygon bin_packing::minimizeOverlap(
 				break;
 			}
 		}
-		geo_util::visualize(packing, outputLocation, "minimize_overlap" + std::to_string(it));
+		geo_util::visualize(packing, outputLocation, "minimize_overlap" + std::to_string(it)); // visualization
 		long double totalPenetrationDepth = bin_packing::getTotalPenetrationDepth(packing);
 		if (geo_util::dblcmp(totalPenetrationDepth) == 0)
 		{
@@ -1337,23 +1336,35 @@ MultiPolygon bin_packing::minimizeOverlap(
 void bin_packing::cuckooPacking(
 	string datasetname, string outputLocation, long double width, long double runTimeDuration)
 {
+	// clock started
+	auto start = std::chrono::high_resolution_clock::now();
+	std::time_t start_time = std::chrono::system_clock::to_time_t(start);
+
 	// create directory for cuckoo packing results
-	string cuckooPackingDirectoryName = outputLocation + "/" + datasetname + "/cuckoo_packing";
+	string cuckooPackingDirectoryName = outputLocation + "/" + datasetname + "/cuckoo_packing" + std::ctime(&start_time);
 	mkdir(cuckooPackingDirectoryName.c_str(), 0777);
+	// create directory for the svg files representing packing steps
+	string cuckooPackingStepsDirectoryName = cuckooPackingDirectoryName + "/steps";
+	mkdir(cuckooPackingStepsDirectoryName.c_str(), 0777);
+	// create or open logger file
 	std::ofstream outputLog(cuckooPackingDirectoryName + "/" + "output_log.txt",
 							std::ios_base::out | std::ios_base::app);
 	outputLog << std::fixed << std::setprecision(3);
+	outputLog << "start at.....................................: "
+			  << std::ctime(&start_time) << std::endl;
 
 	outputLog << "reading initial packing......................:" << std::endl;
 	string initialSolutionFileName = outputLocation + "/" + datasetname + "/initial_solution/initial_packing.wkt";
 	MultiPolygon initialPacking;
 	geo_util::poly_util::readWKTMultiPolygon(initialPacking, initialSolutionFileName);
-	outputLog << boost_geo::wkt(initialPacking) << std::endl;
+	outputLog << boost_geo::wkt(initialPacking) << std::endl
+			  << std::endl;
 
 	geo_util::visualize(initialPacking, cuckooPackingDirectoryName, "initial_packing");
+	outputLog << "initial packing density......................: "
+			  << bin_packing::getPackingDensity(initialPacking) << std::endl;
 
 	outputLog << "running cuckooPacking()......................: " << std::endl;
-	auto start = std::chrono::high_resolution_clock::now(); // clock started
 
 	long double totalAreaOfInitialPackingPolygons = 0;
 	for (Polygon &polygon : initialPacking)
@@ -1381,12 +1392,13 @@ void bin_packing::cuckooPacking(
 		if (bin_packing::isFeasible(currentPacking, totalAreaOfInitialPackingPolygons))
 		{
 			outputLog << "current accuracy.............................: "
-					  << getAccuracy(currentPacking, currentLength, width) << std::endl;
+					  << bin_packing::getPackingDensity(currentPacking) << std::endl;
 			bestPacking = currentPacking;
 			bestLenght = currentLength;
 			currentLength = (1.0 - decreasingRate) * bestLenght;
 			pushDown(currentPacking, currentLength);
-			geo_util::visualize(bestPacking, cuckooPackingDirectoryName, "feasible_packing");
+
+			geo_util::visualize(bestPacking, cuckooPackingStepsDirectoryName, "feasible_packing");
 		}
 		else
 		{
@@ -1395,20 +1407,28 @@ void bin_packing::cuckooPacking(
 		outputLog << "running minimizeOverlap()....................: " << std::endl;
 		currentPacking = bin_packing::minimizeOverlap(
 			currentPacking, ALLOWABLE_ROTATIONS, width, currentLength,
-			totalAreaOfInitialPackingPolygons, outputLog, cuckooPackingDirectoryName);
-		geo_util::visualize(currentPacking, cuckooPackingDirectoryName, "minimized_overlap");
+			totalAreaOfInitialPackingPolygons, outputLog, cuckooPackingStepsDirectoryName);
+
+		geo_util::visualize(currentPacking, cuckooPackingStepsDirectoryName, "minimized_overlap");
 	}
+
+	outputLog << "final packing density........................: "
+			  << bin_packing::getPackingDensity(bestPacking) << std::endl;
+
+	outputLog << std::endl;
+	outputLog << "final packing ...............................: " << std::endl;
+	outputLog << boost_geo::wkt(bestPacking) << std::endl;
+	geo_util::visualize(bestPacking, cuckooPackingDirectoryName, "final_packing");
 
 	auto stop = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
 	outputLog << "time taken by function.......................: "
-			  << duration.count() / 1000000.0 << " seconds\033[0m" << std::endl;
+			  << duration.count() / 1000000.0 << " seconds" << std::endl
+			  << std::endl;
 
-	Box stock;
-	boost_geo::envelope(bestPacking, stock);
-	outputLog << "packing density..............................: "
-			  << (totalAreaOfInitialPackingPolygons / std::fabs(boost_geo::area(stock))) * 100 << std::endl;
-	geo_util::visualize(bestPacking, cuckooPackingDirectoryName, "final_packing");
+	std::time_t stop_time = std::chrono::system_clock::to_time_t(stop);
+	outputLog << "terminated at................................: "
+			  << std::ctime(&stop_time) << std::endl;
 
 	outputLog << "-----------------------------------------------------------------------------------"
 			  << std::endl

@@ -113,6 +113,7 @@ namespace cluster_util
 namespace bin_packing
 {
     tuple<vector<Polygon>, long double> readDataset(string datasetName);
+    long double getPackingDensity(MultiPolygon &packing);
     bool isFeasible(MultiPolygon &packing, long double totalAreaOfInputPolygons);
     long double getPenetrationDepth(Polygon &polygonA, Polygon &polygonB);
     long double getTotalPenetrationDepth(MultiPolygon &packing);
