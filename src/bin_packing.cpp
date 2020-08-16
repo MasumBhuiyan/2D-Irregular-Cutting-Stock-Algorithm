@@ -1179,6 +1179,14 @@ void bin_packing::pushDown(MultiPolygon &packing, double length)
 	}
 }
 
+long double randomInRange(long double a, long double b)
+{
+	long double random = ((long double)std::rand()) / (long double)RAND_MAX;
+	long double diff = b - a;
+	long double r = random * diff;
+	return a + r;
+}
+
 Point bin_packing::cuckooSearch(
 	MultiPolygon &packing, vector<vector<long double>> &penalty, int polygon_id,
 	long double rotationAngle, long double width, long double length)
@@ -1198,19 +1206,20 @@ Point bin_packing::cuckooSearch(
 	}
 
 	// host nests
+	srand(time(NULL));
 	vector<Point> hostNests(NUMBER_OF_HOST_NESTS);
 	for (int i = 0; i < NUMBER_OF_HOST_NESTS; i++)
 	{
-		srand(time(NULL));
-		hostNests[i] = {std::rand() % (int)(max_x - min_x + 1) + min_x,
-						std::rand() % (int)(max_y - min_y + 1) + min_y};
+		hostNests[i] = Point(randomInRange(min_x, max_x), randomInRange(min_y, max_y));
+		assert(min_x <= hostNests[i].get<0>() and max_x >= hostNests[i].get<0>());
+		assert(min_y <= hostNests[i].get<1>() and max_y >= hostNests[i].get<1>());
 	}
 	// Begin cuckoo search
 	Point bestPosition = packing[polygon_id].outer()[0];
 	double bestOverlapPenalty = INF;
 	for (int i = 0; i < NUMBER_OF_HOST_NESTS; i++)
 	{
-		double overlapPenalty = 
+		double overlapPenalty =
 			bin_packing::getOverlapPenalty(packing, penalty, polygon_id, rotationAngle, hostNests[i]);
 
 		if (geo_util::dblcmp(overlapPenalty - bestOverlapPenalty, EPS) <= 0)
@@ -1269,9 +1278,9 @@ MultiPolygon bin_packing::minimizeOverlap(
 				}
 			}
 			// check with 4 random angles
+			srand(time(NULL));
 			for (int rna_i = 0; rna_i < 4; rna_i++)
 			{
-				srand(time(NULL));
 				long double rotationAngle = std::rand() % 360;
 				if (rotationAngle == 0 or rotationAngle == 90 or
 					rotationAngle == 180 or rotationAngle == 270)
