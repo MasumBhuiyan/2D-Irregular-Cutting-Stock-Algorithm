@@ -1086,12 +1086,15 @@ long double bin_packing::getTotalPenetrationDepth(MultiPolygon &packing)
 /**
  * 
  */
-long double bin_packing::getOverlapPenalty(MultiPolygon packing, vector<vector<long double>> &penalty, int polygon_id, long double rotationAngle, Point translationPoint)
+long double bin_packing::getOverlapPenalty(
+	MultiPolygon packing, vector<vector<long double>> &penalty, int polygon_id,
+	long double rotationAngle, Point translationPoint)
 {
 	int numberOfPolygons = packing.size();
 
 	// rotating
-	packing[polygon_id] = geo_util::poly_util::rotateCW(packing[polygon_id], rotationAngle, packing[polygon_id].outer().front());
+	packing[polygon_id] =
+		geo_util::poly_util::rotateCW(packing[polygon_id], rotationAngle, packing[polygon_id].outer().front());
 	Point referecePoint = packing[polygon_id].outer().front();
 	// translating
 	Point newPosition = translationPoint;
@@ -1103,7 +1106,8 @@ long double bin_packing::getOverlapPenalty(MultiPolygon packing, vector<vector<l
 	{
 		if (j != polygon_id)
 		{
-			overlapPenalty += (penalty[polygon_id][j] * bin_packing::getPenetrationDepth(packing[polygon_id], packing[j]));
+			overlapPenalty +=
+				(penalty[polygon_id][j] * bin_packing::getPenetrationDepth(packing[polygon_id], packing[j]));
 		}
 	}
 	return overlapPenalty;
@@ -1175,7 +1179,9 @@ void bin_packing::pushDown(MultiPolygon &packing, double length)
 	}
 }
 
-Point bin_packing::cuckooSearch(MultiPolygon &packing, vector<vector<long double>> &penalty, int polygon_id, long double rotationAngle, long double width, long double length)
+Point bin_packing::cuckooSearch(
+	MultiPolygon &packing, vector<vector<long double>> &penalty, int polygon_id,
+	long double rotationAngle, long double width, long double length)
 {
 	// std::cout << "initiating cuckoo search...\n";
 	// boundary of inner fit rectangle
@@ -1202,7 +1208,8 @@ Point bin_packing::cuckooSearch(MultiPolygon &packing, vector<vector<long double
 	{
 		for (long double _y = min_y; _y <= max_y; _y += step_y)
 		{
-			long double overlapPenalty = bin_packing::getOverlapPenalty(packing, penalty, polygon_id, rotationAngle, Point(_x, _y));
+			long double overlapPenalty =
+				bin_packing::getOverlapPenalty(packing, penalty, polygon_id, rotationAngle, Point(_x, _y));
 			if (geo_util::dblcmp(overlapPenalty - bestOverlapPenalty, EPS) <= 0)
 			{
 				bestOverlapPenalty = overlapPenalty;
@@ -1211,11 +1218,12 @@ Point bin_packing::cuckooSearch(MultiPolygon &packing, vector<vector<long double
 		}
 	}
 	assert(bestOverlapPenalty != INF);
-	// std::cout << "terminating cuckoo search.." << boost_geo::wkt(bestPosition) << " : " << bestOverlapPenalty << "\n";
 	return bestPosition;
 }
 
-MultiPolygon bin_packing::minimizeOverlap(MultiPolygon packing, vector<long double> allowableRoatations, long double width, long double length, long double totalAreaOfInputPolygons)
+MultiPolygon bin_packing::minimizeOverlap(
+	MultiPolygon packing, vector<long double> allowableRoatations, long double width, long double length,
+	long double totalAreaOfInputPolygons, std::ofstream &outputLog, string outputLocation)
 {
 	int numberOfPolygons = packing.size();
 	vector<vector<long double>> penalty(numberOfPolygons, vector<long double>(numberOfPolygons, 1.0));
@@ -1228,22 +1236,25 @@ MultiPolygon bin_packing::minimizeOverlap(MultiPolygon packing, vector<long doub
 	}
 	MultiPolygon bestPacking = packing;
 	long double bestTotalOverlapPenalty = bin_packing::getTotalPenetrationDepth(bestPacking);
+	int noProgressOfPenalyCount = 0;
 	while (it < MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA)
 	{
-		std::cout << "iteration no.............................: " << it << " " << std::endl;
+		outputLog << "iteration no.................................: " << it << std::endl;
 		std::random_shuffle(Q.begin(), Q.end());
-		geo_util::visualize(packing, "../io/results/dighe1/cuckoo_packing", "before");
 		for (int i = 0; i < numberOfPolygons; i++)
 		{
-			long double overlapPenalty = bin_packing::getOverlapPenalty(packing, penalty, Q[i], 0, packing[Q[i]].outer().front());
-			// std::cout << "initial overlap penalty: " << std::fixed << std::setprecision(3) << overlapPenalty << "\n";
+			long double overlapPenalty =
+				bin_packing::getOverlapPenalty(packing, penalty, Q[i], 0, packing[Q[i]].outer().front());
+
 			Point bestLocation(INF, INF);
 			long double bestRotationAngle = 0.0;
 
 			for (long double rotationAngle : allowableRoatations)
 			{
-				Point translationPoint = bin_packing::cuckooSearch(packing, penalty, Q[i], rotationAngle, width, length);
-				long double currentOverlapPenalty = bin_packing::getOverlapPenalty(packing, penalty, Q[i], rotationAngle, translationPoint);
+				Point translationPoint =
+					bin_packing::cuckooSearch(packing, penalty, Q[i], rotationAngle, width, length);
+				long double currentOverlapPenalty =
+					bin_packing::getOverlapPenalty(packing, penalty, Q[i], rotationAngle, translationPoint);
 				if (currentOverlapPenalty < overlapPenalty)
 				{
 					overlapPenalty = currentOverlapPenalty;
@@ -1251,11 +1262,36 @@ MultiPolygon bin_packing::minimizeOverlap(MultiPolygon packing, vector<long doub
 					bestRotationAngle = rotationAngle;
 				}
 			}
-			if (geo_util::dblcmp(INF - bestLocation.get<0>()) <= 0 or geo_util::dblcmp(INF - bestLocation.get<1>()) <= 0)
+			// check with 4 random angles
+			for (int rna_i = 0; rna_i < 4; rna_i++)
+			{
+				srand(time(NULL));
+				long double rotationAngle = std::rand() % 360;
+				if (rotationAngle == 0 or rotationAngle == 90 or
+					rotationAngle == 180 or rotationAngle == 270)
+				{
+					--rna_i;
+					continue;
+				}
+				Point translationPoint =
+					bin_packing::cuckooSearch(packing, penalty, Q[i], rotationAngle, width, length);
+				long double currentOverlapPenalty =
+					bin_packing::getOverlapPenalty(packing, penalty, Q[i], rotationAngle, translationPoint);
+				if (currentOverlapPenalty < overlapPenalty)
+				{
+					overlapPenalty = currentOverlapPenalty;
+					bestLocation = translationPoint;
+					bestRotationAngle = rotationAngle;
+				}
+			}
+
+			if (geo_util::dblcmp(INF - bestLocation.get<0>()) <= 0 or
+				geo_util::dblcmp(INF - bestLocation.get<1>()) <= 0)
 			{
 				continue;
 			}
-			packing[Q[i]] = geo_util::poly_util::rotateCW(packing[Q[i]], bestRotationAngle, packing[Q[i]].outer().front());
+			packing[Q[i]] =
+				geo_util::poly_util::rotateCW(packing[Q[i]], bestRotationAngle, packing[Q[i]].outer().front());
 			Point newPosition = bestLocation;
 			boost_geo::subtract_point(newPosition, packing[Q[i]].outer().front());
 			packing[Q[i]] = geo_util::poly_util::translate(packing[Q[i]], newPosition);
@@ -1263,6 +1299,7 @@ MultiPolygon bin_packing::minimizeOverlap(MultiPolygon packing, vector<long doub
 		long double currentTotalOverlapPenalty = bin_packing::getTotalPenetrationDepth(packing);
 		if (currentTotalOverlapPenalty < bestTotalOverlapPenalty)
 		{
+			noProgressOfPenalyCount = 0;
 			bestTotalOverlapPenalty = currentTotalOverlapPenalty;
 			bestPacking = packing;
 			if (bin_packing::isFeasible(bestPacking, totalAreaOfInputPolygons))
@@ -1270,7 +1307,17 @@ MultiPolygon bin_packing::minimizeOverlap(MultiPolygon packing, vector<long doub
 				return bestPacking;
 			}
 		}
-		geo_util::visualize(packing, "../io/results/dighe1/cuckoo_packing", "after");
+		else
+		{
+			noProgressOfPenalyCount++;
+			if (noProgressOfPenalyCount >= 4) // having same penalty consicutively 4 times
+			{
+				outputLog << "no progress in penalty......................." << std::endl;
+				outputLog << "minimize overlap terminated.................." << std::endl;
+				break;
+			}
+		}
+		geo_util::visualize(packing, outputLocation, "minimize_overlap" + std::to_string(it));
 		long double totalPenetrationDepth = bin_packing::getTotalPenetrationDepth(packing);
 		if (geo_util::dblcmp(totalPenetrationDepth) == 0)
 		{
@@ -1284,26 +1331,29 @@ MultiPolygon bin_packing::minimizeOverlap(MultiPolygon packing, vector<long doub
 		bin_packing::increasePenalty(packing, penalty); // increase penalty
 		it += 1;
 	}
-	geo_util::visualize(bestPacking, "../io/results/dighe1/cuckoo_packing", "minimizeOverlap");
 	return bestPacking;
 }
 
-void bin_packing::cuckooPacking(string datasetname, string outputLocation, long double width, long double runTimeDuration)
+void bin_packing::cuckooPacking(
+	string datasetname, string outputLocation, long double width, long double runTimeDuration)
 {
-	std::cout << "reading initial packing......................:" << std::endl;
-	string initialSolutionFileName = outputLocation + "/" + datasetname + "/initial_solution/initial_packing.wkt";
-	MultiPolygon initialPacking;
-	geo_util::poly_util::readWKTMultiPolygon(initialPacking, initialSolutionFileName);
-	std::cout << boost_geo::wkt(initialPacking) << std::endl;
-
 	// create directory for cuckoo packing results
 	string cuckooPackingDirectoryName = outputLocation + "/" + datasetname + "/cuckoo_packing";
 	mkdir(cuckooPackingDirectoryName.c_str(), 0777);
+	std::ofstream outputLog(cuckooPackingDirectoryName + "/" + "output_log.txt",
+							std::ios_base::out | std::ios_base::app);
+	outputLog << std::fixed << std::setprecision(3);
+
+	outputLog << "reading initial packing......................:" << std::endl;
+	string initialSolutionFileName = outputLocation + "/" + datasetname + "/initial_solution/initial_packing.wkt";
+	MultiPolygon initialPacking;
+	geo_util::poly_util::readWKTMultiPolygon(initialPacking, initialSolutionFileName);
+	outputLog << boost_geo::wkt(initialPacking) << std::endl;
 
 	geo_util::visualize(initialPacking, cuckooPackingDirectoryName, "initial_packing");
 
-	std::cout << "running cuckooPacking().....................: " << std::endl;
-	auto start = std::chrono::high_resolution_clock::now();
+	outputLog << "running cuckooPacking()......................: " << std::endl;
+	auto start = std::chrono::high_resolution_clock::now(); // clock started
 
 	long double totalAreaOfInitialPackingPolygons = 0;
 	for (Polygon &polygon : initialPacking)
@@ -1325,28 +1375,45 @@ void bin_packing::cuckooPacking(string datasetname, string outputLocation, long 
 		auto duration = std::chrono::duration_cast<std::chrono::minutes>(stop - start);
 		if (duration.count() >= runTimeDuration)
 		{
-			std::cout << "time's up!!!\n";
+			outputLog << "time's up!!!\n";
 			break;
 		}
 		if (bin_packing::isFeasible(currentPacking, totalAreaOfInitialPackingPolygons))
 		{
-			std::cout << std::fixed << std::setprecision(3);
-			std::cout << "current accuracy: " << getAccuracy(currentPacking, currentLength, width) << std::endl;
+			outputLog << "current accuracy.............................: "
+					  << getAccuracy(currentPacking, currentLength, width) << std::endl;
 			bestPacking = currentPacking;
 			bestLenght = currentLength;
 			currentLength = (1.0 - decreasingRate) * bestLenght;
 			pushDown(currentPacking, currentLength);
+			geo_util::visualize(bestPacking, cuckooPackingDirectoryName, "feasible_packing");
 		}
 		else
 		{
 			currentLength = (1.0 + increasingRate) * bestLenght;
 		}
-		std::cout << "running minimizeOverlap()................: " << std::endl;
-		currentPacking = bin_packing::minimizeOverlap(currentPacking, ALLOWABLE_ROTATIONS, width, currentLength, totalAreaOfInitialPackingPolygons);
+		outputLog << "running minimizeOverlap()....................: " << std::endl;
+		currentPacking = bin_packing::minimizeOverlap(
+			currentPacking, ALLOWABLE_ROTATIONS, width, currentLength,
+			totalAreaOfInitialPackingPolygons, outputLog, cuckooPackingDirectoryName);
 		geo_util::visualize(currentPacking, cuckooPackingDirectoryName, "minimized_overlap");
 	}
-	// geo_util::visualize(bestPacking, cuckooPackingDirectoryName, "final_packing");
-	// geo_util::visualize(bestPacking, datasetName);
+
+	auto stop = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+	outputLog << "time taken by function.......................: "
+			  << duration.count() / 1000000.0 << " seconds\033[0m" << std::endl;
+
+	Box stock;
+	boost_geo::envelope(bestPacking, stock);
+	outputLog << "packing density..............................: "
+			  << (totalAreaOfInitialPackingPolygons / std::fabs(boost_geo::area(stock))) * 100 << std::endl;
+	geo_util::visualize(bestPacking, cuckooPackingDirectoryName, "final_packing");
+
+	outputLog << "-----------------------------------------------------------------------------------"
+			  << std::endl
+			  << std::endl;
+	outputLog.close();
 }
 
 /** bin packing */

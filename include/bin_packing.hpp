@@ -38,7 +38,7 @@ const long double EPS = 1e-8;
 const long double INF = 4e18;
 const long double PI = acos(-1);
 const long double RUN_TIME_DURATION = 20;
-const long double FEASIBILTY = 1e-3;
+const long double FEASIBILTY = 1e-4;
 const int MAXIMUM_GENERATION = 20;
 const int NUMBER_OF_HOST_NESTS = 20;
 const long double NFP_TRANSLATOR_COF = 1e4;
@@ -116,12 +116,21 @@ namespace bin_packing
     bool isFeasible(MultiPolygon &packing, long double totalAreaOfInputPolygons);
     long double getPenetrationDepth(Polygon &polygonA, Polygon &polygonB);
     long double getTotalPenetrationDepth(MultiPolygon &packing);
-    long double getOverlapPenalty(MultiPolygon packing, vector<vector<long double>> &penalty, int polygon_id, long double rotationAngle, Point translationPoint);
+    long double getOverlapPenalty(
+        MultiPolygon packing, vector<vector<long double>> &penalty, int polygon_id,
+        long double rotationAngle, Point translationPoint);
     void increasePenalty(MultiPolygon &packing, vector<vector<long double>> &penalty);
-    Point cuckooSearch(MultiPolygon &packing, vector<vector<long double>> &penalty, int polygon_id, long double rotationAngle, long double width, long double length);
+    Point cuckooSearch(
+        MultiPolygon &packing, vector<vector<long double>> &penalty, int polygon_id,
+        long double rotationAngle, long double width, long double length);
     void pushDown(MultiPolygon &packing, double length);
-    MultiPolygon minimizeOverlap(MultiPolygon packing, vector<long double> allowableRoatations, long double width, long double length, long double totalAreaOfInputPolygons);
-    void cuckooPacking(string datasetname, string outputLocation, long double width, long double runTimeDuration = RUN_TIME_DURATION);
+    MultiPolygon minimizeOverlap(
+        MultiPolygon packing, vector<long double> allowableRoatations,
+        long double width, long double length, long double totalAreaOfInputPolygons,
+        std::ofstream &outputLog, string outputLocation);
+    void cuckooPacking(
+        string datasetname, string outputLocation, long double width,
+        long double runTimeDuration = RUN_TIME_DURATION);
     void binPacking(vector<Polygon> &polygons, long double width, string outputLocation, string datasetName, long double runTimeDuration = RUN_TIME_DURATION);
 }; // namespace bin_packing
 
