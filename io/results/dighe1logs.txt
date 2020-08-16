@@ -3,4 +3,4 @@ result polygon set area....: 10000
 stock dimension [l * w]....: [100, 146]
 stock area.................: 14600
 packing density............: 68.4932 %
-Time taken by function.....: 172.504 seconds
+Time taken by function.....: 110.761 seconds
