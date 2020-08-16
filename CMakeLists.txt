@@ -1,12 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 # project name
-project(
-  "2D-Irregular-Cutting-Stock-Algorithm" 
-  VERSION 1.0.1
-  DESCRIPTION "2D irregular bin packing problem solution"
-  HOMEPAGE_URL "https://github.com/MasumBhuiyan/2D-Irregular-Cutting-Stock-Algorithm"
-)
+project("2D-Irregular-Cutting-Stock-Algorithm")
 
 
 find_package(Boost REQUIRED)
