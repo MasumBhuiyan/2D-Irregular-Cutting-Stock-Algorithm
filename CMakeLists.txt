@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
 # project name
 project(2D-Irregular-Cutting-Stock-Algorithm)

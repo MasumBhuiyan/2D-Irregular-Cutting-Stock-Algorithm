@@ -182,6 +182,9 @@ void bin_packing::binPacking(std::vector<PolygonInput> &items, double length, do
     std::cout << "\033[1;35mTime taken by function.....: " << duration.count() / 1000000.0 << " seconds\033[0m" << std::endl;
     output << "Time taken by function.....: " << duration.count() / 1000000.0 << " seconds" << std::endl;
 
+    output.close();
+    std::ofstream initialSolutionWKT("../io/initialSolutions/" + datasetName + "_initial_packing.wkt");
+    initialSolutionWKT << boost_geo::wkt(resultMultiPolygon) << std::endl;
     boost_geo_util::visualize(resultMultiPolygon, datasetName);
 }
 
