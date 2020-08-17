@@ -1465,7 +1465,8 @@ nfp_t generateNFP(polygon_t& pA, polygon_t& pB, const bool checkValidity = true)
 	point_t transB = {pAstart - pBstart};
 
 	if(slide(pA, pA.outer(), pB.outer(), nfp, transB, false) != LOOP) {
-			throw std::runtime_error("Unable to complete outer nfp loop");
+			//throw std::runtime_error("Unable to complete outer nfp loop");
+		return nfp;
 	}
 
 	DEBUG_VAL("##### outer #####");

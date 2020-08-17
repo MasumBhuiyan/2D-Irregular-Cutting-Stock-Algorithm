@@ -658,9 +658,10 @@ Point cluster_util::findBLFPoint(MultiPolygon &packing, MultiPolygon &cluster, l
 MultiPolygon cluster_util::bottomLeftFill(vector<MultiPolygon> &clusters, long double length, long double width)
 {
 	MultiPolygon packing;
+	int k = 0;
 	for (auto cluster : clusters)
 	{
-
+		std::cout << "cluster " << ++k << "/99" << "....";
 		vector<tuple<int, long double, long double>> values;
 		for (int i = 0; i < ALLOWABLE_ROTATIONS.size(); i += 1)
 		{
@@ -726,6 +727,7 @@ MultiPolygon cluster_util::bottomLeftFill(vector<MultiPolygon> &clusters, long d
 		{
 			packing.push_back(polygon);
 		}
+		std::cout << "completed successfully.\n"; 
 	}
 	return packing;
 }
@@ -1044,6 +1046,7 @@ std::tuple<vector<Polygon>, long double> bin_packing::readDataset(std::string da
 			}
 		}
 	}
+	random_shuffle(polygons.begin(), polygons.end());
 	file.close();
 	std::cout << "Reading completed"
 			  << "...\n";
