@@ -1395,6 +1395,7 @@ void bin_packing::cuckooPacking(
 	long double decreasingRate = LENGTH_DECREASING_RATE;
 	long double increasingRate = LENGTH_INCREASING_RATE;
 	long double currentLength = bestLenght;
+	int feasiblePackingId = 0;
 
 	while (true)
 	{
@@ -1407,18 +1408,22 @@ void bin_packing::cuckooPacking(
 		}
 		if (bin_packing::isFeasible(currentPacking, totalAreaOfInitialPackingPolygons))
 		{
-			outputLog << "current accuracy.............................: "
-					  << bin_packing::getPackingDensity(currentPacking) << std::endl;
+			long double currentAccuracy = bin_packing::getPackingDensity(currentPacking);
+			outputLog << "feasible packing id..........................: " << feasiblePackingId << std::endl;
+			outputLog << "current accuracy.............................: " << currentAccuracy << std::endl;
 			bestPacking = currentPacking;
 			bestLenght = currentLength;
-			currentLength = (1.0 - decreasingRate) * bestLenght;
+			currentLength = (1.0 - decreasingRate) * currentLength;
 			pushDown(currentPacking, currentLength);
 
-			geo_util::visualize(bestPacking, cuckooPackingStepsDirectoryName, "feasible_packing");
+			std::ofstream feasiblePackingWKTFile(cuckooPackingDirectoryName + "/feasible_packing_" + std::to_string(feasiblePackingId) + ".wkt");
+			feasiblePackingWKTFile << boost_geo::wkt(bestPacking) << std::endl;
+			feasiblePackingWKTFile.close();
+			geo_util::visualize(bestPacking, cuckooPackingDirectoryName, "feasible_packing_" + std::to_string(feasiblePackingId++));
 		}
 		else
 		{
-			currentLength = (1.0 + increasingRate) * bestLenght;
+			currentLength = (1.0 + increasingRate) * currentLength;
 		}
 		outputLog << "running minimizeOverlap()....................: " << std::endl;
 		currentPacking = bin_packing::minimizeOverlap(
@@ -1427,6 +1432,10 @@ void bin_packing::cuckooPacking(
 
 		geo_util::visualize(currentPacking, cuckooPackingStepsDirectoryName, "minimized_overlap");
 	}
+
+	std::ofstream finalPackingWKTFile(cuckooPackingDirectoryName + "/final_packing.wkt");
+	finalPackingWKTFile << boost_geo::wkt(bestPacking) << std::endl;
+	finalPackingWKTFile.close();
 
 	outputLog << "final packing density........................: "
 			  << bin_packing::getPackingDensity(bestPacking) << std::endl;
