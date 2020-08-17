@@ -11,7 +11,7 @@ void testDataset(std::string datasetName, bool flag = true)
     }
     else
     {
-        bin_packing::cuckooPacking(datasetName, "../io/results", width, 60);
+        bin_packing::cuckooPacking(datasetName, "../io/results", width, 120);
     }
 }
 
