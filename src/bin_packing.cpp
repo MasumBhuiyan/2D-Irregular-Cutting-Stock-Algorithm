@@ -1251,7 +1251,7 @@ MultiPolygon bin_packing::minimizeOverlap(
 	}
 	MultiPolygon bestPacking = packing;
 	long double bestTotalOverlapPenalty = bin_packing::getTotalPenetrationDepth(bestPacking);
-	int noProgressOfPenalyCount = 0;
+	
 	while (it < MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA)
 	{
 		outputLog << "iteration no.................................: " << it << std::endl;
@@ -1314,7 +1314,6 @@ MultiPolygon bin_packing::minimizeOverlap(
 		long double currentTotalOverlapPenalty = bin_packing::getTotalPenetrationDepth(packing);
 		if (currentTotalOverlapPenalty < bestTotalOverlapPenalty)
 		{
-			noProgressOfPenalyCount = 0;
 			bestTotalOverlapPenalty = currentTotalOverlapPenalty;
 			bestPacking = packing;
 			if (bin_packing::isFeasible(bestPacking, totalAreaOfInputPolygons))
@@ -1322,16 +1321,7 @@ MultiPolygon bin_packing::minimizeOverlap(
 				return bestPacking;
 			}
 		}
-		else
-		{
-			noProgressOfPenalyCount++;
-			if (noProgressOfPenalyCount >= 4) // having same penalty consicutively 4 times
-			{
-				outputLog << "no progress in penalty......................." << std::endl;
-				outputLog << "minimize overlap terminated.................." << std::endl;
-				break;
-			}
-		}
+		
 		geo_util::visualize(packing, outputLocation, "minimize_overlap" + std::to_string(it)); // visualization
 		long double totalPenetrationDepth = bin_packing::getTotalPenetrationDepth(packing);
 		if (geo_util::dblcmp(totalPenetrationDepth) == 0)
