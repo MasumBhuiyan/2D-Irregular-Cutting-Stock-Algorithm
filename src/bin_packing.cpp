@@ -635,10 +635,14 @@ vector<Point> cluster_util::getCandidatePlacementPositions(MultiPolygon &packing
 
 Point cluster_util::findBLFPoint(MultiPolygon &packing, MultiPolygon &cluster, long double length, long double width)
 {
+	std::cout << "call findBlfPoint()..\n";
 	Point blfPoint(INF, INF);
 	vector<Point> candidatePlacementPositions = cluster_util::getCandidatePlacementPositions(packing, cluster, length, width);
+
+	int k = 10;
 	for (auto point : candidatePlacementPositions)
 	{
+		//std::cout << "    findingblfpoint\n";
 		if (geo_util::poly_util::isItPossibleToPlacePolygon(packing, cluster, point) == true)
 		{
 			if (geo_util::dblcmp(point.get<1>() - blfPoint.get<1>(), EPS) < 0)
@@ -649,6 +653,8 @@ Point cluster_util::findBLFPoint(MultiPolygon &packing, MultiPolygon &cluster, l
 			{
 				blfPoint = point;
 			}
+			k--;
+			if( k == 0 ) break;
 		}
 	}
 	// assert(blfPoint.get<0>() != INF);
@@ -665,6 +671,7 @@ MultiPolygon cluster_util::bottomLeftFill(vector<MultiPolygon> &clusters, long d
 		vector<tuple<int, long double, long double>> values;
 		for (int i = 0; i < ALLOWABLE_ROTATIONS.size(); i += 1)
 		{
+			//std::cout << "    rotation: " << i << std::endl;
 			MultiPolygon temporaryCluster = geo_util::poly_util::rotateCW(cluster, ALLOWABLE_ROTATIONS[i], cluster[0].outer()[0]);
 			Point temporaryBlfPoint = cluster_util::findBLFPoint(packing, temporaryCluster, length, width);
 
@@ -996,7 +1003,7 @@ MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygon
 		//std::cout << boost_geo::wkt(cluster) << "\n";
 	}
 	//	std::cout << "Sorting..." << "...\n";
-	cluster_util::sortByClusterValue(clusters);
+	//cluster_util::sortByClusterValue(clusters);
 	long double length = INITIAL_STOCK_LENGTH;
 	//	std::cout << "Calling BottomLeft Fill:\n";
 	MultiPolygon initialSolution = cluster_util::bottomLeftFill(clusters, length, width);
