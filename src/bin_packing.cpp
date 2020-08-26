@@ -1,67 +1,13 @@
 #include <bin_packing.hpp>
-#include <libnfporb.hpp>
 
-using namespace libnfporb;
-
-namespace poly_t_util
-{
-	polygon_t convertToPolygon_t(Polygon &polygon)
-	{
-		polygon_t convertedPolygon;
-		for (auto &point : polygon.outer())
-		{
-			long double __x = geo_util::dblround(point.get<0>());
-			long double __y = geo_util::dblround(point.get<1>());
-			convertedPolygon.outer().push_back(point_t(__x, __y));
-		}
-		for (auto &inner : polygon.inners())
-		{
-			vector<point_t> innerNew;
-			for (auto &point : inner)
-			{
-				long double __x = geo_util::dblround(point.get<0>());
-				long double __y = geo_util::dblround(point.get<1>());
-				innerNew.push_back(point_t(__x, __y));
-			}
-			convertedPolygon.inners().push_back({innerNew.begin(), innerNew.end()});
-		}
-		boost_geo::correct(convertedPolygon);
-		return convertedPolygon;
-	}
-
-	Polygon convertToPolygon(polygon_t &polygon)
-	{
-		Polygon convertedPolygon;
-		for (auto &point : polygon.outer())
-		{
-			long double __x = geo_util::dblround(point.x_.val());
-			long double __y = geo_util::dblround(point.y_.val());
-			convertedPolygon.outer().push_back(Point(__x, __y));
-		}
-		for (auto &inner : polygon.inners())
-		{
-			vector<Point> innerNew;
-			for (auto &point : inner)
-			{
-				long double __x = geo_util::dblround(point.x_.val());
-				long double __y = geo_util::dblround(point.y_.val());
-				innerNew.push_back(Point(__x, __y));
-			}
-			convertedPolygon.inners().push_back({innerNew.begin(), innerNew.end()});
-		}
-		boost_geo::correct(convertedPolygon);
-		return convertedPolygon;
-	}
-}; // namespace poly_t_util
-
-/** namespace geo_util */
 int geo_util::dblcmp(long double d, long double eps)
 {
-	if (std::fabs(d) < eps)
+	// std::cout << std::setprecision(10) << std::fixed << " D = " << d << " " << (std::fabs(d) < EPS) << "\n";
+	if (std::fabs(d) < EPS)
 	{
 		return 0;
 	}
-	return d > eps ? 1 : -1;
+	return d > EPS ? 1 : -1;
 }
 
 long double geo_util::dblround(long double x, long double eps)
@@ -98,15 +44,6 @@ int geo_util::orientation(Point a, Point b, Point c)
 	return geo_util::dblcmp(p - EPS) < 0 ? -1 : 1;
 }
 
-long double geo_util::linePointDistance(Point a, Point b, Point p)
-{
-	long double x1 = a.get<0>(), y1 = a.get<1>();
-	long double x2 = b.get<0>(), y2 = b.get<1>();
-	long double _a = y1 - y2, _b = x2 - x1, _c = x1 * y2 - x2 * y1;
-	long double distance = std::fabs(_a * p.get<0>() + _b * p.get<1>() + _c) / sqrt(_a * _a + _b * _b);
-	return distance;
-}
-
 Point geo_util::segmentSegmentIntersectionPoint(Point a, Point b, Point c, Point d)
 {
 	int o1 = geo_util::orientation(a, b, c), o2 = geo_util::orientation(a, b, d);
@@ -134,6 +71,7 @@ Point geo_util::segmentSegmentIntersectionPoint(Point a, Point b, Point c, Point
 		long double a2 = geo_util::crossProduct(Point(d.get<0>() - c.get<0>(), d.get<1>() - c.get<1>()), Point(b.get<0>() - d.get<0>(), b.get<1>() - d.get<1>()));
 		return Point((a.get<0>() * a2 - b.get<0>() * a1) / (a2 - a1), (a.get<1>() * a2 - b.get<1>() * a1) / (a2 - a1));
 	}
+
 	return Point(INF, INF);
 }
 bool geo_util::pointInRectangle(Point a, Point b, Point c)
@@ -143,24 +81,6 @@ bool geo_util::pointInRectangle(Point a, Point b, Point c)
 	return (p && q);
 }
 
-/** namespace geo_uti::poly_util */
-
-void geo_util::poly_util::readWKTPolygon(Polygon &polygon, string filename)
-{
-	std::ifstream polygonWKTFile(filename);
-	assert(polygonWKTFile.is_open());
-
-	string wktStr;
-	polygonWKTFile.seekg(0, std::ios::end);
-	wktStr.reserve(polygonWKTFile.tellg());
-	polygonWKTFile.seekg(0, std::ios::beg);
-	wktStr.assign((std::istreambuf_iterator<char>(polygonWKTFile)), std::istreambuf_iterator<char>());
-	wktStr.pop_back();
-	boost_geo::read_wkt(wktStr, polygon);
-	boost_geo::correct(polygon);
-
-	polygonWKTFile.close();
-}
 
 void geo_util::poly_util::readWKTMultiPolygon(MultiPolygon &multiPolygon, string filename)
 {
@@ -198,25 +118,6 @@ void geo_util::poly_util::polygonRound(Polygon &polygon)
 	}
 }
 
-Polygon geo_util::poly_util::normalize(Polygon &polygon)
-{
-	long double min_x = INF, min_y = INF;
-	for (auto point : polygon.outer())
-	{
-		min_x = std::min(min_x, point.get<0>());
-		min_y = std::min(min_y, point.get<1>());
-	}
-	for (auto inner : polygon.inners())
-	{
-		for (auto point : inner)
-		{
-			min_x = std::min(min_x, point.get<0>());
-			min_y = std::min(min_y, point.get<1>());
-		}
-	}
-	return geo_util::poly_util::translate(polygon, Point(-min_x, -min_y));
-}
-
 Polygon geo_util::poly_util::translate(Polygon &polygon, Point translationPoint)
 {
 	Polygon translatedPolygon;
@@ -239,6 +140,8 @@ Polygon geo_util::poly_util::rotateCW(Polygon &polygon, long double rotationAngl
 	boost_geo::multiply_value(referencePoint, -1);
 	Polygon translatedPolygon = geo_util::poly_util::translate(polygon, referencePoint), rotatedPolygon;
 	boost_geo::transform(translatedPolygon, rotatedPolygon, trans::rotate_transformer<boost_geo::degree, long double, 2, 2>(rotationAngleInDegree));
+	boost_geo::multiply_value(referencePoint, -1);
+	rotatedPolygon = geo_util::poly_util::translate(rotatedPolygon, referencePoint);
 	return rotatedPolygon;
 }
 
@@ -250,6 +153,7 @@ MultiPolygon geo_util::poly_util::rotateCW(MultiPolygon multiPolygon, long doubl
 	}
 	return multiPolygon;
 }
+
 long double geo_util::poly_util::polygonPolygonIntersectionArea(Polygon &polygon1, Polygon &polygon2)
 {
 	std::deque<Polygon> polygons;
@@ -260,33 +164,6 @@ long double geo_util::poly_util::polygonPolygonIntersectionArea(Polygon &polygon
 		intersectedArea += boost_geo::area(polygon);
 	}
 	return std::fabs(intersectedArea);
-}
-
-bool geo_util::poly_util::isItPossibleToPlacePolygon(MultiPolygon &packing, MultiPolygon clusterNextToBePlaced, Point point)
-{
-	Point referecePoint = clusterNextToBePlaced[0].outer()[0];
-	boost_geo::multiply_value(referecePoint, -1);
-	for (auto &polygon : clusterNextToBePlaced)
-	{
-		polygon = geo_util::poly_util::translate(polygon, referecePoint);
-		polygon = geo_util::poly_util::translate(polygon, point);
-	}
-	for (auto poly : packing)
-	{
-		for (auto polygonNextToBePlaced : clusterNextToBePlaced)
-		{
-			bool doesOverlap = boost_geo::overlaps(poly, polygonNextToBePlaced);
-			if (doesOverlap == true)
-			{
-				return false;
-			}
-			if (geo_util::dblcmp(geo_util::poly_util::polygonPolygonIntersectionArea(polygonNextToBePlaced, poly), EPS) > 0)
-			{
-				return false;
-			}
-		}
-	}
-	return true;
 }
 
 long double geo_util::poly_util::getWidth(MultiPolygon &multiPolygon)
@@ -331,670 +208,6 @@ void geo_util::visualize(MultiPolygon multiPolygon, string outputLocation, strin
 	mapper.map(box, "opacity:0.8;fill:none;stroke:rgb(0,0,0);stroke-width:1;stroke-linecap:round");
 }
 
-void geo_util::visualizeCluster(Polygon polygon, MultiPolygon cluster, Polygon nfp, std::string location, int testId)
-{
-	Box box;
-	MultiPolygon multipolygon;
-	multipolygon.push_back(cluster[0]);
-	if (cluster.size() == 2)
-		multipolygon.push_back(cluster[1]);
-	std::ostringstream name;
-	name << "test" << std::setw(2) << std::setfill('0') << testId << ".svg";
-	std::ofstream svg(location + name.str());
-	boost_geo::svg_mapper<Point> mapper(svg, 300, 300, "width=\"200mm\" height=\"200mm\" viewBox=\"-250 -250 800 800\"");
-	mapper.add(nfp);
-	mapper.map(nfp, "fill-opacity:0.5;fill:rgb(204,153,0);stroke:rgb(204,153,0);stroke-width:2");
-	mapper.add(multipolygon);
-	mapper.map(multipolygon, "fill-opacity:0.5;fill:rgb(212, 0, 0);stroke:rgb(212,0,0);stroke-width:2");
-	mapper.add(polygon);
-	mapper.map(polygon, "fill-opacity:0.5;fill:rgb(153,204,0);stroke:rgb(153,204,0);stroke-width:2");
-}
-/** namespace polygon_fit */
-
-Polygon polygon_fit::getInnerFitRectangle(MultiPolygon cluster, long double length, long double width)
-{
-	Polygon innerFitRectangle;
-	Point reference = cluster[0].outer()[0];
-
-	long double max_x = -INF, min_x = INF, max_y = -INF, min_y = INF;
-	for (Polygon &polygon : cluster)
-	{
-		for (Point &point : polygon.outer())
-		{
-			point = Point(point.get<0>() - reference.get<0>(), point.get<1>() - reference.get<1>());
-			max_x = std::max(max_x, point.get<0>());
-			min_x = std::min(min_x, point.get<0>());
-			max_y = std::max(max_y, point.get<1>());
-			min_y = std::min(min_y, point.get<1>());
-		}
-	}
-	innerFitRectangle.outer().push_back(Point(std::abs(min_x), std::abs(min_y)));
-	innerFitRectangle.outer().push_back(Point(std::abs(min_x), length - max_y));
-	innerFitRectangle.outer().push_back(Point(width - max_x, length - max_y));
-	innerFitRectangle.outer().push_back(Point(width - max_x, std::abs(min_y)));
-	innerFitRectangle.outer().push_back(Point(std::abs(min_x), std::abs(min_y)));
-	return innerFitRectangle;
-}
-
-vector<Point> polygon_fit::getAllEdgeIntersectionPoints(MultiPolygon &allNfpIfr)
-{
-	vector<tuple<Point, Point>> edges;
-	vector<Point> allEdgeIntersectionPoints;
-
-	for (auto &polygon : allNfpIfr)
-	{
-		for (int i = 0; i + 1 < polygon.outer().size(); i += 1)
-		{
-			edges.push_back({polygon.outer()[i], polygon.outer()[i + 1]});
-		}
-	}
-	for (int i = 0; i < edges.size(); i += 1)
-	{
-		for (int j = i + 1; j < edges.size(); j += 1)
-		{
-			Point point1, point2, point3, point4;
-			std::tie(point1, point2) = edges[i];
-			std::tie(point3, point4) = edges[j];
-			Point inetersectionPoint = geo_util::segmentSegmentIntersectionPoint(point1, point2, point3, point4);
-			if (inetersectionPoint.get<0>() == INF and inetersectionPoint.get<1>() == INF)
-			{
-				continue;
-			}
-			allEdgeIntersectionPoints.push_back(inetersectionPoint);
-		}
-	}
-	return allEdgeIntersectionPoints;
-}
-
-Polygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, MultiPolygon cluster)
-{
-	referencePolygon = geo_util::poly_util::translate(referencePolygon, Point(10000, 10000));
-	cluster[0] = geo_util::poly_util::translate(cluster[0], Point(10000, 10000));
-	// std::cout << "blf no fit: " << boost_geo::wkt(referencePolygon) << "\n";
-	// std::cout << "cluster1: " << boost_geo::wkt(cluster[0]) << "\n";
-	Polygon nfp = polygon_fit::getNoFitPolygon(referencePolygon, cluster[0]);
-	if (cluster.size() == 2)
-	{
-		cluster[1] = geo_util::poly_util::translate(cluster[1], Point(10000, 10000));
-		// std::cout << "cluster2: " << boost_geo::wkt(cluster[1]) << "\n";
-		nfp = polygon_fit::getNoFitPolygon(nfp, cluster[1]);
-	}
-	nfp = geo_util::poly_util::translate(nfp, Point(-10000, -10000));
-	//std::cout << boost_geo::wkt(nfp) << '\n';
-	//std::cout << "end....\n";
-	return nfp;
-}
-
-Polygon polygon_fit::getNoFitPolygon(Polygon referencePolygon, Polygon polygonToPlace)
-{
-	Polygon nfpPolygon;
-	if (boost_geo::is_valid(referencePolygon) == false)
-		return nfpPolygon;
-	if (boost_geo::is_valid(polygonToPlace) == false)
-		return nfpPolygon;
-	geo_util::poly_util::polygonRound(referencePolygon);
-	geo_util::poly_util::polygonRound(polygonToPlace);
-	referencePolygon = geo_util::poly_util::translate(referencePolygon, Point(10000, 10000));
-	polygonToPlace = geo_util::poly_util::translate(polygonToPlace, Point(10000, 10000));
-	polygon_t polygonT_i = poly_t_util::convertToPolygon_t(referencePolygon);
-	polygon_t polygonT_j = poly_t_util::convertToPolygon_t(polygonToPlace);
-
-	nfp_t nfp = generateNFP(polygonT_i, polygonT_j);
-	polygon_t nfpPolygonT = nfpRingsToNfpPoly(nfp);
-	nfpPolygon = poly_t_util::convertToPolygon(nfpPolygonT);
-	nfpPolygon = geo_util::poly_util::translate(nfpPolygon, Point(-10000, -10000));
-	geo_util::poly_util::polygonRound(nfpPolygon);
-	boost_geo::correct(nfpPolygon);
-
-	return nfpPolygon;
-}
-
-MultiPolygon polygon_fit::getAllNfpIfr(MultiPolygon &packing, MultiPolygon cluster, long double length, long double width)
-{
-	MultiPolygon allNfpIfr;
-	Polygon ifr = polygon_fit::getInnerFitRectangle(cluster, length, width);
-	allNfpIfr.push_back(ifr);
-	for (auto &polygon : packing)
-	{
-		Polygon nfp = polygon_fit::getNoFitPolygon(polygon, cluster);
-		allNfpIfr.push_back(nfp);
-	}
-	return allNfpIfr;
-}
-
-/** namespace cluster_util */
-vector<tuple<int, int, int, int>> cluster_util::getPerfectClustering(vector<vector<vector<vector<long double>>>> &clusterValues)
-{
-	int numberOfPolygons = clusterValues.size();
-	int numberOfPairs = std::min(10, numberOfPolygons / 2);
-	std::cout << "number of pairs: " << numberOfPairs << std::endl;
-	vector<tuple<int, int, int, int>> clusterPairs;
-	vector<long double> dp(1 << 22, -1.0);
-	long double bestClusterizationValue = cluster_util::findBestPairWiseClusters(clusterValues, dp, numberOfPairs, 0);
-	cluster_util::printBestPairWiseClusters(clusterValues, dp, numberOfPairs, 0, clusterPairs);
-	return clusterPairs;
-}
-
-void cluster_util::printBestPairWiseClusters(vector<vector<vector<vector<long double>>>> &clusterValues, vector<long double> &dp, int numberOfPairs, int mask, vector<tuple<int, int, int, int>> &clusterPairs)
-{
-	int taken = __builtin_popcount(mask);
-	if (taken == (numberOfPairs + numberOfPairs))
-	{
-		return;
-	}
-	long double &maxProfit = dp[mask];
-	int POLYGON_SIZE = std::min(20, (int)clusterValues.size());
-	for (int i = 0; i < POLYGON_SIZE; i += 1)
-	{
-		int bit1 = mask & (1 << i);
-		if (bit1 > 0)
-		{
-			continue;
-		}
-		for (int j = 0; j < POLYGON_SIZE; j += 1)
-		{
-			int bit2 = mask & (1 << j);
-			if (bit2 > 0 or i == j)
-			{
-				continue;
-			}
-			for (int k = 0; k < ALLOWABLE_ROTATIONS.size(); k += 1)
-			{
-				for (int l = 0; l < ALLOWABLE_ROTATIONS.size(); l += 1)
-				{
-					int bitOn12 = (1 << i) + (1 << j);
-					long double __maxProfit = cluster_util::findBestPairWiseClusters(clusterValues, dp, numberOfPairs, mask ^ bitOn12) + clusterValues[i][j][k][l];
-					if (maxProfit == __maxProfit)
-					{
-						clusterPairs.push_back({i, j, k, l});
-						cluster_util::printBestPairWiseClusters(clusterValues, dp, numberOfPairs, mask ^ bitOn12, clusterPairs);
-						return;
-					}
-				}
-			}
-		}
-	}
-}
-
-long double cluster_util::findBestPairWiseClusters(vector<vector<vector<vector<long double>>>> &clusterValues, vector<long double> &dp, int numberOfPairs, int mask)
-{
-	int taken = __builtin_popcount(mask);
-	if (taken == (numberOfPairs + numberOfPairs))
-	{
-		return 0.0;
-	}
-	long double &maxProfit = dp[mask];
-	if (maxProfit != -1.0)
-	{
-		return maxProfit;
-	}
-	maxProfit = -INF;
-
-	int POLYGON_SIZE = std::min(20, (int)clusterValues.size());
-	for (int i = 0; i < POLYGON_SIZE; i += 1)
-	{
-		int bit1 = mask & (1 << i);
-		if (bit1 > 0)
-		{
-			continue;
-		}
-		for (int j = 0; j < POLYGON_SIZE; j += 1)
-		{
-			int bit2 = mask & (1 << j);
-			if (bit2 > 0 or i == j)
-			{
-				continue;
-			}
-			for (int k = 0; k < ALLOWABLE_ROTATIONS.size(); k += 1)
-			{
-				for (int l = 0; l < ALLOWABLE_ROTATIONS.size(); l += 1)
-				{
-					int bitOn12 = (1 << i) + (1 << j);
-					long double __maxProfit = cluster_util::findBestPairWiseClusters(clusterValues, dp, numberOfPairs, mask ^ bitOn12) + clusterValues[i][j][k][l];
-					maxProfit = std::max(maxProfit, __maxProfit);
-				}
-			}
-		}
-	}
-	return maxProfit;
-}
-
-vector<Point> cluster_util::getCandidatePlacementPositions(MultiPolygon &packing, MultiPolygon &cluster, long double length, long double width)
-{
-	vector<Point> candidatePlacementPositions;
-	MultiPolygon allNfpIfr = polygon_fit::getAllNfpIfr(packing, cluster, length, width);
-	vector<Point> allEdgeIntersectionPoints = polygon_fit::getAllEdgeIntersectionPoints(allNfpIfr);
-
-	double min_x = INF, min_y = INF, max_x = -INF, max_y = -INF;
-
-	Point referencePoint = cluster[0].outer()[0];
-	for (auto polygon : cluster)
-	{
-		for (auto point : polygon.outer())
-		{
-			double _x = point.get<0>() - referencePoint.get<0>();
-			double _y = point.get<1>() - referencePoint.get<1>();
-			min_x = std::min(min_x, _x);
-			max_x = std::max(max_x, _x);
-			min_y = std::min(min_y, _y);
-			max_y = std::max(max_y, _y);
-		}
-	}
-
-	for (auto polygon : allNfpIfr)
-	{
-		for (auto point : polygon.outer())
-		{
-			double _x = point.get<0>();
-			double _y = point.get<1>();
-			if (_x + min_x < 0 or _x + max_x > width or _y + min_y < 0 or _y + max_y > length)
-			{
-				continue;
-			}
-			candidatePlacementPositions.push_back(point);
-		}
-		for (auto inner : polygon.inners())
-		{
-			for (auto point : inner)
-			{
-				double _x = point.get<0>();
-				double _y = point.get<1>();
-				if (_x + min_x < 0 or _x + max_x > width or _y + min_y < 0 or _y + max_y > length)
-				{
-					continue;
-				}
-				candidatePlacementPositions.push_back(point);
-			}
-		}
-	}
-	for (auto point : allEdgeIntersectionPoints)
-	{
-		double _x = point.get<0>();
-		double _y = point.get<1>();
-		if (_x + min_x < 0 or _x + max_x > width or _y + min_y < 0 or _y + max_y > length)
-		{
-			continue;
-		}
-		candidatePlacementPositions.push_back(point);
-	}
-	// assert(candidatePlacementPositions.size() > 0);
-	return candidatePlacementPositions;
-}
-
-Point cluster_util::findBLFPoint(MultiPolygon &packing, MultiPolygon &cluster, long double length, long double width)
-{
-	Point blfPoint(INF, INF);
-	vector<Point> candidatePlacementPositions = cluster_util::getCandidatePlacementPositions(packing, cluster, length, width);
-	for (auto point : candidatePlacementPositions)
-	{
-		if (geo_util::poly_util::isItPossibleToPlacePolygon(packing, cluster, point) == true)
-		{
-			if (geo_util::dblcmp(point.get<1>() - blfPoint.get<1>(), EPS) < 0)
-			{
-				blfPoint = point;
-			}
-			else if (geo_util::dblcmp(point.get<1>() - blfPoint.get<1>(), EPS) == 0 and geo_util::dblcmp(point.get<0>() - blfPoint.get<0>(), EPS) < 0)
-			{
-				blfPoint = point;
-			}
-		}
-	}
-	// assert(blfPoint.get<0>() != INF);
-	return blfPoint;
-}
-
-MultiPolygon cluster_util::bottomLeftFill(vector<MultiPolygon> &clusters, long double length, long double width)
-{
-	MultiPolygon packing;
-	for (auto cluster : clusters)
-	{
-
-		vector<tuple<int, long double, long double>> values;
-		for (int i = 0; i < ALLOWABLE_ROTATIONS.size(); i += 1)
-		{
-			MultiPolygon temporaryCluster = geo_util::poly_util::rotateCW(cluster, ALLOWABLE_ROTATIONS[i], cluster[0].outer()[0]);
-			Point temporaryBlfPoint = cluster_util::findBLFPoint(packing, temporaryCluster, length, width);
-
-			Point temporaryReferencePoint = temporaryCluster.front().outer().front();
-			boost_geo::multiply_value(temporaryReferencePoint, -1);
-
-			temporaryCluster = geo_util::poly_util::translate(temporaryCluster, temporaryReferencePoint);
-			temporaryCluster = geo_util::poly_util::translate(temporaryCluster, temporaryBlfPoint);
-
-			if (temporaryBlfPoint.get<0>() == INF)
-				continue;
-			if (temporaryBlfPoint.get<1>() == INF)
-				continue;
-
-			for (auto polygon : temporaryCluster)
-			{
-				packing.push_back(polygon);
-			}
-			long double packingLength = geo_util::poly_util::getLength(packing);
-			long double packingWidth = geo_util::poly_util::getWidth(packing);
-			for (auto polygon : temporaryCluster)
-			{
-				packing.pop_back();
-			}
-
-			values.push_back({i, packingLength, packingWidth});
-		}
-		assert(values.size() > 0);
-		sort(values.begin(), values.end(), [](std::tuple<int, long double, long double> value1, std::tuple<int, long double, long double> value2) {
-			int rotationId1, rotationId2;
-			double packingLength1, packingLength2, packingWidth1, packingWidth2;
-
-			std::tie(rotationId1, packingLength1, packingWidth1) = value1;
-			std::tie(rotationId2, packingLength2, packingWidth2) = value2;
-			if (geo_util::dblcmp(packingLength1 - packingLength2) < 0)
-				return true;
-			if (geo_util::dblcmp(packingLength1 - packingLength2) > 0)
-				return false;
-			if (geo_util::dblcmp(packingLength1 - packingLength2) == 0 && geo_util::dblcmp(packingWidth1 - packingWidth2) < 0)
-				return true;
-			if (geo_util::dblcmp(packingLength1 - packingLength2) == 0 && geo_util::dblcmp(packingWidth1 - packingWidth2) > 0)
-				return false;
-			return true;
-		});
-
-		int rotationId;
-		double bestPackingLength;
-		double bestPackingWidth;
-		std::tie(rotationId, bestPackingLength, bestPackingWidth) = values[0];
-		cluster = geo_util::poly_util::rotateCW(cluster, ALLOWABLE_ROTATIONS[rotationId], cluster[0].outer()[0]);
-
-		Point blfPoint = cluster_util::findBLFPoint(packing, cluster, length, width);
-		Point referencePoint = cluster.front().outer().front();
-		boost_geo::multiply_value(referencePoint, -1);
-
-		cluster = geo_util::poly_util::translate(cluster, referencePoint);
-		cluster = geo_util::poly_util::translate(cluster, blfPoint);
-
-		for (auto polygon : cluster)
-		{
-			packing.push_back(polygon);
-		}
-	}
-	return packing;
-}
-
-void cluster_util::sortByClusterValue(vector<MultiPolygon> &clusters)
-{
-	sort(clusters.begin(), clusters.end(), [](MultiPolygon cluster1, MultiPolygon cluster2) {
-		long double area1 = 0.0, area2 = 0.0;
-		for (auto polygon : cluster1)
-		{
-			area1 += std::fabs(boost_geo::area(polygon));
-		}
-		for (auto polygon : cluster2)
-		{
-			area2 += std::fabs(boost_geo::area(polygon));
-		}
-		return geo_util::dblcmp(area1 - area2, EPS) > 0;
-	});
-}
-
-Polygon cluster_util::convexHull(MultiPolygon multiPolygon)
-{
-	Polygon convexhull;
-	boost_geo::convex_hull(multiPolygon, convexhull);
-	return convexhull;
-}
-
-MultiPolygon cluster_util::findConvexHullVacancy(Polygon &concavePolygon)
-{
-	MultiPolygon vacancies;
-	if (boost_geo::is_convex(concavePolygon.outer()) == true)
-		return vacancies;
-	Polygon convexhull = cluster_util::convexHull({concavePolygon});
-	boost_geo::difference(convexhull, concavePolygon, vacancies);
-	return vacancies;
-}
-
-vector<tuple<Point, Point>> cluster_util::findOppositeSideOfVacancies(Polygon &concavePolygonConvexHull, MultiPolygon &convexHullVacancies)
-{
-	vector<tuple<Point, Point>> oppositeSideOfVacancies;
-	if (convexHullVacancies.size() == 0)
-	{
-		return oppositeSideOfVacancies;
-	}
-	int i = 0;
-	for (auto &vacancy : convexHullVacancies)
-	{
-		vector<Point> line;
-		boost_geo::intersection(concavePolygonConvexHull, vacancy, line);
-		assert(line.size() == 2);
-		oppositeSideOfVacancies.push_back({line[0], line[1]});
-	}
-	return oppositeSideOfVacancies;
-}
-
-Point cluster_util::findDominantPoint(Polygon &concavePolygon)
-{
-	Point dominant;
-	Polygon convexhull = cluster_util::convexHull({concavePolygon});
-	MultiPolygon vacancies = cluster_util::findConvexHullVacancy(concavePolygon);
-	vector<tuple<Point, Point>> oppositeSideOfVacancies = cluster_util::findOppositeSideOfVacancies(convexhull, vacancies);
-	int n = oppositeSideOfVacancies.size();
-	double maxDistance = 0.0;
-
-	for (int i = 0; i < n; i += 1)
-	{
-		for (Point point : vacancies[i].outer())
-		{
-			Point p, q;
-			std::tie(p, q) = oppositeSideOfVacancies[i];
-			long double distance = geo_util::linePointDistance(p, q, point);
-			if (distance > maxDistance)
-			{
-				maxDistance = distance;
-				dominant = point;
-			}
-		}
-	}
-	return dominant;
-}
-
-long double cluster_util::getClusteringCriteria1(Polygon &polygon1, Polygon &polygon2)
-{
-	long double value = 0.0, value1 = 0.0, value2 = 0.0;
-	long double areaIntersection1 = 0.0, totalVacancy1 = 0.0;
-	long double areaIntersection2 = 0.0, totalVacancy2 = 0.0;
-
-	vector<Polygon> V1 = cluster_util::findConvexHullVacancy(polygon1);
-	vector<Polygon> V2 = cluster_util::findConvexHullVacancy(polygon2);
-
-	for (auto &vacancy : V2)
-	{
-		long double area = geo_util::poly_util::polygonPolygonIntersectionArea(polygon1, vacancy);
-		if (area > 0)
-		{
-			areaIntersection1 += area;
-			totalVacancy1 += std::fabs(boost_geo::area(vacancy));
-		}
-	}
-	for (auto &vacancy : V1)
-	{
-		long double area = geo_util::poly_util::polygonPolygonIntersectionArea(polygon2, vacancy);
-		if (area > 0)
-		{
-			areaIntersection2 += area;
-			totalVacancy2 += std::fabs(boost_geo::area(vacancy));
-		}
-	}
-	if (totalVacancy1 > 0)
-	{
-		value1 = areaIntersection1 / totalVacancy1;
-	}
-	if (totalVacancy2 > 0)
-	{
-		value2 = areaIntersection2 / totalVacancy2;
-	}
-	value = std::max(value1, value2);
-	return value;
-}
-
-long double cluster_util::getClusteringCriteria2(Polygon &polygon1, Polygon &polygon2)
-{
-	MultiPolygon multiPolygon;
-	multiPolygon.push_back(polygon1);
-	multiPolygon.push_back(polygon2);
-	Polygon convexhull = cluster_util::convexHull(multiPolygon);
-
-	long double area1 = std::fabs(boost_geo::area(polygon1));
-	long double area2 = std::fabs(boost_geo::area(polygon2));
-	long double area3 = std::fabs(boost_geo::area(convexhull));
-	assert(area3 > 0);
-	long double value = (area1 + area2) / area3;
-	return value;
-}
-
-long double cluster_util::getClusterValue(Polygon &polygon1, Polygon &polygon2)
-{
-	long double value = cluster_util::getClusteringCriteria1(polygon1, polygon2) + cluster_util::getClusteringCriteria2(polygon1, polygon2);
-	return value;
-}
-
-vector<vector<vector<vector<long double>>>> cluster_util::getClusterValues(vector<Polygon> &inputPolygons)
-{
-	int numberOfPolygons = inputPolygons.size();
-	vector<vector<vector<vector<long double>>>> clusterValues;
-	clusterValues.resize(numberOfPolygons, vector<vector<vector<long double>>>(numberOfPolygons, vector<vector<long double>>(ALLOWABLE_ROTATIONS.size(), vector<long double>(ALLOWABLE_ROTATIONS.size(), 0.0))));
-	for (int i = 0; i < numberOfPolygons; i++)
-	{
-		for (int j = 0; j < numberOfPolygons; j++)
-		{
-			if (i == j)
-			{
-				continue;
-			}
-			for (int k = 0; k < ALLOWABLE_ROTATIONS.size(); k += 1)
-			{
-				for (int l = 0; l < ALLOWABLE_ROTATIONS.size(); l += 1)
-				{
-					Polygon polygon_i = inputPolygons[i];
-					Polygon polygon_j = inputPolygons[j];
-
-					long double rotationAngle_i = ALLOWABLE_ROTATIONS[k];
-					long double rotationAngle_j = ALLOWABLE_ROTATIONS[l];
-
-					polygon_i = geo_util::poly_util::rotateCW(polygon_i, rotationAngle_i, polygon_i.outer()[0]);
-					Point newOrigin_i = polygon_i.outer().front();
-					boost_geo::multiply_value(newOrigin_i, -1);
-					polygon_i = geo_util::poly_util::translate(polygon_i, newOrigin_i);
-
-					polygon_j = geo_util::poly_util::rotateCW(polygon_j, rotationAngle_j, polygon_j.outer()[0]);
-					Point newOrigin_j = polygon_j.outer().front();
-					boost_geo::multiply_value(newOrigin_j, -1);
-					polygon_j = geo_util::poly_util::translate(polygon_j, newOrigin_j);
-
-					int nfp_file_no = (l + k * ALLOWABLE_ROTATIONS.size() + j * ALLOWABLE_ROTATIONS.size() * ALLOWABLE_ROTATIONS.size() + i * ALLOWABLE_ROTATIONS.size() * ALLOWABLE_ROTATIONS.size() * numberOfPolygons);
-					//polygon_t nfpt;
-					//std::string filename = "../io/nfpfiles/trousers/" + std::to_string(nfp_file_no) + ".wkt";
-					// std::cout << nfp_file_no << "\n";
-					//read_wkt_polygon(filename, nfpt);
-
-					//Polygon nfp = poly_t_util::convertToPolygon(nfpt);
-
-					polygon_i = geo_util::poly_util::translate(polygon_i, Point(10000, 10000));
-					polygon_j = geo_util::poly_util::translate(polygon_j, Point(10000, 10000));
-					std::cout << boost_geo::wkt(polygon_i) << "\n";
-					std::cout << boost_geo::wkt(polygon_j) << "\n";
-					Polygon nfp = polygon_fit::getNoFitPolygon(polygon_i, polygon_j);
-					polygon_i = geo_util::poly_util::translate(polygon_i, Point(-10000, -10000));
-					polygon_j = geo_util::poly_util::translate(polygon_j, Point(-10000, -10000));
-
-					if (boost_geo::is_convex(nfp.outer()) == false)
-					{
-						Point dominantPoint = cluster_util::findDominantPoint(nfp);
-						polygon_j = geo_util::poly_util::translate(polygon_j, dominantPoint);
-						clusterValues[i][j][k][l] = cluster_util::getClusterValue(polygon_i, polygon_j);
-					}
-				}
-			}
-		}
-	}
-	return clusterValues;
-}
-
-MultiPolygon cluster_util::generateInitialSolution(vector<Polygon> &inputPolygons, long double width)
-{
-	// std::cout << "Cluster Values calculating..." << "...\n";
-	// vector<vector<vector<vector<long double>>>> clusterValues = cluster_util::getClusterValues(inputPolygons);
-
-	// std::cout << "Calling getPerfectClustering..." << "...\n";
-	// vector<tuple<int, int, int, int>> clusterPairs = cluster_util::getPerfectClustering(clusterValues);
-
-	vector<bool> taken((int)inputPolygons.size(), false);
-	vector<MultiPolygon> clusters;
-	int n = inputPolygons.size();
-
-	// int testId = 0;
-	// for (auto &clusterId : clusterPairs)
-	// {
-	// 	int i, j, k, l;
-	// 	std::tie(i, j, k, l) = clusterId;
-	// 	MultiPolygon cluster;
-
-	// 	Polygon polygon_i = inputPolygons[i];
-	// 	Polygon polygon_j = inputPolygons[j];
-
-	// 	long double rotationAngle_i = ALLOWABLE_ROTATIONS[k];
-	// 	long double rotationAngle_j = ALLOWABLE_ROTATIONS[l];
-
-	// 	polygon_i = geo_util::poly_util::rotateCW(polygon_i, rotationAngle_i, polygon_i.outer()[0]);
-	// 	Point newOrigin_i = polygon_i.outer().front();
-	// 	boost_geo::multiply_value(newOrigin_i, -1);
-	// 	polygon_i = geo_util::poly_util::translate(polygon_i, newOrigin_i);
-
-	// 	polygon_j = geo_util::poly_util::rotateCW(polygon_j, rotationAngle_j, polygon_j.outer()[0]);
-	// 	Point newOrigin_j = polygon_j.outer().front();
-	// 	boost_geo::multiply_value(newOrigin_j, -1);
-	// 	polygon_j = geo_util::poly_util::translate(polygon_j, newOrigin_j);
-
-	// 	Polygon nfp = polygon_fit::getNoFitPolygon(polygon_i, polygon_j);
-	// 	continue;
-	// 	if (boost_geo::is_convex(nfp.outer()) == false)
-	// 	{
-	// 		taken[i] = taken[j] = true;
-	// 		Point dominantPoint = cluster_util::findDominantPoint(nfp);
-
-	// 		polygon_j = geo_util::poly_util::translate(polygon_j, dominantPoint);
-	// 		cluster.push_back(polygon_i);
-	// 		cluster.push_back(polygon_j);
-	// 		clusters.push_back(cluster);
-
-	// 		// geo_util::visualizeCluster(polygon_i, {polygon_j}, nfp, "../io/results/", testId++);
-	// 	}
-	// }
-
-	for (int i = 0; i < inputPolygons.size(); i++)
-	{
-		if (taken[i] == false)
-		{
-			clusters.push_back({inputPolygons[i]});
-		}
-	}
-
-	for (auto cluster : clusters)
-	{
-		// geo_util::visualize(cluster, "../io/results", "sample");
-		//std::cout << boost_geo::wkt(cluster) << "\n";
-	}
-	//	std::cout << "Sorting..." << "...\n";
-	cluster_util::sortByClusterValue(clusters);
-	long double length = INITIAL_STOCK_LENGTH;
-	//	std::cout << "Calling BottomLeft Fill:\n";
-	MultiPolygon initialSolution = cluster_util::bottomLeftFill(clusters, length, width);
-	//	std::cout << "generateInitialSolution done..." << "...\n";
-	return initialSolution;
-}
-
-/** namespace bin_packing */
-/** 
- * read input from dataset file
- * file location ../io/datasets/**.txt
- */
 std::tuple<vector<Polygon>, long double> bin_packing::readDataset(std::string datasetName)
 {
 	std::cout << "Reading dataset " << datasetName << "...\n";
@@ -1048,81 +261,6 @@ long double bin_packing::getPackingDensity(MultiPolygon &packing)
 	return packingDensity * 100.0;
 }
 
-/**
- * checks feasibilty of a packing
- * compares with FEASIBILTY limit
- */
-bool bin_packing::isFeasible(MultiPolygon &packing, long double totalAreaOfInputPolygons)
-{
-	long double overlappingArea = 0.0;
-	long double feasibilityRatio = 0.0;
-	int n = packing.size();
-	for (int i = 0; i < n; i += 1)
-	{
-		for (int j = i + 1; j < n; j += 1)
-		{
-			overlappingArea += geo_util::poly_util::polygonPolygonIntersectionArea(packing[i], packing[j]);
-		}
-	}
-	feasibilityRatio = overlappingArea / totalAreaOfInputPolygons;
-	return geo_util::dblcmp(feasibilityRatio - FEASIBILTY, EPS) <= 0 ? true : false;
-}
-/**
- * naive implementation
- * may be changed in future
- */
-long double bin_packing::getPenetrationDepth(Polygon &polygonA, Polygon &polygonB)
-{
-	MultiPolygon intersections;
-	boost_geo::intersection(polygonA, polygonB, intersections);
-	return std::fabs(boost_geo::area(intersections));
-}
-/**
- * returns total penitration depth of a pcking
- */
-long double bin_packing::getTotalPenetrationDepth(MultiPolygon &packing)
-{
-	long double totalPenetrationDepth = 0.0;
-	int numberOfPolygons = packing.size();
-	for (int i = 0; i < numberOfPolygons; i += 1)
-	{
-		for (int j = i + 1; j < numberOfPolygons; j += 1)
-		{
-			totalPenetrationDepth += bin_packing::getPenetrationDepth(packing[i], packing[j]);
-		}
-	}
-	return totalPenetrationDepth;
-}
-/**
- * 
- */
-long double bin_packing::getOverlapPenalty(
-	MultiPolygon packing, vector<vector<long double>> &penalty, int polygon_id,
-	long double rotationAngle, Point translationPoint)
-{
-	int numberOfPolygons = packing.size();
-
-	// rotating
-	packing[polygon_id] =
-		geo_util::poly_util::rotateCW(packing[polygon_id], rotationAngle, packing[polygon_id].outer().front());
-	Point referecePoint = packing[polygon_id].outer().front();
-	// translating
-	Point newPosition = translationPoint;
-	boost_geo::subtract_point(newPosition, referecePoint);
-	packing[polygon_id] = geo_util::poly_util::translate(packing[polygon_id], newPosition);
-
-	long double overlapPenalty = 0;
-	for (int j = 0; j < numberOfPolygons; j++)
-	{
-		if (j != polygon_id)
-		{
-			overlapPenalty +=
-				(penalty[polygon_id][j] * bin_packing::getPenetrationDepth(packing[polygon_id], packing[j]));
-		}
-	}
-	return overlapPenalty;
-}
-
 void bin_packing::increasePenalty(MultiPolygon &packing, vector<vector<long double>> &penalty, vector<vector<long double>>& depths)
 {
 	int n = penalty.size();
@@ -1169,7 +307,30 @@ void bin_packing::pushDown(MultiPolygon &packing, double length)
 		}
 	}
 }
+Polygon polygon_fit::getInnerFitRectangle(MultiPolygon cluster, long double length, long double width)
+{
+	Polygon innerFitRectangle;
+	Point reference = cluster[0].outer()[0];
 
+	long double max_x = -INF, min_x = INF, max_y = -INF, min_y = INF;
+	for (Polygon &polygon : cluster)
+	{
+		for (Point &point : polygon.outer())
+		{
+			point = Point(point.get<0>() - reference.get<0>(), point.get<1>() - reference.get<1>());
+			max_x = std::max(max_x, point.get<0>());
+			min_x = std::min(min_x, point.get<0>());
+			max_y = std::max(max_y, point.get<1>());
+			min_y = std::min(min_y, point.get<1>());
+		}
+	}
+	innerFitRectangle.outer().push_back(Point(std::abs(min_x), std::abs(min_y)));
+	innerFitRectangle.outer().push_back(Point(std::abs(min_x), length - max_y));
+	innerFitRectangle.outer().push_back(Point(width - max_x, length - max_y));
+	innerFitRectangle.outer().push_back(Point(width - max_x, std::abs(min_y)));
+	innerFitRectangle.outer().push_back(Point(std::abs(min_x), std::abs(min_y)));
+	return innerFitRectangle;
+}
 long double randomInRange(long double a, long double b)
 {
 	long double random = ((long double)std::rand()) / (long double)RAND_MAX;
@@ -1180,18 +341,23 @@ long double randomInRange(long double a, long double b)
 
 long double getDepth(Polygon polygon1, Polygon polygon2)
 {
-	// mainly depth calculated from NFP of polygon1, polygon2.
-	// let assume for now it is polygons intersection area
 	long double depth = geo_util::poly_util::polygonPolygonIntersectionArea(polygon1, polygon2);
 	return depth;
 }
-long double evaluate(MultiPolygon& packing, int polygonId, Point v, long double ratationAngleInDegree)
-{
-	Polygon polygon = packing[polygonId];
-	polygon = geo_util::poly_util::rotateCW(polygon, ratationAngleInDegree, polygon.outer()[0]);
-	polygon = geo_util::poly_util::translate(polygon, Point(-polygon.outer()[0].get<0>(), -polygon.outer()[0].get<1>()));
-	polygon = geo_util::poly_util::translate(polygon, v);
 
+Polygon rotateTranslate(Polygon polygon, Point v, long double o)
+{
+		Point reference = polygon.outer()[0];
+		polygon = geo_util::poly_util::rotateCW(polygon, o, reference);
+		boost_geo::multiply_value(reference, -1);
+		polygon = geo_util::poly_util::translate(polygon, reference);
+		polygon = geo_util::poly_util::translate(polygon, v);
+		return polygon;
+}
+
+long double evaluate(MultiPolygon& packing, int polygonId, Point v, long double rotationAngleInDegree)
+{
+	Polygon polygon = rotateTranslate(packing[polygonId], v, rotationAngleInDegree);
 	long double eval = 0.0;
 	int n = packing.size();
 	for(int i = 0; i < n; i += 1)
@@ -1250,23 +416,23 @@ Point getInBoundary(Point a, Point b, long double x1, long double x2, long doubl
 	Point intersection;
 
 	intersection = geo_util::segmentSegmentIntersectionPoint(a, b, Point(x1, y1), Point(x1, y2));
-	if(geo_util::dblcmp(intersection.get<0>() - INF) != 0 and geo_util::dblcmp(intersection.get<1>() - INF) != 0) return intersection;
+	if(intersection.get<0>() != INF and intersection.get<1>() != INF ) return intersection;
 	
 	intersection = geo_util::segmentSegmentIntersectionPoint(a, b, Point(x1, y1), Point(x2, y1));
-	if(geo_util::dblcmp(intersection.get<0>() - INF) != 0 and geo_util::dblcmp(intersection.get<1>() - INF) != 0) return intersection;
+	if(intersection.get<0>() != INF and intersection.get<1>() != INF ) return intersection;
 	
 	intersection = geo_util::segmentSegmentIntersectionPoint(a, b, Point(x2, y1), Point(x2, y2));
-	if(geo_util::dblcmp(intersection.get<0>() - INF) != 0 and geo_util::dblcmp(intersection.get<1>() - INF) != 0) return intersection;
+	if(intersection.get<0>() != INF and intersection.get<1>() != INF ) return intersection;
 	
 	intersection = geo_util::segmentSegmentIntersectionPoint(a, b, Point(x1, y2), Point(x2, y2));
-	if(geo_util::dblcmp(intersection.get<0>() - INF) != 0 and geo_util::dblcmp(intersection.get<1>() - INF) != 0) return intersection;
-	
-	std::cerr << "WARNING in getInBoundary() line 1264: should have an intersection point\n";
+	if(intersection.get<0>() != INF and intersection.get<1>() != INF ) return intersection;
 	return b;
 }
 
 vector<Point> levyFlight(vector<Point>& cuckoos, Point bestCuckoo, long double x1, long double x2, long double y1, long double y2)
 {
+	assert( geo_util::dblcmp(x1 - bestCuckoo.get<0>()) <= 0 && geo_util::dblcmp(bestCuckoo.get<0>() - x2) <= 0 );
+	assert( geo_util::dblcmp(y1 - bestCuckoo.get<1>()) <= 0 && geo_util::dblcmp(bestCuckoo.get<1>() - y2) <= 0 );
 	vector<Point> newCuckoos(cuckoos.size());
 
 	long double beta = 1.5;
@@ -1292,8 +458,27 @@ vector<Point> levyFlight(vector<Point>& cuckoos, Point bestCuckoo, long double x
 		long double x = s.get<0>() + step.get<0>() * walk.get<0>();
 		long double y = s.get<1>() + step.get<1>() * walk.get<1>();
 
-		if( x1 <= x <= x2 && y1 <= y <= y2 ) newCuckoos[i] = Point(x, y);
-		else newCuckoos[i] = getInBoundary( i ? newCuckoos[i-1] : bestCuckoo, Point(x, y), x1, x2, y1, y2);
+		
+
+
+		if( geo_util::dblcmp(x1 - x) <= 0 && geo_util::dblcmp(x - x2) <= 0 && geo_util::dblcmp(y1 - y) <= 0 && geo_util::dblcmp(y - y2) <= 0)
+		{
+			// std::cout << "        " << i << " => 0\n";
+			newCuckoos[i] = Point(x, y);
+		}
+		else 
+		{
+			if( geo_util::dblcmp(y - y1) < 0 || geo_util::dblcmp(y - y2) > 0)
+			{
+				newCuckoos[i] = Point(x1, y1);
+			}
+			else
+			{
+				newCuckoos[ i ] = Point(x2, y2);
+			}
+		}
+		assert(geo_util::dblcmp(x1 - newCuckoos[i].get<0>()) <= 0 && geo_util::dblcmp(newCuckoos[i].get<0>() - x2) <= 0);
+		assert(geo_util::dblcmp(y1 - newCuckoos[i].get<1>()) <= 0 && geo_util::dblcmp(newCuckoos[i].get<1>() - y2) <= 0);
 	}
 
 	return newCuckoos;
@@ -1320,26 +505,50 @@ void sortCuckoosByEval(MultiPolygon& packing, int polygonId, long double rotatio
 		cuckoos.push_back(__cuckoos[index]);
 	}
 }
-Point bin_packing::cuckooSearch( MultiPolygon &packing, vector<vector<long double>> &penalty, int polygonId, long double rotationAngle, long double width, long double length)
+
+Polygon translatePolygon(Polygon polygon, Point point)
+{
+	Point reference = polygon.outer()[0];
+	boost_geo::multiply_value(reference, -1);
+	polygon = geo_util::poly_util::translate(polygon, reference);
+	polygon = geo_util::poly_util::translate(polygon, point);
+	return polygon;
+}
+Point bin_packing::cuckooSearch( MultiPolygon &packing, vector<vector<long double>> &penalty, int polygonId, long double rotationAngle, long double length, long double width)
 {
 	Polygon polygon = packing[polygonId];
 	polygon = geo_util::poly_util::rotateCW(polygon, rotationAngle, polygon.outer()[0]);
-	Polygon innerFitRectangle = polygon_fit::getInnerFitRectangle({polygon}, length, width);
+	Polygon ifr = polygon_fit::getInnerFitRectangle({polygon}, length, width);
 
-	long double max_x = -INF, min_x = INF, max_y = -INF, min_y = INF;
-	for (Point &point : innerFitRectangle.outer())
+	double x1 = ifr.outer()[0].get<0>();
+	double y1 = ifr.outer()[0].get<1>();
+	double x2 = ifr.outer()[2].get<0>();
+	double y2 = ifr.outer()[2].get<1>();
+
+	MultiPolygon temp;
+
+
+	Polygon rec;	
+	rec.outer().push_back(Point(0,0));
+	rec.outer().push_back(Point(0,length));
+	rec.outer().push_back(Point(width,length));
+	rec.outer().push_back(Point(width,0));
+	rec.outer().push_back(Point(0,0));
+	temp.push_back(rec);
+	for(auto point: ifr.outer())
 	{
-		max_x = std::max(max_x, point.get<0>());
-		min_x = std::min(min_x, point.get<0>());
-		max_y = std::max(max_y, point.get<1>());
-		min_y = std::min(min_y, point.get<1>());
+		//temp.push_back(translatePolygon(polygon, point));
 	}
+	
+
 
 	srand(time(NULL));
 	vector<Point> cuckoos(NUMBER_OF_CUCKOOS);
 	for (int i = 0; i < NUMBER_OF_CUCKOOS; i += 1)
 	{
-		cuckoos[i] = getCuckoo(min_x, max_x, min_y, max_y);
+		cuckoos[i] = getCuckoo(x1, x2, y1, y2);
+		assert( x1 <= cuckoos[i].get<0>() && cuckoos[i].get<0>() <= x2 );
+		assert( y1 <= cuckoos[i].get<1>() && cuckoos[i].get<1>() <= y2 );
 	}
 	
 	Point bestCuckoo = cuckoos[0];
@@ -1349,7 +558,7 @@ Point bin_packing::cuckooSearch( MultiPolygon &packing, vector<vector<long doubl
 	{
 		int randCuckooIndexA = rand() % NUMBER_OF_CUCKOOS;
 		Point randCuckooA = cuckoos[randCuckooIndexA];
-		randCuckooA = levyFlight(cuckoos, randCuckooA, min_x, max_x, min_y, max_y)[0];
+		randCuckooA = levyFlight(cuckoos, randCuckooA, x1, x2, y1, y2)[0];
 		long double evalA = evaluate(packing, polygonId, randCuckooA, rotationAngle);
 
 		int randCuckooIndexB = rand() % NUMBER_OF_CUCKOOS;
@@ -1364,7 +573,7 @@ Point bin_packing::cuckooSearch( MultiPolygon &packing, vector<vector<long doubl
 
 		sortCuckoosByEval(packing, polygonId, rotationAngle, cuckoos, false);
 		int ABANDON_NESTS = DISCOVER_PROBABILITY * NUMBER_OF_CUCKOOS;
-		vector<Point> newCuckoos = levyFlight(cuckoos, bestCuckoo, min_x, max_x, min_y, max_y);
+		vector<Point> newCuckoos = levyFlight(cuckoos, bestCuckoo, x1, x2, y1, y2);
 
 		for(int i = 0; i < ABANDON_NESTS; i += 1)
 		{
@@ -1374,6 +583,12 @@ Point bin_packing::cuckooSearch( MultiPolygon &packing, vector<vector<long doubl
 		bestCuckoo = cuckoos[0];
 		t += 1;
 	}
+	assert(geo_util::dblcmp(x1 - bestCuckoo.get<0>()) <= 0 && geo_util::dblcmp(y1 - bestCuckoo.get<1>()) <= 0);
+	assert(geo_util::dblcmp(x2 - bestCuckoo.get<0>()) >= 0 && geo_util::dblcmp(y2 - bestCuckoo.get<1>()) >= 0);
+	//std::cout << "      " << "Cuckoo: " << boost_geo::wkt(bestCuckoo) << " " << x1 << " " << x2 << " " << y1 << " " << y2 << "\n";
+	//std::cout << "      " << "length: " << length << " " << width << std::endl;
+	temp.push_back(translatePolygon(polygon, bestCuckoo));
+	//geo_util::visualize(temp, "../io/results/dighe1/gurbage/", "ifr");
 	return bestCuckoo;
 }
 
@@ -1387,6 +602,10 @@ std::tuple<MultiPolygon, bool> bin_packing::minimizeOverlap(MultiPolygon packing
 	vector<vector<long double>> depths(n, vector<long double> (n, 0.0));
 	while( iter < MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA )
 	{
+		std::cout << "    minimizeOverlap iteration(" << iter << ")\n";
+		std::cout << "    length: " << length << "\n";
+		std::cout << "    width: " << width << "\n";
+		std::cout << "    total area: " << totalAreaOfInputPolygons << "\n";
 		vector<int> Q;
 		for(int i = 0; i < n; i += 1) 
 		{
@@ -1395,15 +614,14 @@ std::tuple<MultiPolygon, bool> bin_packing::minimizeOverlap(MultiPolygon packing
 		random_shuffle(Q.begin(), Q.end());
 		for(int i = 0; i < n; i += 1)
 		{
-			Point v = packing[i].outer()[0];
+			Point v = packing[Q[i]].outer()[0];
 			long double o = 0;
-			long double eval = evaluate(packing, i, v, o);
+			long double eval = evaluate(packing, Q[i], v, o);
 
 			for(auto rotation: allowableRoatations)
 			{
-				if( rotation == 0 ) continue;
-				Point cuckoo = bin_packing::cuckooSearch(packing, penalty, i, rotation, length, width);
-				long double currentEval = evaluate(packing, i, cuckoo, rotation);
+				Point cuckoo = bin_packing::cuckooSearch(packing, penalty, Q[i], rotation, length, width);
+				long double currentEval = evaluate(packing, Q[i], cuckoo, rotation);
 				if( geo_util::dblcmp(currentEval - eval) < 0 )
 				{
 					eval = currentEval;
@@ -1411,11 +629,18 @@ std::tuple<MultiPolygon, bool> bin_packing::minimizeOverlap(MultiPolygon packing
 					o = rotation;
 				}
 			}
-			packing[i] = geo_util::poly_util::rotateCW(packing[i], o, packing[i].outer()[0]);
-			packing[i] = geo_util::poly_util::translate(packing[i], Point(-packing[i].outer()[0].get<0>(), -packing[i].outer()[0].get<1>()));
-			packing[i] = geo_util::poly_util::translate(packing[i], v);
+			std::cout << "      Polygon (" << i << "/" << n << ")" << " eval => " << eval << "\n";
+			packing[Q[i]] = rotateTranslate(packing[Q[i]], v, o);
+			// std::cout << "      " << boost_geo::wkt(packing[Q[i]]) << "\n";
+			// std::cout << "      " << geo_util::poly_util::getWidth(packing) << "*****\n";
 		}
+
+		geo_util::visualize(packing, "../io/results/dighe1/gurbage/", "bug");
 		long double currentFitness = evaluateAll(packing, penalty, depths);
+		std::cout << "    => current fitness: " << currentFitness << "\n";
+		std::cout << "    => packing length.: " << geo_util::poly_util::getLength(packing) << "\n";
+		std::cout << "    => packing width..: " << geo_util::poly_util::getWidth(packing) << "\n";
+		std::cout << "    => area...........: " << boost_geo::area(packing) << "\n";
 		if( geo_util::dblcmp(currentFitness - FEASIBILTY) <= 0 )
 		{
 			return {packing, true};
@@ -1425,7 +650,7 @@ std::tuple<MultiPolygon, bool> bin_packing::minimizeOverlap(MultiPolygon packing
 			fitness = currentFitness;
 			iter = -1;
 		}
-		bin_packing::increasePenalty(packing, penalty, depths);
+		// bin_packing::increasePenalty(packing, penalty, depths);
 		iter += 1;
 	}
 	return {packing, false};
@@ -1483,6 +708,8 @@ void bin_packing::cuckooPacking(string datasetname, string outputLocation, long 
 	int iter = 3;
 	while (iter > 0)
 	{
+
+		std::cout << "Iteration( " << iter << " )" << std::endl;
 		bool flag;
 		std::tie(currentPacking, flag) = bin_packing::minimizeOverlap(currentPacking, ALLOWABLE_ROTATIONS, width, currentLength, totalAreaOfInitialPackingPolygons, outputLog, cuckooPackingStepsDirectoryName);
 		if (flag == true)
@@ -1535,71 +762,4 @@ void bin_packing::cuckooPacking(string datasetname, string outputLocation, long 
 			  << std::endl
 			  << std::endl;
 	outputLog.close();
-}
-
-/** bin packing */
-void bin_packing::binPacking(vector<Polygon> &polygons, long double width, string outputLocation, string datasetName, long double runTimeDuration)
-{
-	std::cout << "Calling binPacking..."
-			  << "...\n";
-	// create directory for the dataset
-	string outputDirectoryName = outputLocation + "/" + datasetName;
-	mkdir(outputDirectoryName.c_str(), 0777);
-
-	// start the clock
-	auto start = std::chrono::high_resolution_clock::now();
-
-	// create directory to store wkt files of input polygons
-	string inputPolygonsWKTStorageLocation = outputDirectoryName + "/input_polygons_wkt_files";
-	mkdir(inputPolygonsWKTStorageLocation.c_str(), 0777);
-
-	double totalAreaOfInputPolygons = 0;
-	for (int i = 0; i < polygons.size(); i++)
-	{
-		Polygon polygon = polygons[i];
-		// write the wkt polygon file
-		std::ostringstream polygonWKTFileName;
-		polygonWKTFileName << "polygon_" << std::setw(3) << std::setfill('0') << i << ".wkt";
-		std::ofstream polygonWKTFile(inputPolygonsWKTStorageLocation + "/" + polygonWKTFileName.str());
-		polygonWKTFile << boost_geo::wkt(polygon) << std::endl;
-		polygonWKTFile.close();
-		// add polygon area to totalAreaOfInputPolygons
-		totalAreaOfInputPolygons += std::fabs(boost_geo::area(polygon));
-	}
-
-	std::cout << "Calling generateInitialSolution..."
-			  << "...\n";
-	MultiPolygon initialPacking = cluster_util::generateInitialSolution(polygons, width);
-	MultiPolygon bestPacking = initialPacking;
-	std::cout << "generateInitialSolution completed..."
-			  << "...\n";
-
-	// create a directory for initial solution and store the initial solution
-	string initialSolutionDirectory = outputDirectoryName + "/initial_solution";
-	mkdir(initialSolutionDirectory.c_str(), 0777);
-	std::ofstream initialPackingWKTFile(initialSolutionDirectory + "/initial_packing.wkt");
-	initialPackingWKTFile << boost_geo::wkt(initialPacking) << std::endl;
-	initialPackingWKTFile.close();
-	geo_util::visualize(initialPacking, initialSolutionDirectory, datasetName);
-	std::cout << "Done..."
-			  << "...\n";
-
-	double bestPackingArea = boost_geo::area(bestPacking);
-	double bestLength = geo_util::poly_util::getLength(bestPacking);
-	Box stock;
-	boost_geo::envelope(bestPacking, stock);
-	double stockArea = boost_geo::area(stock);
-	Point stockDimension = stock.max_corner();
-	boost_geo::subtract_point(stockDimension, stock.min_corner());
-
-	std::cout << "\033[1;36mDataset....................: " << datasetName << "\n";
-	std::cout << "\033[1;36mwidth......................: " << width << "\033[0m" << std::endl;
-	std::cout << "\033[1;36mlength.....................: " << bestLength << "\033[0m" << std::endl;
-	std::cout << "\033[1;36mtotal area of items........: " << totalAreaOfInputPolygons << "\033[0m" << std::endl;
-	std::cout << "\033[1;36mresult polygon set area....: " << bestPackingArea << "\033[0m" << std::endl;
-	std::cout << "\033[1;36mstock dimension [l * w]....: "
-			  << "[" << std::fabs(stockDimension.get<0>()) << ", " << std::fabs(stockDimension.get<1>()) << "]"
-			  << "\033[0m" << std::endl;
-	std::cout << "\033[1;36mstock area.................: " << stockArea << "\033[0m" << std::endl;
-	std::cout << "\033[1;32mpacking density............: " << (totalAreaOfInputPolygons / stockArea) * 100 << " %\033[0m" << std::endl;
 }

@@ -48,7 +48,7 @@ const long double LENGTH_INCREASING_RATE = 0.01;
 const long double MAXIMUM_NUMBER_OF_GENERATION = 30; 
 const long double LENGTH_DECREASING_RATE = 0.04;
 const long double DISCOVER_PROBABILITY = 0.25;
-const vector<long double> ALLOWABLE_ROTATIONS = {0, 90, 180, 270};
+const vector<long double> ALLOWABLE_ROTATIONS = {0};//, 90, 180, 270};
 
 static int frameno;
 
@@ -122,7 +122,7 @@ namespace bin_packing
     long double getOverlapPenalty(
         MultiPolygon packing, vector<vector<long double>> &penalty, int polygon_id,
         long double rotationAngle, Point translationPoint);
-    void increasePenalty(MultiPolygon &packing, vector<vector<long double>> &penalty, vector<vector<long double>> &depths);
+    void increasePenalty(MultiPolygon &packing, vector<vector<long double>> &penalty, vector<vector<long double>> &depthsck);
     Point cuckooSearch(
         MultiPolygon &packing, vector<vector<long double>> &penalty, int polygon_id,
         long double rotationAngle, long double width, long double length);
