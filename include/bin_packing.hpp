@@ -12,6 +12,7 @@
 #include <cstring>
 #include <chrono>
 #include <ctime>
+#include <random>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -39,12 +40,14 @@ const long double INF = 4e18;
 const long double PI = acos(-1);
 const long double RUN_TIME_DURATION = 20;
 const long double FEASIBILTY = 1e-4;
-const int NUMBER_OF_HOST_NESTS = 2000;
+const int NUMBER_OF_CUCKOOS = 15;
 const long double NFP_TRANSLATOR_COF = 1e4;
 const long double INITIAL_STOCK_LENGTH = 100000000;
-const int MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA = 10;
-const long double LENGTH_INCREASING_RATE = 0.05;
-const long double LENGTH_DECREASING_RATE = 0.10;
+const int MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA = 15;
+const long double LENGTH_INCREASING_RATE = 0.01;
+const long double MAXIMUM_NUMBER_OF_GENERATION = 30; 
+const long double LENGTH_DECREASING_RATE = 0.04;
+const long double DISCOVER_PROBABILITY = 0.25;
 const vector<long double> ALLOWABLE_ROTATIONS = {0, 90, 180, 270};
 
 static int frameno;
@@ -119,12 +122,12 @@ namespace bin_packing
     long double getOverlapPenalty(
         MultiPolygon packing, vector<vector<long double>> &penalty, int polygon_id,
         long double rotationAngle, Point translationPoint);
-    void increasePenalty(MultiPolygon &packing, vector<vector<long double>> &penalty);
+    void increasePenalty(MultiPolygon &packing, vector<vector<long double>> &penalty, vector<vector<long double>> &depths);
     Point cuckooSearch(
         MultiPolygon &packing, vector<vector<long double>> &penalty, int polygon_id,
         long double rotationAngle, long double width, long double length);
     void pushDown(MultiPolygon &packing, double length);
-    MultiPolygon minimizeOverlap(
+    std::tuple<MultiPolygon, bool> minimizeOverlap(
         MultiPolygon packing, vector<long double> allowableRoatations,
         long double width, long double length, long double totalAreaOfInputPolygons,
         std::ofstream &outputLog, string outputLocation);

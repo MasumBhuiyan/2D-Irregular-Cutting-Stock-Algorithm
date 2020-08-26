@@ -1123,31 +1123,22 @@ long double bin_packing::getOverlapPenalty(
 	return overlapPenalty;
 }
 
-void bin_packing::increasePenalty(MultiPolygon &packing, vector<vector<long double>> &penalty)
+void bin_packing::increasePenalty(MultiPolygon &packing, vector<vector<long double>> &penalty, vector<vector<long double>>& depths)
 {
 	int n = penalty.size();
-	long double maximumPenetrationDepth = -INF;
-	vector<vector<long double>> penetrationDepths(n, vector<long double>(n, 0));
+	long double maxDepth = -INF;
 	for (int i = 0; i < n; i++)
 	{
 		for (int j = 0; j < n; j++)
 		{
-			if (i == j)
-			{
-				continue;
-			}
-			penetrationDepths[i][j] = bin_packing::getPenetrationDepth(packing[i], packing[j]);
-			if (i < j)
-			{
-				maximumPenetrationDepth = std::max(maximumPenetrationDepth, penetrationDepths[i][j]);
-			}
+			maxDepth = std::max(maxDepth, depths[i][j]);
 		}
 	}
 	for (int i = 0; i < n; i++)
 	{
 		for (int j = 0; j < n; j++)
 		{
-			penalty[i][j] += (penetrationDepths[i][j] / maximumPenetrationDepth);
+			penalty[i][j] += (depths[i][j] / maxDepth);
 		}
 	}
 }
@@ -1187,12 +1178,151 @@ long double randomInRange(long double a, long double b)
 	return a + r;
 }
 
-Point bin_packing::cuckooSearch(
-	MultiPolygon &packing, vector<vector<long double>> &penalty, int polygon_id,
-	long double rotationAngle, long double width, long double length)
+long double getDepth(Polygon polygon1, Polygon polygon2)
 {
-	// boundary of inner fit rectangle
-	Polygon polygon = packing[polygon_id];
+	// mainly depth calculated from NFP of polygon1, polygon2.
+	// let assume for now it is polygons intersection area
+	long double depth = geo_util::poly_util::polygonPolygonIntersectionArea(polygon1, polygon2);
+	return depth;
+}
+long double evaluate(MultiPolygon& packing, int polygonId, Point v, long double ratationAngleInDegree)
+{
+	Polygon polygon = packing[polygonId];
+	polygon = geo_util::poly_util::rotateCW(polygon, ratationAngleInDegree, polygon.outer()[0]);
+	polygon = geo_util::poly_util::translate(polygon, Point(-polygon.outer()[0].get<0>(), -polygon.outer()[0].get<1>()));
+	polygon = geo_util::poly_util::translate(polygon, v);
+
+	long double eval = 0.0;
+	int n = packing.size();
+	for(int i = 0; i < n; i += 1)
+	{
+		if( i != polygonId )
+		{	
+			eval += getDepth(packing[i], polygon);
+		}
+	}
+	return eval;
+}
+
+long double evaluateAll(MultiPolygon& packing, vector<vector<long double>>& penalty, vector<vector<long double>>& depths)
+{
+	long double fitness = 0.0;
+	int n = packing.size();
+	for(int i = 0; i < n; i += 1)
+	{
+		for(int j = i + 1; j < n; j += 1)
+		{	
+			long double depth = getDepth(packing[i], packing[j]);
+			depths[i][j] = depth;
+			depths[j][i] = depth;
+			fitness += depth * penalty[i][j];
+		}
+	}
+
+	return fitness;
+}
+
+Point getCuckoo(long double x1, long double x2, long double y1, long double y2)
+{
+	return Point(randomInRange(x1, x2), randomInRange(y1, y2));
+}
+
+Point normalDistribution(long double& sigma, bool multiplicate)
+{
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::default_random_engine generator(seed);
+	std::normal_distribution<double> distribution(0.0, 1.0);
+
+	Point u;
+	if( multiplicate == true )
+	{
+		u = Point(distribution(generator) * sigma, distribution(generator) * sigma);  
+	}	
+	else
+	{
+		u = Point(distribution(generator), distribution(generator));  
+	}
+	return u;
+}
+
+Point getInBoundary(Point a, Point b, long double x1, long double x2, long double y1, long double y2)
+{
+	Point intersection;
+
+	intersection = geo_util::segmentSegmentIntersectionPoint(a, b, Point(x1, y1), Point(x1, y2));
+	if(geo_util::dblcmp(intersection.get<0>() - INF) != 0 and geo_util::dblcmp(intersection.get<1>() - INF) != 0) return intersection;
+	
+	intersection = geo_util::segmentSegmentIntersectionPoint(a, b, Point(x1, y1), Point(x2, y1));
+	if(geo_util::dblcmp(intersection.get<0>() - INF) != 0 and geo_util::dblcmp(intersection.get<1>() - INF) != 0) return intersection;
+	
+	intersection = geo_util::segmentSegmentIntersectionPoint(a, b, Point(x2, y1), Point(x2, y2));
+	if(geo_util::dblcmp(intersection.get<0>() - INF) != 0 and geo_util::dblcmp(intersection.get<1>() - INF) != 0) return intersection;
+	
+	intersection = geo_util::segmentSegmentIntersectionPoint(a, b, Point(x1, y2), Point(x2, y2));
+	if(geo_util::dblcmp(intersection.get<0>() - INF) != 0 and geo_util::dblcmp(intersection.get<1>() - INF) != 0) return intersection;
+	
+	std::cerr << "WARNING in getInBoundary() line 1264: should have an intersection point\n";
+	return b;
+}
+
+vector<Point> levyFlight(vector<Point>& cuckoos, Point bestCuckoo, long double x1, long double x2, long double y1, long double y2)
+{
+	vector<Point> newCuckoos(cuckoos.size());
+
+	long double beta = 1.5;
+	long double sigma = (tgamma(1 + beta)* sin(PI * beta / 2) / (tgamma((1 + beta) / 2) * beta * pow(2.0, (beta - 1) / 2)));
+	long double sigmaPow = pow(sigma, 1 / beta);
+
+	for(int i = 0; i < cuckoos.size(); i += 1)
+	{
+		Point s = cuckoos[ i ], u, v, step;
+		u = normalDistribution(sigmaPow, true);
+		v = normalDistribution(sigmaPow, false);
+		
+		// mantegna algorithm
+		step = Point(u.get<0>() / pow(abs(v.get<0>()), 1.0 / beta),
+					 u.get<1>() / pow(abs(v.get<1>()), 1.0 / beta));
+
+		step = Point( 
+			0.01 * step.get<0>() * (s.get<0>() - bestCuckoo.get<0>()),
+			0.01 * step.get<1>() * (s.get<0>() - bestCuckoo.get<1>())
+		);
+		// random walk
+		Point walk = normalDistribution(sigmaPow, false);
+		long double x = s.get<0>() + step.get<0>() * walk.get<0>();
+		long double y = s.get<1>() + step.get<1>() * walk.get<1>();
+
+		if( x1 <= x <= x2 && y1 <= y <= y2 ) newCuckoos[i] = Point(x, y);
+		else newCuckoos[i] = getInBoundary( i ? newCuckoos[i-1] : bestCuckoo, Point(x, y), x1, x2, y1, y2);
+	}
+
+	return newCuckoos;
+}
+
+void sortCuckoosByEval(MultiPolygon& packing, int polygonId, long double rotationAngle, vector<Point> &cuckoos, bool increasing)
+{
+	vector<std::tuple<long double, int>> forSorting;
+	for(int i = 0; i < NUMBER_OF_CUCKOOS; i += 1)
+	{
+		long double eval = evaluate(packing, polygonId, cuckoos[i], rotationAngle);
+		if( increasing == false ) eval = -eval; 
+		forSorting.push_back({eval, i});
+	}
+	sort(forSorting.begin(), forSorting.end());
+	vector<Point> __cuckoos = cuckoos; 
+	cuckoos.clear();
+
+	for(int i = 0; i < NUMBER_OF_CUCKOOS; i += 1)
+	{
+		long double eval;
+		int index;
+		std::tie(eval, index) = forSorting[i];
+		cuckoos.push_back(__cuckoos[index]);
+	}
+}
+Point bin_packing::cuckooSearch( MultiPolygon &packing, vector<vector<long double>> &penalty, int polygonId, long double rotationAngle, long double width, long double length)
+{
+	Polygon polygon = packing[polygonId];
 	polygon = geo_util::poly_util::rotateCW(polygon, rotationAngle, polygon.outer()[0]);
 	Polygon innerFitRectangle = polygon_fit::getInnerFitRectangle({polygon}, length, width);
 
@@ -1205,152 +1335,103 @@ Point bin_packing::cuckooSearch(
 		min_y = std::min(min_y, point.get<1>());
 	}
 
-	// host nests
 	srand(time(NULL));
-	vector<Point> hostNests(NUMBER_OF_HOST_NESTS);
-	for (int i = 0; i < NUMBER_OF_HOST_NESTS; i++)
+	vector<Point> cuckoos(NUMBER_OF_CUCKOOS);
+	for (int i = 0; i < NUMBER_OF_CUCKOOS; i += 1)
 	{
-		hostNests[i] = Point(randomInRange(min_x, max_x), randomInRange(min_y, max_y));
-		assert(min_x <= hostNests[i].get<0>() and max_x >= hostNests[i].get<0>());
-		assert(min_y <= hostNests[i].get<1>() and max_y >= hostNests[i].get<1>());
+		cuckoos[i] = getCuckoo(min_x, max_x, min_y, max_y);
 	}
-	// Begin cuckoo search
-	Point bestPosition = packing[polygon_id].outer()[0];
-	double bestOverlapPenalty = INF;
-	for (int i = 0; i < NUMBER_OF_HOST_NESTS; i++)
-	{
-		double overlapPenalty =
-			bin_packing::getOverlapPenalty(packing, penalty, polygon_id, rotationAngle, hostNests[i]);
+	
+	Point bestCuckoo = cuckoos[0];
+	int t = 0;
 
-		if (geo_util::dblcmp(overlapPenalty - bestOverlapPenalty, EPS) <= 0)
+	while( t < MAXIMUM_NUMBER_OF_GENERATION )
+	{
+		int randCuckooIndexA = rand() % NUMBER_OF_CUCKOOS;
+		Point randCuckooA = cuckoos[randCuckooIndexA];
+		randCuckooA = levyFlight(cuckoos, randCuckooA, min_x, max_x, min_y, max_y)[0];
+		long double evalA = evaluate(packing, polygonId, randCuckooA, rotationAngle);
+
+		int randCuckooIndexB = rand() % NUMBER_OF_CUCKOOS;
+		Point randCuckooB = cuckoos[randCuckooIndexB];
+		long double evalB = evaluate(packing, polygonId, randCuckooB, rotationAngle);
+
+		if( geo_util::dblcmp(evalA - evalB) < 0 )
 		{
-			bestOverlapPenalty = overlapPenalty;
-			bestPosition = hostNests[i];
+			cuckoos[randCuckooIndexB] = randCuckooA;
+			bestCuckoo = randCuckooB;
 		}
-		// Abandon a fraction (Pa) of worse nests and build new ones
-		// at new locations
-		// Keep the best solutions (or nests with quality solutions)
-		// Rank the solutions and find the current best
+
+		sortCuckoosByEval(packing, polygonId, rotationAngle, cuckoos, false);
+		int ABANDON_NESTS = DISCOVER_PROBABILITY * NUMBER_OF_CUCKOOS;
+		vector<Point> newCuckoos = levyFlight(cuckoos, bestCuckoo, min_x, max_x, min_y, max_y);
+
+		for(int i = 0; i < ABANDON_NESTS; i += 1)
+		{
+			cuckoos[i] = newCuckoos[i];
+		}
+		sortCuckoosByEval(packing, polygonId, rotationAngle, cuckoos, true);
+		bestCuckoo = cuckoos[0];
+		t += 1;
 	}
-	assert(bestOverlapPenalty != INF);
-	return bestPosition;
+	return bestCuckoo;
 }
 
-MultiPolygon bin_packing::minimizeOverlap(
-	MultiPolygon packing, vector<long double> allowableRoatations, long double width, long double length,
-	long double totalAreaOfInputPolygons, std::ofstream &outputLog, string outputLocation)
+std::tuple<MultiPolygon, bool> bin_packing::minimizeOverlap(MultiPolygon packing, vector<long double> allowableRoatations, long double width, long double length,long double totalAreaOfInputPolygons, std::ofstream &outputLog, string outputLocation)
 {
-	int numberOfPolygons = packing.size();
-	vector<vector<long double>> penalty(numberOfPolygons, vector<long double>(numberOfPolygons, 1.0));
-	int it = 0;
 	long double fitness = INF;
-	vector<int> Q(numberOfPolygons);
-	for (int i = 0; i < numberOfPolygons; i++)
+	int iter = 0;
+	int n = packing.size();
+	
+	vector<vector<long double>> penalty(n, vector<long double>(n, 1.0));
+	vector<vector<long double>> depths(n, vector<long double> (n, 0.0));
+	while( iter < MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA )
 	{
-		Q[i] = i;
+		vector<int> Q;
+		for(int i = 0; i < n; i += 1) 
+		{
+			Q.push_back(i);
+		}
+		random_shuffle(Q.begin(), Q.end());
+		for(int i = 0; i < n; i += 1)
+		{
+			Point v = packing[i].outer()[0];
+			long double o = 0;
+			long double eval = evaluate(packing, i, v, o);
+
+			for(auto rotation: allowableRoatations)
+			{
+				if( rotation == 0 ) continue;
+				Point cuckoo = bin_packing::cuckooSearch(packing, penalty, i, rotation, length, width);
+				long double currentEval = evaluate(packing, i, cuckoo, rotation);
+				if( geo_util::dblcmp(currentEval - eval) < 0 )
+				{
+					eval = currentEval;
+					v = cuckoo;
+					o = rotation;
+				}
+			}
+			packing[i] = geo_util::poly_util::rotateCW(packing[i], o, packing[i].outer()[0]);
+			packing[i] = geo_util::poly_util::translate(packing[i], Point(-packing[i].outer()[0].get<0>(), -packing[i].outer()[0].get<1>()));
+			packing[i] = geo_util::poly_util::translate(packing[i], v);
+		}
+		long double currentFitness = evaluateAll(packing, penalty, depths);
+		if( geo_util::dblcmp(currentFitness - FEASIBILTY) <= 0 )
+		{
+			return {packing, true};
+		}
+		else if( geo_util::dblcmp(currentFitness - fitness) < 0 )
+		{
+			fitness = currentFitness;
+			iter = -1;
+		}
+		bin_packing::increasePenalty(packing, penalty, depths);
+		iter += 1;
 	}
-	MultiPolygon bestPacking = packing;
-	long double bestTotalOverlapPenalty = bin_packing::getTotalPenetrationDepth(bestPacking);
-	int noProgressOfPenalyCount = 0;
-	while (it < MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA)
-	{
-		outputLog << "iteration no.................................: " << it << std::endl;
-		std::random_shuffle(Q.begin(), Q.end());
-		for (int i = 0; i < numberOfPolygons; i++)
-		{
-			long double overlapPenalty =
-				bin_packing::getOverlapPenalty(packing, penalty, Q[i], 0, packing[Q[i]].outer().front());
-
-			Point bestLocation(INF, INF);
-			long double bestRotationAngle = 0.0;
-
-			for (long double rotationAngle : allowableRoatations)
-			{
-				Point translationPoint =
-					bin_packing::cuckooSearch(packing, penalty, Q[i], rotationAngle, width, length);
-				long double currentOverlapPenalty =
-					bin_packing::getOverlapPenalty(packing, penalty, Q[i], rotationAngle, translationPoint);
-				if (currentOverlapPenalty < overlapPenalty)
-				{
-					overlapPenalty = currentOverlapPenalty;
-					bestLocation = translationPoint;
-					bestRotationAngle = rotationAngle;
-				}
-			}
-			// check with 4 random angles
-			srand(time(NULL));
-			for (int rna_i = 0; rna_i < 4; rna_i++)
-			{
-				long double rotationAngle = std::rand() % 360;
-				if (rotationAngle == 0 or rotationAngle == 90 or
-					rotationAngle == 180 or rotationAngle == 270)
-				{
-					--rna_i;
-					continue;
-				}
-				Point translationPoint =
-					bin_packing::cuckooSearch(packing, penalty, Q[i], rotationAngle, width, length);
-				long double currentOverlapPenalty =
-					bin_packing::getOverlapPenalty(packing, penalty, Q[i], rotationAngle, translationPoint);
-				if (currentOverlapPenalty < overlapPenalty)
-				{
-					overlapPenalty = currentOverlapPenalty;
-					bestLocation = translationPoint;
-					bestRotationAngle = rotationAngle;
-				}
-			}
-
-			if (geo_util::dblcmp(INF - bestLocation.get<0>()) <= 0 or
-				geo_util::dblcmp(INF - bestLocation.get<1>()) <= 0)
-			{
-				continue;
-			}
-			packing[Q[i]] =
-				geo_util::poly_util::rotateCW(packing[Q[i]], bestRotationAngle, packing[Q[i]].outer().front());
-			Point newPosition = bestLocation;
-			boost_geo::subtract_point(newPosition, packing[Q[i]].outer().front());
-			packing[Q[i]] = geo_util::poly_util::translate(packing[Q[i]], newPosition);
-		}
-		long double currentTotalOverlapPenalty = bin_packing::getTotalPenetrationDepth(packing);
-		if (currentTotalOverlapPenalty < bestTotalOverlapPenalty)
-		{
-			noProgressOfPenalyCount = 0;
-			bestTotalOverlapPenalty = currentTotalOverlapPenalty;
-			bestPacking = packing;
-			if (bin_packing::isFeasible(bestPacking, totalAreaOfInputPolygons))
-			{
-				return bestPacking;
-			}
-		}
-		else
-		{
-			noProgressOfPenalyCount++;
-			if (noProgressOfPenalyCount >= 4) // having same penalty consicutively 4 times
-			{
-				outputLog << "no progress in penalty......................." << std::endl;
-				outputLog << "minimize overlap terminated.................." << std::endl;
-				break;
-			}
-		}
-		geo_util::visualize(packing, outputLocation, "minimize_overlap" + std::to_string(it)); // visualization
-		long double totalPenetrationDepth = bin_packing::getTotalPenetrationDepth(packing);
-		if (geo_util::dblcmp(totalPenetrationDepth) == 0)
-		{
-			return packing;
-		}
-		else if (totalPenetrationDepth < fitness)
-		{
-			fitness = totalPenetrationDepth;
-			it = 0;
-		}
-		bin_packing::increasePenalty(packing, penalty); // increase penalty
-		it += 1;
-	}
-	return bestPacking;
+	return {packing, false};
 }
 
-void bin_packing::cuckooPacking(
-	string datasetname, string outputLocation, long double width, long double runTimeDuration)
+void bin_packing::cuckooPacking(string datasetname, string outputLocation, long double width, long double runTimeDuration)
 {
 	// clock started
 	auto start = std::chrono::high_resolution_clock::now();
@@ -1390,29 +1471,27 @@ void bin_packing::cuckooPacking(
 
 	MultiPolygon bestPacking = initialPacking;
 	MultiPolygon currentPacking = initialPacking;
+	MultiPolygon originalPacking = initialPacking;
 
-	long double bestLenght = geo_util::poly_util::getLength(initialPacking);
+	long double bestLength = geo_util::poly_util::getLength(initialPacking);
 	long double decreasingRate = LENGTH_DECREASING_RATE;
 	long double increasingRate = LENGTH_INCREASING_RATE;
-	long double currentLength = bestLenght;
+	long double currentLength = (1 - decreasingRate) * bestLength;
 	int feasiblePackingId = 0;
 
-	while (true)
+	pushDown(currentPacking, currentLength);
+	int iter = 3;
+	while (iter > 0)
 	{
-		auto stop = std::chrono::high_resolution_clock::now();
-		auto duration = std::chrono::duration_cast<std::chrono::minutes>(stop - start);
-		if (duration.count() >= runTimeDuration)
-		{
-			outputLog << "time's up!!!\n";
-			break;
-		}
-		if (bin_packing::isFeasible(currentPacking, totalAreaOfInitialPackingPolygons))
+		bool flag;
+		std::tie(currentPacking, flag) = bin_packing::minimizeOverlap(currentPacking, ALLOWABLE_ROTATIONS, width, currentLength, totalAreaOfInitialPackingPolygons, outputLog, cuckooPackingStepsDirectoryName);
+		if (flag == true)
 		{
 			long double currentAccuracy = bin_packing::getPackingDensity(currentPacking);
 			outputLog << "feasible packing id..........................: " << feasiblePackingId << std::endl;
 			outputLog << "current accuracy.............................: " << currentAccuracy << std::endl;
 			bestPacking = currentPacking;
-			bestLenght = currentLength;
+			bestLength = currentLength;
 			currentLength = (1.0 - decreasingRate) * currentLength;
 			pushDown(currentPacking, currentLength);
 
@@ -1423,13 +1502,10 @@ void bin_packing::cuckooPacking(
 		}
 		else
 		{
+			currentPacking = originalPacking;
 			currentLength = (1.0 + increasingRate) * currentLength;
+			iter -= 1;
 		}
-		outputLog << "running minimizeOverlap()....................: " << std::endl;
-		currentPacking = bin_packing::minimizeOverlap(
-			currentPacking, ALLOWABLE_ROTATIONS, width, currentLength,
-			totalAreaOfInitialPackingPolygons, outputLog, cuckooPackingStepsDirectoryName);
-
 		geo_util::visualize(currentPacking, cuckooPackingStepsDirectoryName, "minimized_overlap");
 	}
 
