@@ -390,7 +390,15 @@ long double evaluateAll(MultiPolygon& packing, vector<vector<long double>>& pena
 
 Point getCuckoo(long double x1, long double x2, long double y1, long double y2)
 {
-	return Point(randomInRange(x1, x2), randomInRange(y1, y2));
+	long double x = randomInRange(x1, x2);
+	long double y = randomInRange(y1, y2);
+	if( x < x1 ) x = x1;
+	else if( x > x2 ) x = x2;
+
+	if(y < y1) y = y1;
+	else if( y > y2 ) y = y2;
+
+	return Point(x, y);
 }
 
 Point normalDistribution(long double& sigma, bool multiplicate)
@@ -459,26 +467,12 @@ vector<Point> levyFlight(vector<Point>& cuckoos, Point bestCuckoo, long double x
 		long double y = s.get<1>() + step.get<1>() * walk.get<1>();
 
 		
-
-
-		if( geo_util::dblcmp(x1 - x) <= 0 && geo_util::dblcmp(x - x2) <= 0 && geo_util::dblcmp(y1 - y) <= 0 && geo_util::dblcmp(y - y2) <= 0)
-		{
-			// std::cout << "        " << i << " => 0\n";
-			newCuckoos[i] = Point(x, y);
-		}
-		else 
-		{
-			if( geo_util::dblcmp(y - y1) < 0 || geo_util::dblcmp(y - y2) > 0)
-			{
-				newCuckoos[i] = Point(x1, y1);
-			}
-			else
-			{
-				newCuckoos[ i ] = Point(x2, y2);
-			}
-		}
-		assert(geo_util::dblcmp(x1 - newCuckoos[i].get<0>()) <= 0 && geo_util::dblcmp(newCuckoos[i].get<0>() - x2) <= 0);
-		assert(geo_util::dblcmp(y1 - newCuckoos[i].get<1>()) <= 0 && geo_util::dblcmp(newCuckoos[i].get<1>() - y2) <= 0);
+		if( x < x1 ) x = x1;
+		else if( x > x2 ) x = x2;
+		if(y < y1) y = y1;
+		else if( y > y2 ) y = y2;
+		
+		newCuckoos[i] = Point(x, y);
 	}
 
 	return newCuckoos;
@@ -514,7 +508,8 @@ Polygon translatePolygon(Polygon polygon, Point point)
 	polygon = geo_util::poly_util::translate(polygon, point);
 	return polygon;
 }
-Point bin_packing::cuckooSearch( MultiPolygon &packing, vector<vector<long double>> &penalty, int polygonId, long double rotationAngle, long double length, long double width)
+
+/**Point bin_packing::cuckooSearch( MultiPolygon &packing, vector<vector<long double>> &penalty, int polygonId, long double rotationAngle, long double length, long double width)
 {
 	Polygon polygon = packing[polygonId];
 	polygon = geo_util::poly_util::rotateCW(polygon, rotationAngle, polygon.outer()[0]);
@@ -524,23 +519,6 @@ Point bin_packing::cuckooSearch( MultiPolygon &packing, vector<vector<long doubl
 	double y1 = ifr.outer()[0].get<1>();
 	double x2 = ifr.outer()[2].get<0>();
 	double y2 = ifr.outer()[2].get<1>();
-
-	MultiPolygon temp;
-
-
-	Polygon rec;	
-	rec.outer().push_back(Point(0,0));
-	rec.outer().push_back(Point(0,length));
-	rec.outer().push_back(Point(width,length));
-	rec.outer().push_back(Point(width,0));
-	rec.outer().push_back(Point(0,0));
-	temp.push_back(rec);
-	for(auto point: ifr.outer())
-	{
-		//temp.push_back(translatePolygon(polygon, point));
-	}
-	
-
 
 	srand(time(NULL));
 	vector<Point> cuckoos(NUMBER_OF_CUCKOOS);
@@ -591,7 +569,136 @@ Point bin_packing::cuckooSearch( MultiPolygon &packing, vector<vector<long doubl
 	//geo_util::visualize(temp, "../io/results/dighe1/gurbage/", "ifr");
 	return bestCuckoo;
 }
+**/
 
+
+long double findBestCuckoo(Point &bestCuckoo, vector<Point> &cuckoos, vector<Point> &newCuckoos, vector<long double> &fitnesses, MultiPolygon& packing, int polygonId, long double rotationAngleInDegree)
+{
+	int n = cuckoos.size();
+	for(int i = 0; i < n; i += 1)
+	{
+		long double fitness = evaluate(packing, polygonId, newCuckoos[i], rotationAngleInDegree);
+		if( fitness < fitnesses[i] )
+		{
+			fitnesses[i] = fitness;
+			cuckoos[i] = newCuckoos[i]; 
+		}
+	}
+
+	//for(int i = 0; i < n; i += 1) std::cout << boost_geo::wkt(cuckoos[i]) << " *\n";
+	//for(int i = 0; i < n; i += 1) std::cout << fitnesses[i] << " -\n";
+
+	double minFitness = INF;
+	for(int i = 0; i < n; i += 1)
+	{
+		if( minFitness > fitnesses[i])
+		{
+			minFitness = fitnesses[i];
+			bestCuckoo = cuckoos[i];
+		}
+	}
+	// std::cout << boost_geo::wkt(bestCuckoo) << " best cuckoo\n";
+	return minFitness;
+}
+
+long double getRandomValue(long double l, long double r)
+{
+	long double randValue = (long double)rand() / RAND_MAX;
+	return l + randValue * (r - l);
+}
+
+vector<Point> emptyCuckoos(vector<Point> &cuckoos, long double x1, long double x2, long double y1, long double y2)
+{
+	int n = cuckoos.size();
+	unsigned seed2 = std::chrono::system_clock::now().time_since_epoch().count();
+	srand(seed2);
+
+	vector<vector<long double>> k(n, vector<long double>(2));
+	for(int i = 0; i < n; i += 1)
+	{
+		k[i][0] = ( getRandomValue(-1, 1) > DISCOVER_PROBABILITY) ? 1.0 : 0.0;
+		k[i][1] = ( getRandomValue(-1, 1) > DISCOVER_PROBABILITY) ? 1.0 : 0.0;
+	}
+
+	unsigned seed3 = std::chrono::system_clock::now().time_since_epoch().count();
+	srand(seed3);
+	vector<Point> randCuckoos1(n), randCuckoos2(n);
+	vector<vector<long double>> stepSize(n, vector<long double>(2));
+	for (int i = 0; i < n; i += 1)
+	{
+		randCuckoos1[i] = getCuckoo(x1, x2, y1, y2);
+		randCuckoos2[i] = getCuckoo(x1, x2, y1, y2);
+		stepSize[i][0] = getRandomValue(-1.0, 1.0) * (randCuckoos1[i].get<0>() - randCuckoos2[i].get<0>());
+		stepSize[i][1] = getRandomValue(-1.0, 1.0) * (randCuckoos1[i].get<1>() - randCuckoos2[i].get<1>());
+	}
+	vector<Point> newCuckoos(n);
+	for(int i = 0; i < n; i += 1)
+	{
+		long double x = cuckoos[i].get<0>() + stepSize[i][0] * k[i][0];
+		long double y = cuckoos[i].get<1>() + stepSize[i][1] * k[i][1];
+
+		if( x < x1 ) x = x1;
+		else if( x > x2 ) x = x2;
+
+		if(y < y1) y = y1;
+		else if( y > y2 ) y = y2;
+
+		newCuckoos[i] = Point(x, y);
+		assert(geo_util::dblcmp(x1 - newCuckoos[i].get<0>()) <= 0 && geo_util::dblcmp(newCuckoos[i].get<0>() - x2) <= 0);
+		assert(geo_util::dblcmp(y1 - newCuckoos[i].get<1>()) <= 0 && geo_util::dblcmp(newCuckoos[i].get<1>() - y2) <= 0);
+	}
+	return newCuckoos;
+}
+Point bin_packing::cuckooSearch( MultiPolygon &packing, vector<vector<long double>> &penalty, int polygonId, long double rotationAngle, long double length, long double width)
+{
+	Polygon polygon = packing[polygonId];
+	polygon = geo_util::poly_util::rotateCW(polygon, rotationAngle, polygon.outer()[0]);
+	Polygon ifr = polygon_fit::getInnerFitRectangle({polygon}, length, width);
+
+	double x1 = ifr.outer()[0].get<0>();
+	double y1 = ifr.outer()[0].get<1>();
+	double x2 = ifr.outer()[2].get<0>();
+	double y2 = ifr.outer()[2].get<1>();
+
+	unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
+	srand(seed1);
+	vector<Point> cuckoos(NUMBER_OF_CUCKOOS);
+	for (int i = 0; i < NUMBER_OF_CUCKOOS; i += 1)
+	{
+		cuckoos[i] = getCuckoo(x1, x2, y1, y2);
+		assert( x1 <= cuckoos[i].get<0>() && cuckoos[i].get<0>() <= x2 );
+		assert( y1 <= cuckoos[i].get<1>() && cuckoos[i].get<1>() <= y2 );
+	}
+
+	vector<long double> fitnesses(NUMBER_OF_CUCKOOS, INF);
+	Point bestCuckoo;
+	long double minFitness = findBestCuckoo(bestCuckoo, cuckoos, cuckoos, fitnesses, packing, polygonId, rotationAngle);
+
+	long double tolerance = 1e-4;
+	int iter = 0;
+	while( minFitness > tolerance && iter < MAXIMUM_NUMBER_OF_GENERATION)
+	{
+		//std::cout << boost_geo::wkt(bestCuckoo) << " " << x1 << " " << x2 << " " << y1 << " " << y2 << " enter\n";
+		vector<Point> newCuckoos = levyFlight(cuckoos, bestCuckoo, x1, x2, y1, y2);
+		Point best;
+		//std::cout << boost_geo::wkt(bestCuckoo) << " " << x1 << " " << x2 << " " << y1 << " " << y2 << " levy\n";
+		long double fitness = findBestCuckoo(best, cuckoos, newCuckoos, fitnesses, packing, polygonId, rotationAngle);
+		newCuckoos = emptyCuckoos(cuckoos, x1, x2, y1, y2);
+		fitness = findBestCuckoo(best, cuckoos, newCuckoos, fitnesses, packing, polygonId, rotationAngle);
+		//std::cout << boost_geo::wkt(bestCuckoo) << " " << x1 << " " << x2 << " " << y1 << " " << y2 << " empty\n";
+		if( fitness < minFitness )
+		{
+			minFitness = fitness;
+			bestCuckoo = best;
+			//std::cout << minFitness << " " << boost_geo::wkt(best) << "\n";
+		}
+		// std::cout << boost_geo::wkt(bestCuckoo) << " " << x1 << " " << x2 << " " << y1 << " " << y2 << " exit\n";
+		iter += 1;
+	}
+	assert(geo_util::dblcmp(x1 - bestCuckoo.get<0>()) <= 0 && geo_util::dblcmp(bestCuckoo.get<0>() - x2) <= 0);
+	assert(geo_util::dblcmp(y1 - bestCuckoo.get<1>()) <= 0 && geo_util::dblcmp(bestCuckoo.get<1>() - y2) <= 0);
+	return bestCuckoo;
+}
 std::tuple<MultiPolygon, bool> bin_packing::minimizeOverlap(MultiPolygon packing, vector<long double> allowableRoatations, long double width, long double length,long double totalAreaOfInputPolygons, std::ofstream &outputLog, string outputLocation)
 {
 	long double fitness = INF;

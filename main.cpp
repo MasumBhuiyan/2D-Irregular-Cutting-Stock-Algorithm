@@ -17,7 +17,7 @@ int main(int argc, char const *argv[])
     // testDataset("albano", argc == 0);  
     // testDataset("blaz", argc == 0);    
     // testDataset("dagli", argc == 0);   
-    testDataset("dighe1", argc == 0); //  
+     testDataset("dighe1", argc == 0); //  
     // testDataset("jakobs1", argc == 0); 
     // testDataset("jakobs2", argc == 0); 
     // testDataset("trousers", argc == 0);
