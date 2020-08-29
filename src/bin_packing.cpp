@@ -742,7 +742,7 @@ std::tuple<MultiPolygon, bool> bin_packing::minimizeOverlap(MultiPolygon packing
 			// std::cout << "      " << geo_util::poly_util::getWidth(packing) << "*****\n";
 		}
 
-		geo_util::visualize(packing, "../io/results/dighe1/gurbage/", "bug");
+		// geo_util::visualize(packing, "../io/results/dighe1/gurbage/", "bug");
 		long double currentFitness = evaluateAll(packing, penalty, depths);
 		std::cout << currentFitness << "\n";
 		/*std::cout << "    => packing length.: " << geo_util::poly_util::getLength(packing) << "\n";
@@ -840,7 +840,7 @@ void bin_packing::cuckooPacking(string datasetname, string outputLocation, long 
 			currentLength = (1.0 + increasingRate) * currentLength;
 			iter -= 1;
 		}
-		geo_util::visualize(currentPacking, cuckooPackingStepsDirectoryName, "minimized_overlap");
+		// geo_util::visualize(currentPacking, cuckooPackingStepsDirectoryName, "minimized_overlap");
 	}
 
 	std::ofstream finalPackingWKTFile(cuckooPackingDirectoryName + "/final_packing.wkt");
