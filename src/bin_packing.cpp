@@ -707,12 +707,12 @@ std::tuple<MultiPolygon, bool> bin_packing::minimizeOverlap(MultiPolygon packing
 	
 	vector<vector<long double>> penalty(n, vector<long double>(n, 1.0));
 	vector<vector<long double>> depths(n, vector<long double> (n, 0.0));
+	std::cout << "    length: " << length << "\n";
 	while( iter < MAXIMUM_ITERATIONS_FOR_LOCAL_MINIMA )
 	{
-		std::cout << "    minimizeOverlap iteration(" << iter << ")\n";
-		std::cout << "    length: " << length << "\n";
-		std::cout << "    width: " << width << "\n";
-		std::cout << "    total area: " << totalAreaOfInputPolygons << "\n";
+		std::cout << "    minimizeOverlap iteration(" << iter << ") ";
+		// std::cout << "    width: " << width << "\n";
+		// std::cout << "    total area: " << totalAreaOfInputPolygons << "\n";
 		vector<int> Q;
 		for(int i = 0; i < n; i += 1) 
 		{
@@ -736,7 +736,7 @@ std::tuple<MultiPolygon, bool> bin_packing::minimizeOverlap(MultiPolygon packing
 					o = rotation;
 				}
 			}
-			std::cout << "      Polygon (" << i << "/" << n << ")" << " eval => " << eval << "\n";
+			// std::cout << "      Polygon (" << i << "/" << n << ")" << " eval => " << eval << "\n";
 			packing[Q[i]] = rotateTranslate(packing[Q[i]], v, o);
 			// std::cout << "      " << boost_geo::wkt(packing[Q[i]]) << "\n";
 			// std::cout << "      " << geo_util::poly_util::getWidth(packing) << "*****\n";
@@ -744,10 +744,10 @@ std::tuple<MultiPolygon, bool> bin_packing::minimizeOverlap(MultiPolygon packing
 
 		geo_util::visualize(packing, "../io/results/dighe1/gurbage/", "bug");
 		long double currentFitness = evaluateAll(packing, penalty, depths);
-		std::cout << "    => current fitness: " << currentFitness << "\n";
-		std::cout << "    => packing length.: " << geo_util::poly_util::getLength(packing) << "\n";
+		std::cout << currentFitness << "\n";
+		/*std::cout << "    => packing length.: " << geo_util::poly_util::getLength(packing) << "\n";
 		std::cout << "    => packing width..: " << geo_util::poly_util::getWidth(packing) << "\n";
-		std::cout << "    => area...........: " << boost_geo::area(packing) << "\n";
+		std::cout << "    => area...........: " << boost_geo::area(packing) << "\n";*/
 		if( geo_util::dblcmp(currentFitness - FEASIBILTY) <= 0 )
 		{
 			return {packing, true};
@@ -783,7 +783,7 @@ void bin_packing::cuckooPacking(string datasetname, string outputLocation, long 
 			  << std::ctime(&start_time) << std::endl;
 
 	outputLog << "reading initial packing......................:" << std::endl;
-	string initialSolutionFileName = outputLocation + "/" + datasetname + "/initial_solution/initial_packing.wkt";
+	string initialSolutionFileName = outputLocation + "/" + datasetname + "/initial_solution/dighe1_sortByDecLen.wkt";
 	MultiPolygon initialPacking;
 	geo_util::poly_util::readWKTMultiPolygon(initialPacking, initialSolutionFileName);
 	outputLog << boost_geo::wkt(initialPacking) << std::endl

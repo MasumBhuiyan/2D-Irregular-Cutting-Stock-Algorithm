@@ -5,6 +5,7 @@ void testDataset(std::string datasetName, bool flag = true)
     double width;
     std::vector<Polygon> inputPolygons;
     std::tie(inputPolygons, width) = bin_packing::readDataset(datasetName);
+
     bin_packing::cuckooPacking(datasetName, "../io/results", width, 60);
 }
 
