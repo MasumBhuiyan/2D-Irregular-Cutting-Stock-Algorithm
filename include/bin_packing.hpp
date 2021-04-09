@@ -35,7 +35,10 @@ const double PI = acos(-1);
 
 static int frameno;
 
-namespace boost_geo_util
+/**
+ * customized geometry utility methods using boost
+ * */
+namespace boost_geo_util 
 {
     Polygon constructBGPolygon(PolygonInput &);
     bool isPolygonIntersectPolygon(MultiPolygon &, MultiPolygon &);
