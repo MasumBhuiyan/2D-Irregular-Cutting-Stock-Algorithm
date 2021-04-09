@@ -160,7 +160,8 @@ void bin_packing::binPacking(std::vector<PolygonInput> &items, double length, do
     std::cout << "\033[1;36mtotal area of items........: " << totalAreaOfItems << "\033[0m" << std::endl;
     std::cout << "\033[1;36mresult polygon set area....: " << resultMultiPolygonArea << "\033[0m" << std::endl;
     std::cout << "\033[1;36mstock dimension [l * w]....: "
-              << "[" << std::fabs(stockDimension.x) << ", " << std::fabs(stockDimension.y) << "]" << "\033[0m" << std::endl;
+              << "[" << std::fabs(stockDimension.x) << ", " << std::fabs(stockDimension.y) << "]"
+              << "\033[0m" << std::endl;
     std::cout << "\033[1;36mstock area.................: " << stockArea << "\033[0m" << std::endl;
     std::cout << "\033[1;32mpacking density............: " << (totalAreaOfItems / stockArea) * 100 << " %\033[0m" << std::endl;
 
